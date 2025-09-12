@@ -42,7 +42,8 @@ dependencies {
     implementation(libs.firebase.auth) // Firebase 인증 라이브러리 (이메일, 소셜 미디어, 익명 로그인 등 다양한 인증 방식 지원)
     implementation(libs.credentials) // 사용자 인증 정보(비밀번호, 패스키 등) 관리를 위한 Credential Manager API
     implementation(libs.credentials.play.services.auth) // Google Play 서비스를 통해 제공되는 인증 정보(예: Google 비밀번호 사용) 관리 확장
-    implementation(libs.googleid) // Google ID 서비스 라이브러리 (Google 계정으로 로그인, 원탭 로그인 등 지원)
+    implementation(libs.googleid)
+    implementation(libs.firebase.analytics) // Google ID 서비스 라이브러리 (Google 계정으로 로그인, 원탭 로그인 등 지원)
 
     testImplementation(libs.junit) // 로컬 JVM 환경에서 실행되는 단위 테스트를 위한 JUnit 프레임워크
     androidTestImplementation(libs.ext.junit) // 안드로이드 기기 또는 에뮬레이터에서 실행되는 계측 테스트를 위한 JUnit 확장 라이브러리
