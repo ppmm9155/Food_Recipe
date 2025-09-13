@@ -11,31 +11,34 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Food_Recipe">
-        
-        
-        <activity
-            android:name=".LoginActivity"
-            android:exported="true" >
 
+        <!-- SplashActivity를 LAUNCHER로 지정 -->
+        <activity
+            android:name=".SplashActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Food_Recipe.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- 이후 로그인 액티비티 -->
+        <activity
+            android:name=".LoginActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Food_Recipe"/>
+
+
         <activity
             android:name=".JoinActivity"
-            android:exported="false" />
+            android:exported="true"
+            android:theme="@style/Theme.Food_Recipe"/>
       
         <activity
             android:name=".MainActivity"
-            android:exported="false">
-           <!--><intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter> -->
-        </activity>
+            android:exported="true"
+            android:theme="@style/Theme.Food_Recipe"/>
     </application>
 
 </manifest>
