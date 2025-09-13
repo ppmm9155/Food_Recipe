@@ -48,4 +48,6 @@ dependencies {
     testImplementation(libs.junit) // 로컬 JVM 환경에서 실행되는 단위 테스트를 위한 JUnit 프레임워크
     androidTestImplementation(libs.ext.junit) // 안드로이드 기기 또는 에뮬레이터에서 실행되는 계측 테스트를 위한 JUnit 확장 라이브러리
     androidTestImplementation(libs.espresso.core) // 안드로이드 UI 테스트 자동화를 위한 Espresso 프레임워크의 핵심 라이브러리
+
+    implementation(libs.core.splashscreen) //SplashScreen API
 }
