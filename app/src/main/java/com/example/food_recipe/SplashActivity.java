@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -34,7 +35,7 @@ public class SplashActivity extends AppCompatActivity {
 
 
         // 일정 시간 후 작업 실행: SPLASH_DELAY 후 Runnable 실행
-        new Handler().postDelayed(() -> {
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
             keepSplash = false;  // 이제 Splash 유지 조건 해제
 
             // 로그인 상태 체크
