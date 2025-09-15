@@ -32,10 +32,14 @@ public class SplashActivity extends AppCompatActivity {
         // keepSplash 가 true 인 동안은 Splash 화면 유지됨
         splash.setKeepOnScreenCondition(() -> keepSplash);
 
+        Intent intent;
+        intent = new Intent(SplashActivity.this,MainActivity.class);
+        startActivity(intent);
+        finish();
 
 
         // 일정 시간 후 작업 실행: SPLASH_DELAY 후 Runnable 실행
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+        /*new Handler(Looper.getMainLooper()).postDelayed(() -> {
             keepSplash = false;  // 이제 Splash 유지 조건 해제
 
             // 로그인 상태 체크
@@ -50,13 +54,14 @@ public class SplashActivity extends AppCompatActivity {
             finish();  // SplashActivity 종료
         }, SPLASH_DELAY);
 
-    }
-    private boolean checkUserLoginStatus() {
+    }*/
+    /*private boolean checkUserLoginStatus() {
         // FirebaseAuth 인스턴스로부터 현재 로그인된 유저 검사
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         // 유저 객체가 null 이 아니면 로그인 상태 있음 → true 반환
         // null 이면 로그인 상태 없음 → false 반환
         return currentUser != null;
-    }
+    }*/
 
+    }
 }
