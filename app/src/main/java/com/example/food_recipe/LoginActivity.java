@@ -2,9 +2,11 @@ package com.example.food_recipe;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,6 +21,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
 
 public class LoginActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
@@ -77,7 +80,30 @@ public class LoginActivity extends AppCompatActivity {
                     startActivity(intent);
                     finish();
                 } else {
-                    Toast.makeText(LoginActivity.this, "로그인 실패", Toast.LENGTH_SHORT).show();
+                    Exception exception = task.getException();
+                    Log.e("LoginError", "로그인 실패", exception);
+
+                    String userMessage = "로그인에 실패했습니다. 다시 시도해주세요";
+
+                    if(exception instanceof FirebaseAuthException) {
+                        String errorCode = ((FirebaseAuthException) exception).getErrorCode();
+
+                        switch (errorCode) {
+                            case "ERROR_INVALID_EMAIL":
+                                userMessage = "이메일 형식이 올바르지 않습니다.";
+                                break;
+                                case "ERROR_WRONG_PASSWORD":
+                                userMessage = "비밀번호가 올바르지 않습니다.";
+                                break;
+                            case "ERROR_USER_NOT_FOUND":
+                                userMessage = "존재하지 않는 사용자입니다.";
+                                break;
+                                case "ERROR_USER_DISABLED":
+                                    userMessage = "사용자 계정이 비활성화되었습니다.";
+                                    break;
+                        }
+                    }
+                    Toast.makeText(LoginActivity.this, userMessage, Toast.LENGTH_SHORT).show();
                 }
             }
         });
