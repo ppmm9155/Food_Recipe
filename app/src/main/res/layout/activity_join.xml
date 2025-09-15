@@ -1,105 +1,147 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/join"
-    android:padding="24dp"
-    android:background="#FFFFFF">
+    android:fillViewport="true"
+    android:fitsSystemWindows="true"
+    android:background="?attr/colorSurface">
 
     <LinearLayout
+        android:id="@+id/join"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:gravity="center_horizontal">
+        android:gravity="center"
+        android:paddingStart="@dimen/auth_horizontal_margin"
+        android:paddingEnd="@dimen/auth_horizontal_margin"
+        android:paddingTop="@dimen/auth_vertical_margin"
+        android:paddingBottom="@dimen/auth_vertical_margin">
 
         <!-- 제목 -->
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/Join_tvTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="회원가입"
             android:textSize="28sp"
             android:textStyle="bold"
+            android:textColor="?attr/colorOnBackground"
             android:layout_marginBottom="24dp"/>
 
-        <!-- 아이디 -->
-        <!-- <EditText
-            android:id="@+id/etId"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="아이디"
-            android:inputType="textPersonName"
-            android:layout_marginBottom="12dp"/> -->
-
-        <!-- 이메일 -->
-        <EditText
-            android:id="@+id/Join_etEmail"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="이메일"
-            android:inputType="textEmailAddress"
-            android:layout_marginBottom="12dp"/>
-
-        <!-- 비밀번호 -->
-        <EditText
-            android:id="@+id/Join_etPassword"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="비밀번호"
-            android:inputType="textPassword"
-            android:layout_marginBottom="12dp"/>
-
-        <!-- 비밀번호 재입력 -->
-        <EditText
-            android:id="@+id/Join_etPasswordConfirm"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="비밀번호 재입력"
-            android:inputType="textPassword"
-            android:layout_marginBottom="20dp"/>
-
-        <!-- 성별 선택 -->
+        <!-- 아이디 + 중복확인 -->
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="20dp">
+            android:layout_marginBottom="12dp">
 
-            <TextView
-                android:layout_width="wrap_content"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilId"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="성별 "
-                android:textSize="16sp"
-                android:layout_gravity="center_vertical"/>
+                android:layout_weight="1"
+                app:helperText="아이디는 4~16자, 영문/숫자만 허용됩니다.">
 
-            <RadioGroup
-                android:id="@+id/rgGender"
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/Join_etId"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="아이디"
+                    android:inputType="textPersonName"
+                    android:maxLength="16"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCheckId"
+                style="@style/Widget.App.Button.Outlined"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <RadioButton
-                    android:id="@+id/Join_rbMale"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="남성" />
-
-                <RadioButton
-                    android:id="@+id/Join_rbFemale"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="여성" />
-            </RadioGroup>
+                android:layout_height="match_parent"
+                android:text="중복확인"
+                android:minHeight="0dp"
+                android:paddingHorizontal="16dp"
+                android:layout_marginStart="8dp"/>
         </LinearLayout>
 
-        <!-- 회원가입 버튼 -->
-        <Button
-            android:id="@+id/Join_btnRegister"
+        <!-- 이메일 + 인증 -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="12dp">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilEmail"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:helperText="올바른 이메일 형식을 입력하세요.">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/Join_etEmail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="이메일"
+                    android:inputType="textEmailAddress"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnVerifyEmail"
+                style="@style/Widget.App.Button.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="인증"
+                android:minHeight="0dp"
+                android:paddingHorizontal="16dp"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
+
+        <!-- 비밀번호 -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilPassword"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:endIconMode="password_toggle"
+            app:helperText="비밀번호는 8자 이상, 영문/숫자/특수문자 포함 권장">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/Join_etPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="비밀번호"
+                android:inputType="textPassword"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- 비밀번호 재입력 -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilPasswordConfirm"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            app:endIconMode="password_toggle"
+            app:helperText="비밀번호를 다시 입력해주세요.">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/Join_etPasswordConfirm"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="비밀번호 재입력"
+                android:inputType="textPassword"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- 회원가입 버튼 -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/Join_btnRegister"
+            style="@style/Widget.App.Button.Filled"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
             android:text="회원가입"
-            android:backgroundTint="@android:color/darker_gray"
-            android:textColor="#000000"
-            android:padding="12dp"/>
+            app:cornerRadius="12dp"/>
     </LinearLayout>
-</LinearLayout>
+</androidx.core.widget.NestedScrollView>
