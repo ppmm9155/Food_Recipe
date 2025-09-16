@@ -3,6 +3,12 @@
     <color name="transparent">#00000000</color>
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
-    <color name="black_2">#1A1A1A</color>
+
+    <!-- 모던 흑백 보조톤 -->
+    <color name="gray_100">#F5F5F5</color>
+    <color name="gray_200">#E6E6E6</color>
+    <color name="gray_600">#757575</color>
+
+    <color name="black_2">#121212</color> <!-- 약간 밝은 블랙(다크 배경용) -->
     <!-- 필요하면 다른 색상들 -->
 </resources>
