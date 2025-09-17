@@ -10,7 +10,7 @@
     android:id="@+id/findid">
 
     <TextView
-        android:id="@+id/textViewTitle"
+        android:id="@+id/fi_textViewTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="60dp"
@@ -20,7 +20,7 @@
         android:textColor="@android:color/black" />
 
     <TextView
-        android:id="@+id/textViewEmailLabel"
+        android:id="@+id/fi_textViewEmailLabel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
@@ -30,7 +30,7 @@
         android:textColor="@android:color/black" />
 
     <EditText
-        android:id="@+id/editTextEmail"
+        android:id="@+id/fi_editTextEmail"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:layout_marginTop="8dp"
@@ -41,7 +41,7 @@
         android:textColorHint="@android:color/white" />
 
     <TextView
-        android:id="@+id/textViewEmailAuthLabel"
+        android:id="@+id/fi_textViewEmailAuthLabel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
@@ -50,29 +50,46 @@
         android:textStyle="bold"
         android:textColor="@android:color/black" />
 
-    <EditText
-        android:id="@+id/editTextEmailAuth"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
         android:layout_marginTop="8dp"
-        android:background="@android:color/darker_gray"
-        android:inputType="number"
-        android:padding="8dp"
-        android:hint="인증번호"
-        android:textColorHint="@android:color/white" />
+        android:gravity="center_vertical" >
+
+        <EditText
+            android:id="@+id/fi_editTextEmailAuth"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:background="@android:color/darker_gray"
+            android:padding="8dp"
+            android:hint="인증번호"
+            android:textColorHint="@android:color/white" />
+
+            <com.google.android.material.button.MaterialButton
+            android:id="@+id/fi_buttonVerify"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:layout_marginStart="8dp"
+            android:backgroundTint="@android:color/darker_gray"
+            android:text="인증"
+            android:textColor="@android:color/white"
+            android:textSize="18sp" />
+    </LinearLayout>
 
     <TextView
-        android:id="@+id/textViewNewIdLabel"
+        android:id="@+id/fi_textViewNewIdLabel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        android:text="새아이디"
+        android:text="새 아이디"
         android:textSize="20sp"
         android:textStyle="bold"
         android:textColor="@android:color/black" />
 
     <EditText
-        android:id="@+id/editTextNewId"
+        android:id="@+id/fi_editTextNewId"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:layout_marginTop="8dp"
@@ -83,14 +100,13 @@
         android:textColorHint="@android:color/white" />
 
     <Button
-        android:id="@+id/buttonLogin"
+        android:id="@+id/fi_buttonLogin"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:layout_marginTop="60dp"
         android:backgroundTint="@android:color/darker_gray"
-        android:text="로그인하기"
+        android:text="로그인 하러 가기"
         android:textColor="@android:color/black"
         android:textSize="18sp"
         android:textStyle="bold" />
-
 </LinearLayout>
