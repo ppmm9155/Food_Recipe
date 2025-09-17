@@ -49,5 +49,18 @@
             android:screenOrientation="unspecified"
             android:windowSoftInputMode="adjustResize|stateHidden" />
 
+        <activity
+            android:name=".FindIdActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Food_Recipe"
+            android:screenOrientation="fullSensor"
+            android:windowSoftInputMode="adjustResize|stateHidden" />
+
+        <activity
+            android:name=".FindPsActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Food_Recipe"
+            android:screenOrientation="fullSensor"
+            android:windowSoftInputMode="adjustResize|stateHidden" />
     </application>
 </manifest>
