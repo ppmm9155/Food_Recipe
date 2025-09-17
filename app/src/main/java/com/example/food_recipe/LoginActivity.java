@@ -55,12 +55,13 @@ public class LoginActivity extends AppCompatActivity {
         mAuth.setLanguageCode("ko");
 
         // 뷰 바인딩
-        tilEmail     = findViewById(R.id.tilEmail);
-        etEmail      = findViewById(R.id.ETemail);
-        tilPassword  = findViewById(R.id.tilPassword);
-        etPassword   = findViewById(R.id.ETpassword);
-        cbAutoLogin  = findViewById(R.id.autoLoginCheckBox);
-        btnLogin     = findViewById(R.id.login_btn);
+        tilEmail = findViewById(R.id.tilEmail);
+        etEmail = findViewById(R.id.ETemail);
+        tilPassword = findViewById(R.id.tilPassword);
+        etPassword = findViewById(R.id.ETpassword);
+        cbAutoLogin = findViewById(R.id.autoLoginCheckBox);
+        btnLogin = findViewById(R.id.login_btn);
+
 
         btnLogin.setOnClickListener(v -> attemptLogin());
 
@@ -68,14 +69,22 @@ public class LoginActivity extends AppCompatActivity {
         etEmail.addTextChangedListener(new SimpleWatcher(this::clearEmailError));
         etPassword.addTextChangedListener(new SimpleWatcher(this::clearPasswordError));
 
-
         // 회원가입 이동
         findViewById(R.id.joinT).setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, JoinActivity.class);
             startActivity(intent);
         });
-    }
 
+        findViewById(R.id.Tfind_id).setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, FindIdActivity.class);
+            startActivity(intent);
+        });
+
+        findViewById(R.id.Tfind_password).setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, FindPsActivity.class);
+            startActivity(intent);
+        });
+    }
     /** 로그인 시도 */
     private void attemptLogin() {
         String email = normalizeEmail(text(etEmail));
