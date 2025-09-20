@@ -1,4 +1,4 @@
-package com.example.food_recipe;
+package com.example.food_recipe.utils;
 
 import android.text.Editable;
 import android.text.TextWatcher;

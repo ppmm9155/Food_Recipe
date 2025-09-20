@@ -19,6 +19,9 @@ import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
+import com.example.food_recipe.utils.SimpleWatcher;
+
+
 // ✅ View 계층 (MVP의 V)
 // - 화면(UI)을 담당하는 Activity
 // - 사용자의 입력/버튼 클릭을 Presenter에게 전달
@@ -150,12 +153,5 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         return et != null && et.getText() != null ? et.getText().toString() : "";
     }
 
-    // 내부 TextWatcher → 입력 값 변경 시 실행
-    private static class SimpleWatcher implements android.text.TextWatcher {
-        private final Runnable onChange;
-        SimpleWatcher(Runnable onChange) { this.onChange = onChange; }
-        @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-        @Override public void onTextChanged(CharSequence s, int start, int before, int count) { onChange.run(); }
-        @Override public void afterTextChanged(android.text.Editable s) {}
-    }
+
 }
