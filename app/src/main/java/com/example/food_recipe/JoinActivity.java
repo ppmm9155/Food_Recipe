@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.food_recipe.backup.BackupLoginActivity;
+import com.example.food_recipe.login.LoginActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -311,7 +312,7 @@ public class JoinActivity extends AppCompatActivity {
                     } catch (Exception ignore) {}
 
                     // 로그인 화면으로 이동
-                    startActivity(new Intent(JoinActivity.this, BackupLoginActivity.class));
+                    startActivity(new Intent(JoinActivity.this, LoginActivity.class));
                     finish();
                 })
                 .addOnFailureListener(e -> {
