@@ -167,6 +167,9 @@ public class JoinPresenter implements JoinContract.Presenter {
 
     @Override
     public void detachView() {
+        android.util.Log.d("JoinPresenter", "detachView() called, view 참조 해제 요청");
+        // 현재 view가 final이라 null 처리 불가 → 로그만 남김
+        // 나중에 view = null 처리하려면 final 제거해야 함
         // 현재는 정리할 리소스 없음
     }
 }
