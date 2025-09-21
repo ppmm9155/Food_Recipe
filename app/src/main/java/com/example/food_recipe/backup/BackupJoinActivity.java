@@ -1,4 +1,4 @@
-package com.example.food_recipe;
+package com.example.food_recipe.backup;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,6 +9,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.food_recipe.R;
+import com.example.food_recipe.login.LoginActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -27,7 +29,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-public class JoinActivity extends AppCompatActivity {
+public class BackupJoinActivity extends AppCompatActivity {
 
     private static final String TAG = "JoinActivity";
 
@@ -310,7 +312,7 @@ public class JoinActivity extends AppCompatActivity {
                     } catch (Exception ignore) {}
 
                     // 로그인 화면으로 이동
-                    startActivity(new Intent(JoinActivity.this, LoginActivity.class));
+                    startActivity(new Intent(BackupJoinActivity.this, LoginActivity.class));
                     finish();
                 })
                 .addOnFailureListener(e -> {
@@ -437,7 +439,7 @@ public class JoinActivity extends AppCompatActivity {
 
     private void toast(@NonNull String msg) {
         if (isFinishing() || isDestroyed()) return;
-        Toast.makeText(JoinActivity.this, msg, Toast.LENGTH_SHORT).show();
+        Toast.makeText(BackupJoinActivity.this, msg, Toast.LENGTH_SHORT).show();
     }
 
     // 간단 TextWatcher

@@ -10,6 +10,9 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.splashscreen.SplashScreen;
 
+import com.example.food_recipe.login.LoginActivity;
+import com.example.food_recipe.utils.AutoLoginManager;
+
 @SuppressLint("CustomSplashScreen")
 public class SplashActivity extends AppCompatActivity {
     private static final long SPLASH_DELAY = 1000; // 1초 지연

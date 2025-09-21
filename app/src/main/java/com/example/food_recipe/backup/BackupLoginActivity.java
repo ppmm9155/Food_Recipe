@@ -1,4 +1,4 @@
-package com.example.food_recipe;
+package com.example.food_recipe.backup;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,6 +10,11 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.food_recipe.FindIdActivity;
+import com.example.food_recipe.FindPsActivity;
+import com.example.food_recipe.MainActivity;
+import com.example.food_recipe.R;
+import com.example.food_recipe.utils.AutoLoginManager;
 import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -23,7 +28,7 @@ import java.text.Normalizer;
 import java.util.List;
 import java.util.Locale;
 
-public class LoginActivity extends AppCompatActivity {
+public class BackupLoginActivity extends AppCompatActivity {
 
     private static final String TAG = "LoginActivity";
 
@@ -71,17 +76,17 @@ public class LoginActivity extends AppCompatActivity {
 
         // 회원가입 이동
         findViewById(R.id.joinT).setOnClickListener(v -> {
-            Intent intent = new Intent(LoginActivity.this, JoinActivity.class);
+            Intent intent = new Intent(BackupLoginActivity.this, BackupJoinActivity.class);
             startActivity(intent);
         });
 
         findViewById(R.id.Tfind_id).setOnClickListener(v -> {
-            Intent intent = new Intent(LoginActivity.this, FindIdActivity.class);
+            Intent intent = new Intent(BackupLoginActivity.this, FindIdActivity.class);
             startActivity(intent);
         });
 
         findViewById(R.id.Tfind_password).setOnClickListener(v -> {
-            Intent intent = new Intent(LoginActivity.this, FindPsActivity.class);
+            Intent intent = new Intent(BackupLoginActivity.this, FindPsActivity.class);
             startActivity(intent);
         });
     }

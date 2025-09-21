@@ -27,7 +27,7 @@
 
         <!-- 로그인 화면 -->
         <activity
-            android:name=".LoginActivity"
+            android:name=".login.LoginActivity"
             android:exported="true"
             android:theme="@style/Theme.Food_Recipe"
             android:windowSoftInputMode="adjustResize|stateHidden"
@@ -35,7 +35,7 @@
 
         <!-- 회원가입 화면 -->
         <activity
-            android:name=".JoinActivity"
+            android:name=".join.JoinActivity"
             android:exported="true"
             android:theme="@style/Theme.Food_Recipe"
             android:windowSoftInputMode="adjustResize|stateHidden"
