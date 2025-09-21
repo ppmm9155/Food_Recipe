@@ -8,7 +8,7 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.food_recipe.FindIdActivity;
+import com.example.food_recipe.findid.FindIdActivity;
 import com.example.food_recipe.FindPsActivity;
 import com.example.food_recipe.join.JoinActivity;
 
