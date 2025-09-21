@@ -12,7 +12,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.food_recipe.FindIdActivity;
 import com.example.food_recipe.FindPsActivity;
-import com.example.food_recipe.JoinActivity;
 import com.example.food_recipe.MainActivity;
 import com.example.food_recipe.R;
 import com.example.food_recipe.utils.AutoLoginManager;
@@ -77,7 +76,7 @@ public class BackupLoginActivity extends AppCompatActivity {
 
         // 회원가입 이동
         findViewById(R.id.joinT).setOnClickListener(v -> {
-            Intent intent = new Intent(BackupLoginActivity.this, JoinActivity.class);
+            Intent intent = new Intent(BackupLoginActivity.this, BackupJoinActivity.class);
             startActivity(intent);
         });
 

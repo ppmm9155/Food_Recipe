@@ -10,7 +10,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.food_recipe.FindIdActivity;
 import com.example.food_recipe.FindPsActivity;
-import com.example.food_recipe.JoinActivity;
+import com.example.food_recipe.join.JoinActivity;
+
 import com.example.food_recipe.MainActivity;
 import com.example.food_recipe.R;
 import com.example.food_recipe.utils.AutoLoginManager;
@@ -76,6 +77,15 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         // 비밀번호 찾기 화면 이동
         findViewById(R.id.Tfind_password).setOnClickListener(v ->
                 startActivity(new Intent(this, FindPsActivity.class)));
+    }
+
+    // ✅ 추가: Activity가 파괴될 때 Presenter에게 View 참조 해제 요청
+    @Override
+    protected void onDestroy() {
+        if (presenter != null) {
+            presenter.detachView();
+        }
+        super.onDestroy();
     }
 
     // ===== LoginContract.View 인터페이스 구현 =====
@@ -152,6 +162,8 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     private String text(TextInputEditText et) {
         return et != null && et.getText() != null ? et.getText().toString() : "";
     }
+
+
 
 
 }
