@@ -9,7 +9,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.food_recipe.findid.FindIdActivity;
-import com.example.food_recipe.FindPsActivity;
+import com.example.food_recipe.findps.FindPsActivity;
 import com.example.food_recipe.join.JoinActivity;
 
 import com.example.food_recipe.MainActivity;

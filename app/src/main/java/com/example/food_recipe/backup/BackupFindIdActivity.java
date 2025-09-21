@@ -1,4 +1,4 @@
-package com.example.food_recipe;
+package com.example.food_recipe.backup;
 
 import android.os.Bundle;
 import android.widget.Button;
@@ -8,7 +8,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-public class FindIdActivity extends AppCompatActivity {
+import com.example.food_recipe.R;
+
+public class BackupFindIdActivity extends AppCompatActivity {
     private TextView Fi_textViewTitle, Fi_textViewEmailLabel, Fi_textViewEmailAuthLabel, Fi_textViewNewIdLabel;
     private EditText Fi_editTextEmail, Fi_editTextEmailAuth, Fi_editTextNewId;
     private Button Fi_buttonVerify, Fi_buttonLogin;
