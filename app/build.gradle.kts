@@ -46,7 +46,8 @@ dependencies {
     implementation(libs.credentials.play.services.auth) // Google Play 서비스를 통해 제공되는 인증 정보(예: Google 비밀번호 사용) 관리 확장
     implementation(libs.googleid) // Google ID 서비스 라이브러리: Google 계정을 사용한 사용자 인증(예: 'Google로 로그인') 및 Google의 원탭(One Tap) 로그인과 같은 간소화된 로그인 환경을 구현하는 데 사용됩니다.
     implementation(libs.firebase.analytics)
-    implementation(libs.firebase.firestore) // Firebase Analytics 라이브러리: 사용자 행동 및 앱 사용 패턴을 추적하고 분석하여 앱 사용에 대한 인사이트를 얻는 데 사용됩니다.
+    implementation(libs.firebase.firestore)
+    implementation(libs.google.firebase.firestore) // Firebase Analytics 라이브러리: 사용자 행동 및 앱 사용 패턴을 추적하고 분석하여 앱 사용에 대한 인사이트를 얻는 데 사용됩니다.
 
     testImplementation(libs.junit) // 로컬 JVM 환경에서 실행되는 단위 테스트를 위한 JUnit 프레임워크
     androidTestImplementation(libs.ext.junit) // 안드로이드 기기 또는 에뮬레이터에서 실행되는 계측 테스트를 위한 JUnit 확장 라이브러리

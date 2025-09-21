@@ -1,4 +1,4 @@
-package com.example.food_recipe;
+package com.example.food_recipe.backup;
 
 import android.app.AlertDialog;
 import android.content.Intent;
@@ -6,12 +6,13 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.example.food_recipe.R;
 import com.example.food_recipe.login.LoginActivity;
 import com.google.firebase.auth.FirebaseAuth;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-public class FindPsActivity extends AppCompatActivity {
+public class BackupFindPsActivity extends AppCompatActivity {
     private Button Fs_buttonVerify;
     private EditText Fs_editTextEmail;
     private FirebaseAuth auth;
@@ -44,7 +45,7 @@ public class FindPsActivity extends AppCompatActivity {
                                 .setTitle("이메일 인증")
                                 .setMessage("귀하의 이메일로 인증 링크를 발송했습니다. 메일을 확인해주세요.")
                                 .setPositiveButton("확인", (dialog, which) -> {
-                                    Intent intent = new Intent(FindPsActivity.this,LoginActivity.class);
+                                    Intent intent = new Intent(BackupFindPsActivity.this,LoginActivity.class);
                                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                                     startActivity(intent);
                                     finish();

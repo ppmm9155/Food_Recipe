@@ -10,7 +10,6 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.food_recipe.FindPsActivity;
 import com.example.food_recipe.MainActivity;
 import com.example.food_recipe.R;
 import com.example.food_recipe.utils.AutoLoginManager;
@@ -85,7 +84,7 @@ public class BackupLoginActivity extends AppCompatActivity {
         });
 
         findViewById(R.id.Tfind_password).setOnClickListener(v -> {
-            Intent intent = new Intent(BackupLoginActivity.this, FindPsActivity.class);
+            Intent intent = new Intent(BackupLoginActivity.this, BackupFindPsActivity.class);
             startActivity(intent);
         });
     }
