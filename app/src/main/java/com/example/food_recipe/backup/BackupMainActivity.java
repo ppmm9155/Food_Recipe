@@ -1,4 +1,4 @@
-package com.example.food_recipe;
+package com.example.food_recipe.backup;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -11,10 +11,11 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.food_recipe.R;
 import com.example.food_recipe.login.LoginActivity;
 import com.example.food_recipe.utils.AutoLoginManager;
 
-public class MainActivity extends AppCompatActivity {
+public class BackupMainActivity extends AppCompatActivity {
 
     private Button btnLogout;
 

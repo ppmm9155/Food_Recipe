@@ -10,7 +10,6 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.food_recipe.MainActivity;
 import com.example.food_recipe.R;
 import com.example.food_recipe.utils.AutoLoginManager;
 import com.google.android.material.checkbox.MaterialCheckBox;
@@ -107,7 +106,7 @@ public class BackupLoginActivity extends AppCompatActivity {
                         // 자동 로그인 저장
                         AutoLoginManager.setAutoLogin(this, cbAutoLogin != null && cbAutoLogin.isChecked());
                         toast(MSG_LOGIN_SUCCESS);
-                        startActivity(new Intent(this, MainActivity.class));
+                        startActivity(new Intent(this, BackupMainActivity.class));
                         finish();
                         return;
                     }
