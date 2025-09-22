@@ -20,7 +20,7 @@ public class BackupFindIdActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_find_id);
 
-        // 뷰 바인딩
+        /* 뷰 바인딩
         Fi_textViewTitle = findViewById(R.id.fi_textViewTitle);
         Fi_textViewEmailLabel = findViewById(R.id.fi_textViewEmailLabel);
         Fi_textViewEmailAuthLabel = findViewById(R.id.fi_textViewEmailAuthLabel);
@@ -28,7 +28,7 @@ public class BackupFindIdActivity extends AppCompatActivity {
 
         Fi_editTextEmail = findViewById(R.id.fi_editTextEmail);
         Fi_editTextEmailAuth = findViewById(R.id.fi_editTextEmailAuth);
-        Fi_editTextNewId = findViewById(R.id.fi_editTextNewId);
+        Fi_editTextNewId = findViewById(R.id.fi_editTextNewId); */
 
         Fi_buttonVerify = findViewById(R.id.fi_buttonVerify);
         Fi_buttonLogin = findViewById(R.id.fi_buttonLogin);

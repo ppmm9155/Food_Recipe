@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.splashscreen.SplashScreen;
 
 import com.example.food_recipe.login.LoginActivity;
+import com.example.food_recipe.main.MainActivity;
 import com.example.food_recipe.utils.AutoLoginManager;
 
 @SuppressLint("CustomSplashScreen")
