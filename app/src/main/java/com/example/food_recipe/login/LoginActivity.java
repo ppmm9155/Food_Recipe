@@ -12,7 +12,7 @@ import com.example.food_recipe.findid.FindIdActivity;
 import com.example.food_recipe.findps.FindPsActivity;
 import com.example.food_recipe.join.JoinActivity;
 
-import com.example.food_recipe.MainActivity;
+import com.example.food_recipe.main.MainActivity;
 import com.example.food_recipe.R;
 import com.example.food_recipe.utils.AutoLoginManager;
 

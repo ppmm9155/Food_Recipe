@@ -43,7 +43,7 @@
 
         <!-- 메인 화면 -->
         <activity
-            android:name=".MainActivity"
+            android:name=".main.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.Food_Recipe"
             android:screenOrientation="unspecified"

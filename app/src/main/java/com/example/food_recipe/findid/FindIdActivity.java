@@ -21,7 +21,7 @@ public class FindIdActivity extends AppCompatActivity implements FindIdContract.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_find_id);
 
-        Fi_editTextEmail = findViewById(R.id.fi_editTextEmail);
+        // Fi_editTextEmail = findViewById(R.id.fi_editTextEmail); //
         Fi_buttonVerify = findViewById(R.id.fi_buttonVerify);
         Fi_buttonLogin = findViewById(R.id.fi_buttonLogin);
 
