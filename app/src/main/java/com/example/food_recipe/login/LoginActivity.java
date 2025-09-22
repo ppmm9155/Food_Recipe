@@ -2,6 +2,7 @@ package com.example.food_recipe.login;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -151,19 +152,26 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
 
     @Override
     public void onLoginSuccess(boolean autoLoginChecked) {
-        // ✅ Presenter는 "성공했다"만 알려줌
-        // ✅ 실제 AutoLoginManager 호출은 View(Activity)가 맡음
+        // 🔄 수정: Presenter에서 넘어온 체크박스 값 활용
         AutoLoginManager.setAutoLogin(this, autoLoginChecked);
+
+        // 👉 추가: 강제 재로그인 플래그 해제
+        AutoLoginManager.clearForceReLoginOnce(this);
+
+        // 👉 추가: 로그인 성공 상태 로그
+        Log.d("LoginFlow", "로그인 성공: auto=" + autoLoginChecked + ", force 플래그 해제됨");
+
+        // 🔄 수정: 토스트 대신 Logcat/Toast 병행 (원하면 둘 다 유지 가능)
         toast("로그인 성공");
-        navigateToHome();
+
+        // 🔄 수정: navigateToHome() 대신 명시적으로 MainActivity 이동
+        startActivity(new Intent(this, com.example.food_recipe.main.MainActivity.class));
+        finish();
     }
 
     // ===== 유틸리티 메서드 =====
     private String text(TextInputEditText et) {
         return et != null && et.getText() != null ? et.getText().toString() : "";
     }
-
-
-
 
 }
