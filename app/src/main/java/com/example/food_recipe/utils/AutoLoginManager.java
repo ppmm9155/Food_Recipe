@@ -1,52 +1,82 @@
+// File: app/src/main/java/com/example/food_recipe/utils/AutoLoginManager.java
 package com.example.food_recipe.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-// ✅ AutoLoginManager
-// - 앱에서 "자동 로그인" 기능을 담당하는 유틸 클래스
-// - SharedPreferences(내부 저장소)에 자동 로그인 여부를 저장/조회
-// - FirebaseAuth와 연동해서 현재 로그인 상태 확인 및 로그아웃 처리도 지원
+/**
+ * 자동로그인 + 1회 강제 재로그인 플래그 관리
+ * - 기존 public API 이름 유지: setAutoLogin(...), isAutoLoginEnabled(...), isLoggedIn(...)
+ * - logout(...) 강화: Firebase signOut + 자동로그인 OFF + 다음 1회 강제 재로그인 ON
+ */
 public class AutoLoginManager {
 
-    // 내부 저장소 파일 이름
     private static final String PREF_NAME = "auto_login_prefs";
-    // 자동 로그인 여부를 저장할 key 값
-    private static final String KEY_AUTO_LOGIN = "auto_login_enabled";
+    private static final String KEY_AUTO_LOGIN = "auto_login";
+    private static final String KEY_FORCE_RELOGIN_ONCE = "force_relogin_once";
 
-    // 🔹 자동 로그인 여부 저장
-    // - 사용자가 로그인 성공 시 체크박스를 켰다면 enabled=true 저장
-    // - 체크하지 않았다면 enabled=false 저장
+    private static SharedPreferences sp(Context context) {
+        return context.getApplicationContext()
+                .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+    }
+
+    // === 기존 API 유지 ===
     public static void setAutoLogin(Context context, boolean enabled) {
-        SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-        prefs.edit()
-                .putBoolean(KEY_AUTO_LOGIN, enabled) // true/false 값 저장
-                .apply(); // apply()는 비동기로 저장 (commit보다 빠름)
+        sp(context).edit().putBoolean(KEY_AUTO_LOGIN, enabled).apply();
     }
 
-    // 🔹 자동 로그인 여부 불러오기
-    // - 앱 실행 시 자동 로그인을 켰는지 여부 확인
     public static boolean isAutoLoginEnabled(Context context) {
-        SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-        return prefs.getBoolean(KEY_AUTO_LOGIN, false);
-        // 기본값은 false (저장된 값이 없으면 자동 로그인 꺼짐)
+        return sp(context).getBoolean(KEY_AUTO_LOGIN, false);
     }
 
-    // 🔹 현재 Firebase 로그인 상태 확인
-    // - FirebaseUser가 존재하는지 + 자동 로그인 옵션이 켜져 있는지 확인
+    /**
+     * 로그인 상태 판단:
+     * - FirebaseUser != null
+     * - 자동로그인 ON
+     * - "강제 재로그인 1회"가 꺼져 있어야 함
+     */
     public static boolean isLoggedIn(Context context) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        return (user != null && isAutoLoginEnabled(context));
+        boolean auto = isAutoLoginEnabled(context);        // 👉 auto 변수 추가
+        boolean force = isForceReLoginOnce(context);
+        Log.d("AutoLoginCheck", "user=" + (user != null)
+                + ", auto=" + auto
+                + ", force=" + force);
+        return (user != null && auto && !force);
     }
 
-    // 🔹 로그아웃 처리
-    // - FirebaseAuth에서 로그아웃 실행
-    // - 자동 로그인 옵션도 false로 초기화
+    // === 신규 보호 플래그 ===
+    public static void setForceReLoginOnce(Context context, boolean on) {
+        sp(context).edit().putBoolean(KEY_FORCE_RELOGIN_ONCE, on).apply();
+    }
+
+    public static boolean isForceReLoginOnce(Context context) {
+        return sp(context).getBoolean(KEY_FORCE_RELOGIN_ONCE, false);
+    }
+
+    public static void clearForceReLoginOnce(Context context) {
+        sp(context).edit().putBoolean(KEY_FORCE_RELOGIN_ONCE, false).apply();
+    }
+
+    /** 필요 시 전체 흔적 삭제 */
+    public static void clearAll(Context context) {
+        sp(context).edit().clear().apply();
+    }
+
+    /**
+     * 완전 로그아웃:
+     * - Firebase 세션 종료
+     * - 자동로그인 OFF
+     * - 다음 앱 진입은 무조건 로그인(1회)하도록 플래그 ON
+     */
     public static void logout(Context context) {
-        FirebaseAuth.getInstance().signOut();   // Firebase 세션 종료
-        setAutoLogin(context, false);           // 자동 로그인 설정 해제
+        Log.d("AutoLogin", "logout() 호출됨 → Firebase signOut + auto=false + forceReLoginOnce=true");
+        FirebaseAuth.getInstance().signOut();
+        setAutoLogin(context, false);
+        setForceReLoginOnce(context, true);
     }
 }
