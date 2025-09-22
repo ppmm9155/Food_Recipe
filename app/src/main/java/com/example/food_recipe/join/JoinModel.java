@@ -13,70 +13,88 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.WriteBatch;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 /**
  * 📦 Model (데이터 담당)
- * - FirebaseAuth, Firestore 같은 외부 서비스와 통신하는 코드만 담당합니다.
- * - View나 Presenter는 Firebase의 구체적인 코드를 몰라도 됩니다.
+ * - FirebaseAuth, Firestore 같은 외부 서비스와 통신하는 코드만 담당
+ * - View나 Presenter는 Firebase 구체적인 코드 몰라도 됨
+ * - 테스트용: Firebase 연결 상태를 Log로 확인 가능
  */
 public class JoinModel implements JoinContract.Model {
 
     private static final String TAG = "JoinModel";
 
-    // Firebase 인증 & Firestore 객체
     private final FirebaseAuth mAuth = FirebaseAuth.getInstance();
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-    /**
-     * ✅ 아이디 중복확인
-     * - Firestore의 "usernames" 컬렉션에서 동일한 문서가 있는지 확인
-     */
+    // ===== Firebase 상태 점검용 메서드 =====
+    public void logFirebaseStatus() {
+        try {
+            com.google.firebase.FirebaseOptions opt = com.google.firebase.FirebaseApp.getInstance().getOptions();
+            Log.d(TAG, "Firebase Project Info:");
+            Log.d(TAG, "API Key: " + opt.getApiKey());
+            Log.d(TAG, "ApplicationId: " + opt.getApplicationId());
+            Log.d(TAG, "ProjectId: " + opt.getProjectId());
+            Log.d(TAG, "DatabaseUrl: " + opt.getDatabaseUrl());
+        } catch (Exception e) {
+            Log.e(TAG, "FirebaseApp not initialized", e);
+        }
+
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            Log.d(TAG, "Current User: " + currentUser.getEmail() + ", UID: " + currentUser.getUid());
+        } else {
+            Log.d(TAG, "No user currently logged in");
+        }
+
+        // Firestore 테스트 쓰기
+        db.collection("test_connection").document("ping")
+                .set(Collections.singletonMap("timestamp", FieldValue.serverTimestamp()))
+                .addOnSuccessListener(v -> Log.d(TAG, "Firestore write test success"))
+                .addOnFailureListener(e -> Log.e(TAG, "Firestore write test failed", e));
+    }
+
+    // ===== 아이디 중복 확인 =====
     @Override
     public void checkUsernameAvailability(String lowerUsername, UsernameCallback callback) {
         db.collection("usernames").document(lowerUsername).get()
-                .addOnSuccessListener(doc -> callback.onResult(!doc.exists())) // 존재하지 않으면 사용 가능
-                .addOnFailureListener(callback::onError);
-    }
-
-    /**
-     * ✅ 이메일 사용 가능 여부 확인
-     * - FirebaseAuth의 fetchSignInMethodsForEmail 사용
-     */
-    @Override
-    public void checkEmailAvailability(String email, EmailCallback callback) {
-        mAuth.fetchSignInMethodsForEmail(email)
-                .addOnSuccessListener(result -> {
-                    // 🔎 어떤 프로젝트에 붙어있는지 확인
-                    com.google.firebase.FirebaseOptions opt =
-                            com.google.firebase.FirebaseApp.getInstance().getOptions();
-                    android.util.Log.d("JoinModel",
-                            "checkEmailAvailability email=" + email
-                                    + ", projectId=" + opt.getProjectId());
-
-                    java.util.List<String> methods = (result != null) ? result.getSignInMethods() : null;
-                    android.util.Log.d("JoinModel", "signInMethods=" + methods);
-
-                    // ✅ 리스트가 "비어있을 때만" 사용 가능
-                    boolean available = (methods != null && methods.isEmpty());
+                .addOnSuccessListener(doc -> {
+                    boolean available = !doc.exists();
+                    Log.d(TAG, "Username check: " + lowerUsername + " available=" + available);
                     callback.onResult(available);
                 })
                 .addOnFailureListener(e -> {
-                    android.util.Log.e("JoinModel", "fetchSignInMethods error", e);
+                    Log.e(TAG, "Username check failed", e);
                     callback.onError(e);
                 });
     }
 
-    /**
-     * ✅ 회원가입 + Firestore 저장
-     * - FirebaseAuth로 계정 생성
-     * - 이메일 인증 메일 발송
-     * - Firestore에 users / usernames 문서 저장
-     */
+    // ===== 이메일 중복 확인 =====
+    @Override
+    public void checkEmailAvailability(String email, EmailCallback callback) {
+        mAuth.fetchSignInMethodsForEmail(email)
+                .addOnSuccessListener(result -> {
+                    List<String> methods = (result != null) ? result.getSignInMethods() : null;
+                    boolean available = (methods != null && methods.isEmpty());
+                    Log.d(TAG, "Email check: " + email + ", available=" + available + ", methods=" + methods);
+                    callback.onResult(available);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Email check failed", e);
+                    callback.onError(e);
+                });
+    }
+
+    // ===== 회원가입 + Firestore 저장 =====
     @Override
     public void createUserThenSaveProfile(String username, String email, String password, RegisterCallback callback) {
+        Log.d(TAG, "Attempting user creation: " + email + " / username: " + username);
+
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener((AuthResult result) -> {
                     FirebaseUser user = result.getUser();
@@ -84,27 +102,29 @@ public class JoinModel implements JoinContract.Model {
                         callback.onError(new IllegalStateException("User is null after creation"));
                         return;
                     }
+                    Log.d(TAG, "User created successfully: " + user.getEmail());
 
                     // 프로필 표시 이름 업데이트
                     user.updateProfile(new UserProfileChangeRequest.Builder()
                                     .setDisplayName(username)
                                     .build())
-                            .addOnFailureListener(e -> Log.w(TAG, "updateProfile failed", e));
+                            .addOnSuccessListener(v -> Log.d(TAG, "Profile displayName updated"))
+                            .addOnFailureListener(e -> Log.w(TAG, "Profile update failed", e));
 
                     // 이메일 인증 메일 발송
                     user.sendEmailVerification()
-                            .addOnSuccessListener(v -> Log.d(TAG, "sendEmailVerification success"))
-                            .addOnFailureListener(e -> Log.w(TAG, "sendEmailVerification failed", e));
+                            .addOnSuccessListener(v -> Log.d(TAG, "Email verification sent"))
+                            .addOnFailureListener(e -> Log.w(TAG, "Email verification failed", e));
 
                     // Firestore 저장
                     saveUserProfileBatch(user, username, email, callback);
                 })
-                .addOnFailureListener(callback::onError);
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "User creation failed", e);
+                    callback.onError(e);
+                });
     }
 
-    /**
-     * Firestore에 users / usernames 문서를 동시에 저장 (배치로 원자성 보장)
-     */
     private void saveUserProfileBatch(@NonNull FirebaseUser fUser,
                                       @NonNull String username,
                                       @NonNull String email,
@@ -134,11 +154,17 @@ public class JoinModel implements JoinContract.Model {
         batch.set(userRef, userDoc);
 
         batch.commit()
-                .addOnSuccessListener(v -> callback.onSuccess())
-                .addOnFailureListener(callback::onError);
+                .addOnSuccessListener(v -> {
+                    Log.d(TAG, "Firestore batch write successful");
+                    callback.onSuccess();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Firestore batch write failed", e);
+                    callback.onError(e);
+                });
     }
 
-    // === Callback 인터페이스 ===
+    // ===== Callback 인터페이스 =====
     public interface UsernameCallback {
         void onResult(boolean available);
         void onError(Exception e);
