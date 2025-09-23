@@ -15,7 +15,7 @@
 
         <!-- SplashActivity: 앱 시작 지점 -->
         <activity
-            android:name=".SplashActivity"
+            android:name=".splash.SplashActivity"
             android:exported="true"
             android:theme="@style/Theme.Food_Recipe.Splash"
             android:screenOrientation="fullSensor"> <!-- 스플래시는 보통 세로 고정 -->
