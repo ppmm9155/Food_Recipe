@@ -2,10 +2,15 @@ package com.example.food_recipe.join;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.example.food_recipe.R;
 import com.example.food_recipe.login.LoginActivity;
@@ -14,12 +19,6 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
-/**
- * View: 화면/UI만 담당
- * - 버튼 클릭/입력변경을 Presenter에 위임
- * - Presenter가 전달한 결과를 화면에 반영
- * - ✅ 원본 JoinActivity의 UX/문구/흐름을 그대로 유지
- */
 public class JoinActivity extends AppCompatActivity implements JoinContract.View {
 
     private TextInputLayout tilId, tilEmail, tilPassword, tilPasswordConfirm;
@@ -31,14 +30,28 @@ public class JoinActivity extends AppCompatActivity implements JoinContract.View
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Phase 3: Edge-to-Edge 모드 활성화
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
         setContentView(R.layout.activity_join);
 
         bindViews();
+
+        // Phase 3: 충돌 방지 센서 부착
+        View contentView = findViewById(R.id.join);
+        ViewCompat.setOnApplyWindowInsetsListener(contentView, (v, windowInsets) -> {
+            // 버그 수정: WindowInsetsCompat -> Insets 타입으로 변경
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+            // 시스템 바(상태표시줄, 네비게이션바) 영역만큼 패딩 적용
+            v.setPadding(v.getPaddingLeft(), insets.top, v.getPaddingRight(), insets.bottom);
+            return WindowInsetsCompat.CONSUMED;
+        });
+
         presenter = new JoinPresenter(this, new JoinModel());
         bindEvents();
     }
 
-    // ✅ 추가: Activity 종료 시 Presenter가 View 참조 끊도록
     @Override
     protected void onDestroy() {
         if (presenter != null) {
@@ -64,22 +77,18 @@ public class JoinActivity extends AppCompatActivity implements JoinContract.View
     }
 
     private void bindEvents() {
-        // ✅ 원본: 아이디 입력 바뀌면 에러 정리 + 중복확인 캐시 무효화
         etId.addTextChangedListener(new SimpleWatcher(() -> {
             clearErrorOnId();
-            presenter.onUsernameEdited(); // 원본의 lastCheckedUsernameLower/Available 리셋을 Presenter가 수행
+            presenter.onUsernameEdited();
         }));
 
-        // ✅ 원본: 이메일 입력 중 에러/헬퍼 정리
         etEmail.addTextChangedListener(new SimpleWatcher(() -> {
             clearErrorOnEmail();
             showEmailHelper(null);
         }));
 
-        // ✅ 원본: 비밀번호 입력 중 에러 정리
         etPassword.addTextChangedListener(new SimpleWatcher(this::clearErrorOnPassword));
 
-        // ✅ 원본: 비밀번호 확인 → 즉시 일치 여부 helper로 안내
         etPasswordConfirm.addTextChangedListener(new SimpleWatcher(() -> {
             clearErrorOnPasswordConfirm();
             String p1 = text(etPassword);
@@ -88,11 +97,10 @@ public class JoinActivity extends AppCompatActivity implements JoinContract.View
                 if (p1.equals(p2)) showPasswordConfirmOk("비밀번호가 일치합니다.");
                 else showPasswordConfirmError("비밀번호가 일치하지 않습니다.");
             } else {
-                showPasswordConfirmOk(null); // helper 초기화
+                showPasswordConfirmOk(null);
             }
         }));
 
-        // 버튼 → Presenter 위임 (원본 흐름 유지)
         btnCheckId.setOnClickListener(v -> presenter.checkUsernameAvailability(text(etId)));
         btnVerifyEmail.setOnClickListener(v -> presenter.checkEmailAvailability(text(etEmail)));
         btnRegister.setOnClickListener(v -> presenter.attemptRegister(
@@ -100,7 +108,7 @@ public class JoinActivity extends AppCompatActivity implements JoinContract.View
         ));
     }
 
-    // ===== View 구현 (원본 메시지/동작 동일) =====
+    // ===== View 구현 =====
     @Override public void showIdError(String msg) { if (tilId != null) { tilId.setError(msg); tilId.setHelperText(null); focus(tilId); } }
     @Override public void showIdOk(String msg)    { if (tilId != null) { tilId.setError(null); tilId.setHelperText(msg); } }
     @Override public void showIdHelper(String msg){ if (tilId != null) tilId.setHelperText(msg); }

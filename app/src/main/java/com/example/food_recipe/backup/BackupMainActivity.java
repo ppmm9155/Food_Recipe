@@ -22,7 +22,7 @@ public class BackupMainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
+        /*EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -52,6 +52,6 @@ public class BackupMainActivity extends AppCompatActivity {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             // finish()는 CLEAR_TASK로 대체됨
-        });
+        });*/
     }
 }
