@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:fitsSystemWindows="true"
+    android:background="?attr/colorSurface">
+
+    <!-- 로그인 화면과 동일한 패딩/배치 -->
+    <LinearLayout
+        android:id="@+id/home_root"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/auth_horizontal_margin"
+        android:paddingEnd="@dimen/auth_horizontal_margin"
+        android:paddingTop="@dimen/auth_vertical_margin"
+        android:paddingBottom="@dimen/auth_vertical_margin"
+        android:gravity="center_horizontal">
+
+        <!-- 환영 메시지 -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/home_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="오늘 뭐 먹을까?"
+            android:textStyle="bold"
+            android:textSize="24sp"
+            android:textColor="?attr/colorOnBackground"
+            android:layout_marginBottom="20dp"/>
+
+
+        <!-- ⭐ 오늘의 추천 레시피 (재료 없으면 인기 레시피 대체) -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/label_recommended"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="⭐ 오늘의 추천 레시피"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:textColor="?attr/colorOnBackground"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- 가로 스크롤 리스트: 2~3개가 한 화면에 보이도록 높이 제한 -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_recommended"
+            android:layout_width="match_parent"
+            android:layout_height="160dp"
+            android:overScrollMode="never"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- 🔥 지금 인기 있는 레시피 -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/label_popular"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🔥 지금 인기 있는 레시피"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:textColor="?attr/colorOnBackground"
+            android:layout_marginBottom="12dp"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_popular"
+            android:layout_width="match_parent"
+            android:layout_height="140dp"
+            android:overScrollMode="never"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- 🕑 최근 본 / 즐겨찾기 미리보기 (헤더 + 더보기) -->
+        <LinearLayout
+            android:id="@+id/recentfav_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="12dp">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/label_recentfav"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="🕑 최근 본 / 즐겨찾기 미리보기"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:textColor="?attr/colorOnBackground"/>
+
+            <!-- 즐겨찾기 탭으로 이동 -->
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/btn_more_fav"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="더보기 >"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnBackground"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="6dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackgroundBorderless"/>
+        </LinearLayout>
+
+        <!-- Empty State: 최근 본/즐겨찾기 데이터가 없을 때 -->
+        <LinearLayout
+            android:id="@+id/empty_recentfav"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="20dp"
+            android:visibility="gone"
+            android:layout_marginBottom="12dp">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/tv_recentfav_empty"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="아직 본 레시피나 즐겨찾기가 없어요 👀"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="14sp"
+                android:layout_marginBottom="8dp"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_go_explore"
+                style="@style/Widget.App.Button.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="인기 레시피 보러가기"/>
+        </LinearLayout>
+
+        <!-- 미리보기 리스트 (작은 카드 2~3개만 노출) -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_recentfav_preview"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:overScrollMode="never"/>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

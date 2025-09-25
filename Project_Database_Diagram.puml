@@ -1,0 +1,28 @@
+@startuml
+' 다이어그램의 점들을 숨겨 깔끔하게 만듭니다.
+hide circle
+' 선이 직각으로 꺾이도록 설정하여 보기 좋게 만듭니다.
+skinparam linetype ortho
+
+title Food Recipe 앱 데이터베이스 다이어그램 (Firebase Firestore)
+
+' Firestore는 NoSQL이므로 전통적인 ERD와는 다릅니다.
+' 여기서는 코드에서 명시적으로 사용되는 컬렉션과 문서의 주요 필드를 표현합니다.
+
+entity "컬렉션: users" as UsersCollection {
+  + (문서 ID): 사용자 UID
+  --
+  + username : String <<코드에서 읽고 씀>>
+  + email : String <<코드에서 씀>>
+  ' 추가적으로 저장될 수 있는 필드 (예: createdAt, profileImageUrl 등)는
+  ' 현재 코드에서 명시적으로 사용되지 않으므로 포함하지 않습니다.
+}
+
+' 관계는 코드에서 직접적인 참조 관계를 기반으로 합니다.
+' HomeFragment와 JoinModel은 'users' 컬렉션의 문서에 접근합니다.
+' (PlantUML에서 직접적인 코드-DB 관계 표현은 어려우므로, 주석으로 설명)
+
+' HomeFragment가 users 컬렉션의 문서를 읽음
+' JoinModel이 users 컬렉션의 문서를 씀
+
+@enduml

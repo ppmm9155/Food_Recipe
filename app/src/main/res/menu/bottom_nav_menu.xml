@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_pantry"
+        android:icon="@drawable/outline_chef_hat_24"
+        android:title="냉장고"/>
+    <item
+        android:id="@+id/nav_search"
+        android:icon="@drawable/search_24dp_e3e3e3_fill0_wght400_grad0_opsz24"
+        android:title="레시피검색"/>
+    <item
+        android:id="@+id/nav_favorites"
+        android:icon="@drawable/outline_favorite_24"
+        android:title="즐겨찾기"/>
+
+</menu>

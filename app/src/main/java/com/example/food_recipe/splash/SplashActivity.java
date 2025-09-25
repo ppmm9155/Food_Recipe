@@ -13,6 +13,7 @@ import androidx.core.splashscreen.SplashScreen;
 import com.example.food_recipe.login.LoginActivity;
 import com.example.food_recipe.main.MainActivity;
 
+
 /**
  * ✅ SplashActivity (MVP의 View 역할)
  *
