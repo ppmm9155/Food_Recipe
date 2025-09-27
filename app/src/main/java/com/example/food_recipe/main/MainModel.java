@@ -1,6 +1,13 @@
 package com.example.food_recipe.main;
 
 import android.content.Context;
+import android.util.Log; // (새로추가됨) 로그 기능을 사용하기 위해 import
+
+// Google 로그아웃 관련 import
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.example.food_recipe.R; // R.string.default_web_client_id 사용을 위해
 
 import com.example.food_recipe.utils.AutoLoginManager;
 import com.google.firebase.auth.FirebaseAuth;
@@ -15,44 +22,66 @@ import com.google.firebase.auth.FirebaseUser;
  */
 public class MainModel implements MainContract.Model {
 
-    // AutoLoginManager와 같은 유틸리티 클래스를 사용하기 위해 Context가 필요할 수 있습니다.
-    // 메모리 누수를 방지하기 위해 항상 Application Context를 사용하는 것이 안전합니다.
+    // (새로추가됨) Logcat 출력을 위한 태그 정의
+    private static final String TAG = "MainModel";
+
     private final Context appContext;
 
     public MainModel(Context context) {
         this.appContext = context.getApplicationContext();
     }
 
-    /**
-     * Presenter가 "로그아웃 처리해줘" 라고 호출하면 실행되는 메서드입니다.
-     * @param cb 작업이 끝난 후 Presenter에게 결과를 알려줄 콜백 객체
-     */
     @Override
     public void logout(LogoutCallback cb) {
+        // (새로추가됨) logout 메소드 호출 시점 로그
+        Log.d(TAG, "logout:called - 전체 로그아웃 프로세스 시작");
         try {
-            // 자동 로그인 정보를 삭제하는 실제 작업을 수행합니다.
+            // (새로추가됨) Firebase 로그아웃 시도 로그
+            Log.d(TAG, "logout:Attempting Firebase signOut...");
+            FirebaseAuth.getInstance().signOut();
+            // (새로추가됨) Firebase 로그아웃 성공 로그
+            Log.d(TAG, "logout:Firebase signOut successful.");
+
+            // (새로추가됨) AutoLoginManager 로그아웃 시도 로그
+            Log.d(TAG, "logout:Attempting AutoLoginManager.logout...");
             AutoLoginManager.logout(appContext);
-            // 작업이 성공했음을 콜백을 통해 Presenter에게 알립니다.
-            cb.onSuccess();
+            // (새로추가됨) AutoLoginManager 로그아웃 성공 로그
+            Log.d(TAG, "logout:AutoLoginManager.logout successful.");
+
+            GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestIdToken(appContext.getString(R.string.default_web_client_id))
+                    .requestEmail()
+                    .build();
+
+            GoogleSignInClient googleSignInClient = GoogleSignIn.getClient(appContext, gso);
+            
+            // (새로추가됨) GoogleSignInClient 로그아웃 시도 로그
+            Log.d(TAG, "logout:Attempting GoogleSignInClient.signOut...");
+            googleSignInClient.signOut().addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    // (새로추가됨) GoogleSignInClient 로그아웃 성공 로그
+                    Log.d(TAG, "logout:GoogleSignInClient.signOut successful.");
+                    cb.onSuccess();
+                } else {
+                    // (새로추가됨) GoogleSignInClient 로그아웃 실패 로그 및 예외 정보
+                    Log.w(TAG, "logout:GoogleSignInClient.signOut failure.", task.getException());
+                    cb.onError(task.getException());
+                }
+            });
+
         } catch (Exception e) {
-            // 작업 중 오류가 발생했음을 콜백을 통해 Presenter에게 알립니다.
+            // (새로추가됨) 로그아웃 동기 처리 중 예외 발생 시 로그 및 예외 정보
+            Log.e(TAG, "logout:Exception during synchronous part of logout (Firebase signOut or AutoLoginManager).", e);
             cb.onError(e);
         }
     }
 
-    /**
-     * Presenter가 "로그인 상태 확인해줘" 라고 호출하면 실행되는 메서드입니다.
-     * @param cb 작업이 끝난 후 Presenter에게 결과를 알려줄 콜백 객체
-     */
     @Override
     public void checkLoginStatus(LoginStatusCallback cb) {
-        // Firebase 인증 시스템을 통해 현재 로그인된 사용자가 있는지 확인합니다.
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
-            // 로그인된 사용자가 있으면, "로그인 되어있어" 라고 콜백을 통해 Presenter에게 알립니다.
             cb.onLoggedIn();
         } else {
-            // 로그인된 사용자가 없으면, "로그아웃 상태야" 라고 콜백을 통해 Presenter에게 알립니다.
             cb.onLoggedOut();
         }
     }
