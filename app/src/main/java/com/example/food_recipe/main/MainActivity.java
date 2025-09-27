@@ -109,6 +109,19 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_toolbar_menu, menu);
+
+        // --- 프로필 아이콘 클릭 리스너 설정 추가 ---
+        MenuItem profileItem = menu.findItem(R.id.action_profile);
+        if (profileItem != null) {
+            View actionView = profileItem.getActionView();
+            if (actionView != null) {
+                actionView.setOnClickListener(v -> {
+                    Toast.makeText(MainActivity.this, "프로필 화면(추후 연결)", Toast.LENGTH_SHORT).show();
+                });
+            }
+        }
+        // --- 여기까지 추가 ---
+
         return true;
     }
 
@@ -116,8 +129,10 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_profile) {
-            Toast.makeText(this, "프로필 화면(추후 연결)", Toast.LENGTH_SHORT).show();
-            return true;
+            // 이 부분은 actionView의 리스너에서 이미 처리하므로, 여기서는 호출되지 않거나
+            // 중복될 수 있습니다. 필요에 따라 주석 처리하거나 다른 방식으로 관리할 수 있습니다.
+            // Toast.makeText(this, "프로필 화면(추후 연결) - onOptionsItemSelected", Toast.LENGTH_SHORT).show();
+            return true; 
         } else if (id == R.id.action_logout) {
             presenter.onLogoutClicked();
             return true;

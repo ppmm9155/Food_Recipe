@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="64dp">
+
+    <ImageView
+        android:id="@+id/profile_icon_image"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:src="@drawable/outline_account_circle_32"
+        android:layout_gravity="center_vertical"
+        android:scaleType="fitCenter"
+        android:contentDescription="프로필 아이콘" />
+    <!-- FrameLayout 내에서 수직 중앙 정렬 -->
+</FrameLayout>
