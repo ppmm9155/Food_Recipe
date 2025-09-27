@@ -1,5 +1,6 @@
 package com.example.food_recipe.login;
 
+import com.example.food_recipe.utils.AutoLoginManager; // (새로추가됨) AutoLoginManager 사용
 import com.example.food_recipe.utils.ValidationUtils;
 import com.google.firebase.auth.*;
 
@@ -57,8 +58,13 @@ public class LoginPresenter implements LoginContract.Presenter {
         model.signInWithEmail(email, password, new LoginContract.Model.AuthCallback() {
             @Override
             public void onSuccess(FirebaseUser user) {
-                // 성공 시 View에게 알림 (AutoLoginManager 호출은 View가 담당)
-                view.onLoginSuccess(autoLoginChecked);
+                if (view != null) {
+                    // (새로 추가됨) 이메일 로그인 성공 시, 로그인 방식을 "EMAIL"로 저장합니다.
+                    AutoLoginManager.setCurrentLoginProvider(view.getContext(), AutoLoginManager.PROVIDER_EMAIL);
+
+                    view.onLoginSuccess(autoLoginChecked);
+                    view.setUiEnabled(true);
+                }
             }
 
             @Override
@@ -112,16 +118,24 @@ public class LoginPresenter implements LoginContract.Presenter {
 
             model.signInWithGoogle(idToken, new LoginContract.Model.AuthCallback() {
                 @Override public void onSuccess(FirebaseUser user) {
-                    view.setUiEnabled(true);
-                    view.onLoginSuccess(autoLoginChecked);
+                    // (새로추가됨) Google 로그인 성공 시, 로그인 제공자 정보 저장
+                    if (view != null) {
+                        AutoLoginManager.setCurrentLoginProvider(view.getContext(), AutoLoginManager.PROVIDER_GOOGLE);
+                        view.setUiEnabled(true);
+                        view.onLoginSuccess(autoLoginChecked);
+                    }
                 }
                 @Override public void onFailure(Exception e) {
-                    view.setUiEnabled(true);
-                    view.toast("구글 로그인 실패: " + e.getMessage());
+                    if (view != null) {
+                        view.setUiEnabled(true);
+                        view.toast("구글 로그인 실패: " + e.getMessage());
+                    }
                 }
             });
         } catch (ApiException e) {
-            view.toast("Google Sign-In 실패: " + e.getStatusCode());
+            if (view != null) {
+                view.toast("Google Sign-In 실패: " + e.getStatusCode());
+            }
         }
     }
 
@@ -137,6 +151,7 @@ public class LoginPresenter implements LoginContract.Presenter {
     @Override
     public void refineAmbiguousWithFetch(String email) {
         model.fetchSignInMethods(email, methods -> {
+            if (view == null) return;
             view.setUiEnabled(true);
 
             if (methods == null) {

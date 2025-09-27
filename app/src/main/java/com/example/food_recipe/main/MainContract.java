@@ -1,5 +1,7 @@
 package com.example.food_recipe.main;
 
+import android.content.Context;
+
 /**
  * MVP 패턴의 각 컴포넌트(Model, View, Presenter)가 무엇을 해야 하는지 정의하는 '계약서'입니다.
  * 이 파일을 보면 Main 화면의 전체적인 구조와 기능을 한눈에 파악할 수 있습니다.
@@ -21,6 +23,9 @@ public interface MainContract {
 
         /** Presenter가 "로그아웃 버튼 활성화/비활성화 해"라고 호출할 메서드 */
         void setLogoutEnabled(boolean enabled);
+
+        // (새로추가됨) Presenter가 Context를 요청할 때 호출될 메서드 (AutoLoginManager 사용 위함)
+        Context getContext();
     }
 
     /**
@@ -58,8 +63,12 @@ public interface MainContract {
             void onError(Exception e); // 작업 실패 시 호출
         }
 
-        /** Presenter가 "로그아웃 시켜줘"라고 호출할 메서드 */
-        void logout(LogoutCallback cb);
+        /**
+         * Presenter가 "로그아웃 시켜줘"라고 호출할 메서드 (변경된부분)
+         * @param loginProvider 현재 로그인된 방식 (예: AutoLoginManager.PROVIDER_EMAIL, AutoLoginManager.PROVIDER_GOOGLE) (새로추가됨)
+         * @param cb 작업 완료 후 호출될 콜백
+         */
+        void logout(String loginProvider, LogoutCallback cb); // (변경된부분) loginProvider 파라미터 명시적 추가
 
         /**
          * 로그인 상태 확인 작업이 끝났을 때, Presenter에게 결과를 알려주기 위한 콜백 인터페이스

@@ -1,13 +1,13 @@
 package com.example.food_recipe.main;
 
 import android.content.Context;
-import android.util.Log; // (새로추가됨) 로그 기능을 사용하기 위해 import
+import android.util.Log;
 
 // Google 로그아웃 관련 import
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.example.food_recipe.R; // R.string.default_web_client_id 사용을 위해
+import com.example.food_recipe.R;
 
 import com.example.food_recipe.utils.AutoLoginManager;
 import com.google.firebase.auth.FirebaseAuth;
@@ -22,56 +22,49 @@ import com.google.firebase.auth.FirebaseUser;
  */
 public class MainModel implements MainContract.Model {
 
-    // (새로추가됨) Logcat 출력을 위한 태그 정의
     private static final String TAG = "MainModel";
-
     private final Context appContext;
 
     public MainModel(Context context) {
         this.appContext = context.getApplicationContext();
     }
 
+    /**
+     * Presenter가 "로그아웃 처리해줘" 라고 호출하면 실행되는 메서드입니다. (변경된부분)
+     * @param loginProvider 현재 로그인된 방식 (AutoLoginManager.PROVIDER_EMAIL, AutoLoginManager.PROVIDER_GOOGLE 등) (새로추가됨)
+     * @param cb 작업이 끝난 후 Presenter에게 결과를 알려줄 콜백 객체
+     */
     @Override
-    public void logout(LogoutCallback cb) {
-        // (새로추가됨) logout 메소드 호출 시점 로그
-        Log.d(TAG, "logout:called - 전체 로그아웃 프로세스 시작");
+    public void logout(String loginProvider, LogoutCallback cb) { // (핵심 변경) loginProvider 파라미터 추가
+        Log.d(TAG, "logout:called with loginProvider = " + loginProvider);
         try {
-            // (새로추가됨) Firebase 로그아웃 시도 로그
-            Log.d(TAG, "logout:Attempting Firebase signOut...");
-            FirebaseAuth.getInstance().signOut();
-            // (새로추가됨) Firebase 로그아웃 성공 로그
-            Log.d(TAG, "logout:Firebase signOut successful.");
-
-            // (새로추가됨) AutoLoginManager 로그아웃 시도 로그
-            Log.d(TAG, "logout:Attempting AutoLoginManager.logout...");
+            Log.d(TAG, "logout:Attempting AutoLoginManager.logout() which includes Firebase signOut...");
             AutoLoginManager.logout(appContext);
-            // (새로추가됨) AutoLoginManager 로그아웃 성공 로그
-            Log.d(TAG, "logout:AutoLoginManager.logout successful.");
+            Log.d(TAG, "logout:AutoLoginManager.logout() successful (Firebase signOut and local flags cleared, provider set to UNKNOWN).");
 
-            GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                    .requestIdToken(appContext.getString(R.string.default_web_client_id))
-                    .requestEmail()
-                    .build();
+            if (AutoLoginManager.PROVIDER_GOOGLE.equals(loginProvider)) {
+                Log.d(TAG, "logout:Login provider is GOOGLE. Attempting GoogleSignInClient.signOut...");
+                GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                        .requestIdToken(appContext.getString(R.string.default_web_client_id))
+                        .requestEmail()
+                        .build();
+                GoogleSignInClient googleSignInClient = GoogleSignIn.getClient(appContext, gso);
 
-            GoogleSignInClient googleSignInClient = GoogleSignIn.getClient(appContext, gso);
-            
-            // (새로추가됨) GoogleSignInClient 로그아웃 시도 로그
-            Log.d(TAG, "logout:Attempting GoogleSignInClient.signOut...");
-            googleSignInClient.signOut().addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    // (새로추가됨) GoogleSignInClient 로그아웃 성공 로그
-                    Log.d(TAG, "logout:GoogleSignInClient.signOut successful.");
-                    cb.onSuccess();
-                } else {
-                    // (새로추가됨) GoogleSignInClient 로그아웃 실패 로그 및 예외 정보
-                    Log.w(TAG, "logout:GoogleSignInClient.signOut failure.", task.getException());
-                    cb.onError(task.getException());
-                }
-            });
-
+                googleSignInClient.signOut().addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "logout:GoogleSignInClient.signOut successful for GOOGLE provider.");
+                        cb.onSuccess();
+                    } else {
+                        Log.w(TAG, "logout:GoogleSignInClient.signOut failure for GOOGLE provider.", task.getException());
+                        cb.onError(task.getException());
+                    }
+                });
+            } else {
+                Log.d(TAG, "logout:Login provider is " + loginProvider + ". Skipping GoogleSignInClient.signOut. All necessary logout steps (Firebase, local flags) are done.");
+                cb.onSuccess();
+            }
         } catch (Exception e) {
-            // (새로추가됨) 로그아웃 동기 처리 중 예외 발생 시 로그 및 예외 정보
-            Log.e(TAG, "logout:Exception during synchronous part of logout (Firebase signOut or AutoLoginManager).", e);
+            Log.e(TAG, "logout:Exception during synchronous part of logout (e.g., AutoLoginManager or GSO/GSC init).", e);
             cb.onError(e);
         }
     }

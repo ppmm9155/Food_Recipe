@@ -1,6 +1,7 @@
 package com.example.food_recipe.main;
 
 import android.content.Context;
+import com.example.food_recipe.utils.AutoLoginManager; // AutoLoginManager 사용을 위해 import
 
 import java.lang.ref.WeakReference;
 
@@ -12,15 +13,9 @@ import java.lang.ref.WeakReference;
  */
 public class MainPresenter implements MainContract.Presenter {
 
-    // 데이터 처리를 담당하는 Model
     private final MainContract.Model model;
-    // 화면 UI를 담당하는 View (메모리 누수를 방지하기 위해 WeakReference로 감싸줍니다)
     private WeakReference<MainContract.View> viewRef;
 
-    /**
-     * Presenter가 생성될 때, 자신에게 필요한 Model을 함께 생성합니다.
-     * @param context Model을 생성하는 데 필요한 Context
-     */
     public MainPresenter(Context context) {
         this.model = new MainModel(context.getApplicationContext());
     }
@@ -33,70 +28,71 @@ public class MainPresenter implements MainContract.Presenter {
         this.model = model;
     }
 
-    /**
-     * View(Activity)가 생성될 때, Presenter에게 View가 누구인지 알려주기 위해 호출됩니다.
-     * WeakReference를 사용해 View를 직접 참조하지 않음으로써, Activity가 파괴될 때 메모리 누수가 발생하는 것을 방지합니다.
-     */
     @Override public void attach(MainContract.View v) { viewRef = new WeakReference<>(v); }
-
-    /**
-     * View(Activity)가 파괴될 때, View와의 연결을 끊습니다.
-     */
     @Override public void detach() { viewRef = null; }
 
-    /**
-     * View가 "나 이제 화면에 보여!"라고 알려주면 호출되는 메서드입니다.
-     * 앱의 시작 로직을 담당합니다. (예: 로그인 상태 확인)
-     */
     @Override
     public void start() {
-        // Model에게 "로그인 상태 확인해줘" 라고 요청합니다.
         model.checkLoginStatus(new MainContract.Model.LoginStatusCallback() {
             @Override
             public void onLoggedIn() {
-                // Model이 "로그인 되어있어" 라고 알려주면,
-                // View에게 "로그아웃 버튼 활성화해" 라고 지시합니다.
                 MainContract.View v = getView();
                 if (v != null) v.setLogoutEnabled(true);
             }
 
             @Override
             public void onLoggedOut() {
-                // Model이 "로그아웃 상태야" 라고 알려주면,
-                // View에게 "로그인 화면으로 이동해" 라고 지시합니다.
                 MainContract.View v = getView();
                 if (v != null) v.navigateToLogin();
             }
         });
     }
 
+
     /**
-     * View가 "사용자가 로그아웃 버튼을 눌렀어!" 라고 알려주면 호출되는 메서드입니다.
+     * View가 "사용자가 로그아웃 버튼을 눌렀어!" 라고 알려주면 호출되는 메서드입니다. (변경된부분)
      */
     @Override
     public void onLogoutClicked() {
-        // 먼저 View에게 "로그아웃 처리 중이니까 로그아웃 버튼 비활성화해" 라고 지시합니다.
         MainContract.View v = getView();
-        if (v != null) v.setLogoutEnabled(false);
+        if (v == null) {
+            // View가 없는 경우 (매우 드문 상황) 로그아웃 처리 중단
+            android.util.Log.e("MainPresenter", "onLogoutClicked: View is null, cannot proceed with logout.");
+            return;
+        }
+        // 로그아웃 처리 중에는 버튼을 비활성화하여 중복 클릭을 방지합니다.
+        v.setLogoutEnabled(false);
 
-        // Model에게 "로그아웃 처리해줘" 라고 요청합니다.
-        model.logout(new MainContract.Model.LogoutCallback() {
+        // View로부터 Context를 가져와 AutoLoginManager를 사용합니다.
+        Context context = v.getContext();
+        String loginProvider = AutoLoginManager.PROVIDER_UNKNOWN; // 기본값 설정
+
+        if (context != null) {
+            // AutoLoginManager를 통해 현재 저장된 로그인 제공자 정보를 가져옵니다.
+            loginProvider = AutoLoginManager.getCurrentLoginProvider(context);
+        } else {
+            // Context가 null인 드문 경우에 대한 로그를 남깁니다.
+            android.util.Log.w("MainPresenter", "onLogoutClicked: Context from View is null, using UNKNOWN provider.");
+        }
+
+        // Model에게 로그아웃을 요청하면서, '어떤 방식'으로 로그인했는지(loginProvider) 알려줍니다.
+        model.logout(loginProvider, new MainContract.Model.LogoutCallback() {
             @Override public void onSuccess() {
                 // Model이 "로그아웃 성공했어" 라고 알려주면,
                 // View에게 "로그아웃 되었다는 메시지 보여주고, 로그인 화면으로 이동해" 라고 지시합니다.
-                MainContract.View v = getView();
-                if (v != null) {
-                    v.showLogoutMessage("로그아웃 되었습니다");
-                    v.navigateToLogin();
+                MainContract.View currentView = getView(); // 콜백 시점의 View 다시 가져오기
+                if (currentView != null) {
+                    currentView.showLogoutMessage("로그아웃 되었습니다");
+                    currentView.navigateToLogin();
                 }
             }
             @Override public void onError(Exception e) {
                 // Model이 "로그아웃 실패했어" 라고 알려주면,
                 // View에게 "실패 메시지 보여주고, 로그아웃 버튼 다시 활성화해" 라고 지시합니다.
-                MainContract.View v = getView();
-                if (v != null) {
-                    v.setLogoutEnabled(true);
-                    v.showLogoutMessage("로그아웃 실패: " +
+                MainContract.View currentView = getView(); // 콜백 시점의 View 다시 가져오기
+                if (currentView != null) {
+                    currentView.setLogoutEnabled(true); // 로그아웃 실패 시 버튼 다시 활성화
+                    currentView.showLogoutMessage("로그아웃 실패: " +
                             (e != null && e.getMessage() != null ? e.getMessage() : "알 수 없는 오류"));
                 }
             }
