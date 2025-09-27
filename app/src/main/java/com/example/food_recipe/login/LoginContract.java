@@ -1,4 +1,6 @@
 package com.example.food_recipe.login;
+
+import android.content.Context; // (새로추가됨) Context 사용을 위해 import
 import com.google.firebase.auth.FirebaseUser;     // 👉 추가
 import java.util.List;
 
@@ -29,6 +31,9 @@ public interface LoginContract {
         // ✅ 추가: 로그인 성공 시 AutoLogin 처리까지 View가 담당
         // - Presenter는 "성공했다"만 알리고, 실제 AutoLoginManager 호출은 View에서 함
         void onLoginSuccess(boolean autoLoginChecked);
+
+        // (새로추가됨) Presenter가 Context를 요청할 때 호출될 메서드
+        Context getContext();
     }
 
 

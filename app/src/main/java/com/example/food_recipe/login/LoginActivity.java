@@ -1,5 +1,6 @@
 package com.example.food_recipe.login;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -211,4 +212,9 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         return et != null && et.getText() != null ? et.getText().toString() : "";
     }
 
+    // (새로추가됨) LoginContract.View 인터페이스의 getContext() 메소드 구현
+    @Override
+    public Context getContext() {
+        return this; // Activity Context 반환
+    }
 }
