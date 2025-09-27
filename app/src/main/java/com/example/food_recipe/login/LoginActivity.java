@@ -23,20 +23,27 @@ import com.example.food_recipe.R;
 
 import com.example.food_recipe.utils.AutoLoginManager;
 
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 import com.example.food_recipe.utils.SimpleWatcher;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+
 
 public class LoginActivity extends AppCompatActivity implements LoginContract.View {
-
     private TextInputLayout tilEmail, tilPassword;
     private TextInputEditText etEmail, etPassword;
     private MaterialCheckBox cbAutoLogin;
     private Button btnLogin;
-
+    private static final int RC_GOOGLE_SIGN_IN = 9001;
+    private GoogleSignInClient googleClient;
+    private MaterialButton btnGoogleLogin;
     private LoginContract.Presenter presenter;
 
     @Override
@@ -55,6 +62,8 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         etPassword = findViewById(R.id.ETpassword);
         cbAutoLogin = findViewById(R.id.autoLoginCheckBox);
         btnLogin = findViewById(R.id.login_btn);
+        btnGoogleLogin = findViewById(R.id.login_btn_googleLogin);
+
         View contentView = findViewById(R.id.login); // 콘텐츠를 담고 있는 부모 뷰
 
         // Phase 3: 충돌 방지 센서 부착
@@ -67,6 +76,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         });
 
         presenter = new LoginPresenter(this, new LoginModel());
+        btnGoogleLogin = findViewById(R.id.login_btn_googleLogin);
 
         // ===== 버튼 이벤트 등록 =====
         btnLogin.setOnClickListener(v -> presenter.attemptLogin(
@@ -74,6 +84,15 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
                 text(etPassword),
                 cbAutoLogin != null && cbAutoLogin.isChecked()
         ));
+
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestIdToken(getString(R.string.default_web_client_id)).requestEmail().build();
+        googleClient = GoogleSignIn.getClient(this, gso);
+
+        // 구글 로그인 버튼 클릭
+        btnGoogleLogin.setOnClickListener(v -> {
+            Intent signInIntent = googleClient.getSignInIntent();
+            startActivityForResult(signInIntent, RC_GOOGLE_SIGN_IN);
+        });
 
         etEmail.addTextChangedListener(new SimpleWatcher(this::clearEmailError));
         etPassword.addTextChangedListener(new SimpleWatcher(this::clearPasswordError));
@@ -86,6 +105,16 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
 
         findViewById(R.id.Tfind_password).setOnClickListener(v ->
                 startActivity(new Intent(this, FindPsActivity.class)));
+    }
+
+    // Google 결과 전달
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RC_GOOGLE_SIGN_IN && data != null) {
+            boolean autoChecked = cbAutoLogin != null && cbAutoLogin.isChecked();
+            presenter.handleGoogleLoginResult(data, autoChecked);
+        }
     }
 
     @Override
@@ -167,5 +196,4 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     private String text(TextInputEditText et) {
         return et != null && et.getText() != null ? et.getText().toString() : "";
     }
-
 }

@@ -1,5 +1,6 @@
 package com.example.food_recipe.login;
 
+import com.google.android.gms.auth.api.Auth;
 import com.google.firebase.auth.*;
 
 import java.util.List;
@@ -28,6 +29,24 @@ public class LoginModel implements LoginContract.Model {
                 })
                 // 네트워크 오류 등 예외 처리
                 .addOnFailureListener(callback::onFailure);
+    }
+
+    @Override
+    public void signInWithGoogle(String idToken, AuthCallback callback) {
+        com.google.firebase.auth.AuthCredential credential =
+                com.google.firebase.auth.GoogleAuthProvider.getCredential(idToken, null);
+
+        mAuth.signInWithCredential(credential).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                com.google.firebase.auth.FirebaseUser user = mAuth.getCurrentUser();
+                if (user != null) callback.onSuccess(user);
+                else callback.onFailure(new IllegalStateException("구글 로그인 성공 후 사용자 정보가 없습니다."));
+            } else {
+                Exception e = (task.getException() != null) ? task.getException()
+                        : new RuntimeException("구글 로그인 실패(원인 미상");
+                callback.onFailure(e);
+            }
+        });
     }
 
     // 🔹 특정 이메일의 로그인 방식(비밀번호/구글 등) 확인

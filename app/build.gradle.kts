@@ -62,4 +62,5 @@ dependencies {
 
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
+    implementation("com.google.android.gms:play-services-auth:21.1.0")
 }

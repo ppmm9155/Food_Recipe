@@ -1,6 +1,11 @@
 package com.example.food_recipe.login;
 
+import android.content.Intent;
+
 import com.example.food_recipe.utils.ValidationUtils;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.common.api.ApiException;
 import com.google.firebase.auth.*;
 
 import java.util.List;
@@ -91,6 +96,32 @@ public class LoginPresenter implements LoginContract.Presenter {
                 view.setUiEnabled(true);
             }
         });
+    }
+
+    @Override
+    public void handleGoogleLoginResult(android.content.Intent data, boolean autoLoginChecked) {
+        try {
+            GoogleSignInAccount account = GoogleSignIn.getSignedInAccountFromIntent(data).getResult(ApiException.class);
+            if (account == null || account.getIdToken() == null) {
+                view.toast("Google 계정 또는 ID Token이 없습니다.");
+                return;
+            }
+            String idToken = account.getIdToken();
+
+            view.setUiEnabled(false);
+            model.signInWithGoogle(idToken, new LoginModel.AuthCallback() {
+                @Override public void onSuccess(FirebaseUser user) {
+                    view.setUiEnabled(true);
+                    view.onLoginSuccess(autoLoginChecked);
+                }
+                @Override public void onFailure(Exception e) {
+                    view.setUiEnabled(true);
+                    view.toast("Google 로그인 실패: " + e.getMessage());
+                }
+            });
+        } catch (ApiException e) {
+            view.toast("Google Sign-In 실패: " + e.getStatusCode());
+        }
     }
 
     @Override

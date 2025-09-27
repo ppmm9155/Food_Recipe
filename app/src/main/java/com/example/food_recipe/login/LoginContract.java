@@ -1,5 +1,9 @@
 package com.example.food_recipe.login;
 
+import android.content.Intent;
+
+import javax.security.auth.callback.Callback;
+
 // ✅ Contract 인터페이스
 // - MVP 패턴의 "약속서(Contract)" 같은 역할
 // - View, Presenter, Model이 각각 어떤 메서드를 가져야 하는지 정의만 함
@@ -21,7 +25,6 @@ public interface LoginContract {
         void toast(String msg);                // Toast 메시지 표시
         void setUiEnabled(boolean enabled);    // 버튼/입력창 활성화 or 비활성화
         void navigateToHome();                 // 로그인 성공 후 홈 화면 이동
-
         // ✅ 추가: 로그인 성공 시 AutoLogin 처리까지 View가 담당
         // - Presenter는 "성공했다"만 알리고, 실제 AutoLoginManager 호출은 View에서 함
         void onLoginSuccess(boolean autoLoginChecked);
@@ -42,7 +45,9 @@ public interface LoginContract {
 
         boolean isAmbiguous(String code, Exception e); // Firebase 에러코드가 모호한 상황인지 판별
         void refineAmbiguousWithFetch(String email);   // 모호할 경우, fetchSignInMethods로 재확인
-        void detachView();                             // View 참조 해제 (메모리 누수 방지용)
+        void detachView();
+        void handleGoogleLoginResult(android.content.Intent data, boolean autoLoginChecked);
+        // ✅ 추가: 구글 로그인 결과 처리(체크박스 상태도 함께 전달)
     }
 
     // =============================
@@ -57,5 +62,8 @@ public interface LoginContract {
 
         void fetchSignInMethods(String email, LoginModel.FetchCallback callback);
         // Firebase에서 이메일 로그인 방식(비밀번호/구글 등) 조회
+
+        void signInWithGoogle(String idToken, LoginModel.AuthCallback callback);
+        // ✅ 추가: Google ID Token으로 Firebase 로그인
     }
 }
