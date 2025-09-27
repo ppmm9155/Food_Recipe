@@ -17,6 +17,7 @@ import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.food_recipe.R;
+import com.example.food_recipe.home.HomeFragment;
 import com.example.food_recipe.login.LoginActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.appbar.MaterialToolbar;
