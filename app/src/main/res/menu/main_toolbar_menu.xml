@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/action_profile"
-        android:icon="@drawable/outline_account_circle_24"
+        app:actionLayout="@layout/profile_icon_layout"
         android:title="프로필"
         app:showAsAction="always" />
 
