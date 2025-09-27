@@ -1,4 +1,6 @@
 package com.example.food_recipe.login;
+import com.google.firebase.auth.FirebaseUser;     // 👉 추가
+import java.util.List;
 
 // ✅ Contract 인터페이스
 // - MVP 패턴의 "약속서(Contract)" 같은 역할
@@ -22,10 +24,13 @@ public interface LoginContract {
         void setUiEnabled(boolean enabled);    // 버튼/입력창 활성화 or 비활성화
         void navigateToHome();                 // 로그인 성공 후 홈 화면 이동
 
+
+
         // ✅ 추가: 로그인 성공 시 AutoLogin 처리까지 View가 담당
         // - Presenter는 "성공했다"만 알리고, 실제 AutoLoginManager 호출은 View에서 함
         void onLoginSuccess(boolean autoLoginChecked);
     }
+
 
     // =============================
     // 🔹 Presenter (중재자/로직 계층)
@@ -42,6 +47,8 @@ public interface LoginContract {
 
         boolean isAmbiguous(String code, Exception e); // Firebase 에러코드가 모호한 상황인지 판별
         void refineAmbiguousWithFetch(String email);   // 모호할 경우, fetchSignInMethods로 재확인
+        // 👉 추가
+        void handleGoogleLoginResult(android.content.Intent data, boolean autoLoginChecked);
         void detachView();                             // View 참조 해제 (메모리 누수 방지용)
     }
 
@@ -52,10 +59,22 @@ public interface LoginContract {
     // - 결과는 Callback으로 Presenter에 전달
     // =============================
     interface Model {
-        void signInWithEmail(String email, String password, LoginModel.AuthCallback callback);
+        //콜백 AuthCallback 인터페이스를 Contract로 승격
+        interface AuthCallback {
+            void onSuccess(FirebaseUser user);
+            void onFailure(Exception e);
+        }
+        // 🔹 이메일 로그인 방식 조회 결과 콜백
+        public interface FetchCallback {
+            void onResult(List<String> methods);
+        }
+        void signInWithEmail(String email, String password, AuthCallback callback);
         // Firebase 로그인 요청
 
-        void fetchSignInMethods(String email, LoginModel.FetchCallback callback);
+        void fetchSignInMethods(String email, FetchCallback callback);
         // Firebase에서 이메일 로그인 방식(비밀번호/구글 등) 조회
+        // 👉 추가
+        void signInWithGoogle(String idToken, AuthCallback callback);
+
     }
 }

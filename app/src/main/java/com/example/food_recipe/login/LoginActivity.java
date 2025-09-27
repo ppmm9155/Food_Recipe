@@ -29,8 +29,17 @@ import com.google.android.material.textfield.TextInputLayout;
 
 import com.example.food_recipe.utils.SimpleWatcher;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+
 
 public class LoginActivity extends AppCompatActivity implements LoginContract.View {
+
+    // 👉 추가 필드
+    private Button btnGoogleLogin;                     // @id/login_btn_googleLogin
+    private static final int RC_GOOGLE_SIGN_IN = 9001; // 요청 코드
+    private GoogleSignInClient googleClient;
 
     private TextInputLayout tilEmail, tilPassword;
     private TextInputEditText etEmail, etPassword;
@@ -55,6 +64,8 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         etPassword = findViewById(R.id.ETpassword);
         cbAutoLogin = findViewById(R.id.autoLoginCheckBox);
         btnLogin = findViewById(R.id.login_btn);
+        btnGoogleLogin = findViewById(R.id.login_btn_googleLogin); // 👉 추가
+
         View contentView = findViewById(R.id.login); // 콘텐츠를 담고 있는 부모 뷰
 
         // Phase 3: 충돌 방지 센서 부착
@@ -78,6 +89,20 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         etEmail.addTextChangedListener(new SimpleWatcher(this::clearEmailError));
         etPassword.addTextChangedListener(new SimpleWatcher(this::clearPasswordError));
 
+        // 👉 Google Sign-In 옵션 (ID Token + 이메일 요청)
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
+        googleClient = GoogleSignIn.getClient(this, gso);
+
+        // 👉 구글 로그인 버튼 클릭 → 구글 로그인 플로우 시작
+        btnGoogleLogin.setOnClickListener(v -> {
+            Intent signInIntent = googleClient.getSignInIntent();
+            startActivityForResult(signInIntent, RC_GOOGLE_SIGN_IN);
+        });
+
+        // 찾기/회원가입 이동
         findViewById(R.id.joinT).setOnClickListener(v ->
                 startActivity(new Intent(this, JoinActivity.class)));
 
@@ -86,6 +111,18 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
 
         findViewById(R.id.Tfind_password).setOnClickListener(v ->
                 startActivity(new Intent(this, FindPsActivity.class)));
+    }
+
+    // 👉 구글 로그인 결과 Presenter로 위임(+ 자동로그인 체크 상태 전달)
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RC_GOOGLE_SIGN_IN && data != null) {
+            boolean autoChecked = cbAutoLogin != null && cbAutoLogin.isChecked();
+            presenter.handleGoogleLoginResult(data, autoChecked);
+        }else{
+            toast("Google 로그인 취소됨");
+        }
     }
 
     @Override
@@ -146,6 +183,12 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         etPassword.setEnabled(enabled);
         cbAutoLogin.setEnabled(enabled);
         btnLogin.setAlpha(enabled ? 1f : 0.5f);
+
+        // 👉 추가: 구글 버튼도 함께 토글
+        if (btnGoogleLogin != null) {
+            btnGoogleLogin.setEnabled(enabled);
+            btnGoogleLogin.setAlpha(enabled ? 1f : 0.5f);
+        }
     }
 
     @Override
@@ -160,7 +203,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         AutoLoginManager.clearForceReLoginOnce(this);
         Log.d("LoginFlow", "로그인 성공: auto=" + autoLoginChecked + ", force 플래그 해제됨");
         toast("로그인 성공");
-        startActivity(new Intent(this, com.example.food_recipe.main.MainActivity.class));
+        navigateToHome();
         finish();
     }
 
