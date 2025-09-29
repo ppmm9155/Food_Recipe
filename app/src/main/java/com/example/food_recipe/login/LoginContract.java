@@ -1,87 +1,91 @@
+
 package com.example.food_recipe.login;
 
-import android.content.Context; // (새로추가됨) Context 사용을 위해 import
-import com.google.firebase.auth.FirebaseUser;     // 👉 추가
+import android.content.Context;
+import com.google.firebase.auth.FirebaseUser;
 import java.util.List;
 
-// ✅ Contract 인터페이스
-// - MVP 패턴의 "약속서(Contract)" 같은 역할
-// - View, Presenter, Model이 각각 어떤 메서드를 가져야 하는지 정의만 함
-// - 실제 구현은 각 클래스(LoginActivity, LoginPresenter, LoginModel)에서 담당
+/**
+ * 로그인 MVP 패턴의 "룰북(Rulebook)" 📜
+ *
+ * 로그인 기능을 구현하기 전에, View, Presenter, Model이 각각
+ * 어떤 역할을 하고 어떤 함수를 가져야 하는지 약속해두는 곳입니다.
+ *
+ * - View: UI 덩어리. 화면에 보여주는 것만 신경 씀. (LoginActivity)
+ * - Presenter: 중간 보스. View의 요청을 받아 로직을 처리하고 Model을 괴롭힘. (LoginPresenter)
+ * - Model: 데이터 전문가. Firebase 같은 외부 시스템과 통신하는 실제 깡패. (LoginModel)
+ *
+ * 이렇게 역할을 나눠두면 나중에 코드가 꼬이지 않고, 각자 자기 할 일만 집중할 수 있어서 편해집니다.
+ */
 public interface LoginContract {
 
-    // =============================
-    // 🔹 View (화면/UI 계층)
-    // - Activity/Fragment가 구현
-    // - Presenter가 View를 호출해서 UI를 갱신
-    // =============================
+    // ===================================================================
+    // View: 화면 담당. Presenter가 시키는 대로 화면을 바꾸는 역할.
+    // LoginActivity가 이 규칙을 따라서 구현해야 합니다.
+    // ===================================================================
     interface View {
-        void showEmailError(String msg);       // 이메일 입력 오류 표시
-        void showPasswordError(String msg);    // 비밀번호 입력 오류 표시
-        void showWrongPassword();              // "비밀번호 틀림" 전용 처리
-        void showAmbiguous();                  // 이메일/비번 모호할 때 메시지 표시
-        void clearEmailError();                // 이메일 입력 오류 해제
-        void clearPasswordError();             // 비밀번호 입력 오류 해제
-        void toast(String msg);                // Toast 메시지 표시
-        void setUiEnabled(boolean enabled);    // 버튼/입력창 활성화 or 비활성화
-        void navigateToHome();                 // 로그인 성공 후 홈 화면 이동
-        void onGuestLoginSuccess(boolean autoLoginChecked);            // 게스트 로그인 성공 처리
+        // --- Presenter가 View에게 내리는 UI 변경 지시들 ---
+        void showEmailError(String msg);
+        void showPasswordError(String msg);
+        void showWrongPassword();
+        void showAmbiguous();
 
+        void clearEmailError();
+        void clearPasswordError();
 
+        void toast(String msg);
+        void setUiEnabled(boolean enabled); // 로그인 시도 중 중복 클릭을 막기 위해 UI를 비활성화 시킬 때 사용
+        void navigateToHome();              // 로그인 성공 시 메인 화면으로 이동
 
-        // ✅ 추가: 로그인 성공 시 AutoLogin 처리까지 View가 담당
-        // - Presenter는 "성공했다"만 알리고, 실제 AutoLoginManager 호출은 View에서 함
+        // 모든 로그인(이메일, 구글, 게스트) 성공 시 최종적으로 호출됩니다.
         void onLoginSuccess(boolean autoLoginChecked);
 
-        // (새로추가됨) Presenter가 Context를 요청할 때 호출될 메서드
+        // Presenter가 가끔 Context가 필요할 때가 있어서 만들어 둔 창구
         Context getContext();
     }
 
-
-    // =============================
-    // 🔹 Presenter (중재자/로직 계층)
-    // - View에서 요청을 받아 Model을 호출
-    // - Model 결과를 받아 View에게 전달
-    // - UI 로직/유효성 검사/비즈니스 흐름 제어 담당
-    // =============================
+    // ===================================================================
+    // Presenter: 로직 담당. View로부터 이벤트를 받아 Model에 데이터를 요청하고,
+    // 그 결과를 가공해서 다시 View에 업데이트하라고 지시합니다.
+    // LoginPresenter가 이 규칙을 따라서 구현해야 합니다.
+    // ===================================================================
     interface Presenter {
+        // --- View가 Presenter에게 요청하는 작업들 ---
         void attemptLogin(String rawEmail, String password, boolean autoLoginChecked);
-        // View에서 로그인 버튼 클릭 시 호출
-        // rawEmail: 사용자가 입력한 이메일(가공 전)
-        // password: 입력한 비밀번호
-        // autoLoginChecked: 자동 로그인 체크 여부
-
-        boolean isAmbiguous(String code, Exception e); // Firebase 에러코드가 모호한 상황인지 판별
-        void refineAmbiguousWithFetch(String email); // 모호할 경우, fetchSignInMethods로 재확인
-        // 👉 추가
         void handleGoogleLoginResult(android.content.Intent data, boolean autoLoginChecked);
-        void attemptGusetLogin(boolean autoLoginChecked); // 게스트 로그인 시도
-        void detachView(); // View 참조 해제 (메모리 누수 방지용)
+        void attemptGusetLogin(boolean autoLoginChecked);
+
+        // --- 내부 로직 처리 ---
+        // Firebase 에러가 애매할 때 (e.g. "INVALID_LOGIN_CREDENTIALS"), 이게 단순 비밀번호 오류인지, 계정이 없는건지 판단하기 위한 로직
+        boolean isAmbiguous(String code, Exception e);
+        void refineAmbiguousWithFetch(String email);
+
+        // View가 파괴될 때 Presenter와의 연결을 끊어 메모리 누수를 방지합니다.
+        void detachView();
     }
 
-    // =============================
-    // 🔹 Model (데이터 계층)
-    // - FirebaseAuth 같은 외부 서비스와 직접 통신
-    // - View나 Presenter를 전혀 몰라야 함 (의존X)
-    // - 결과는 Callback으로 Presenter에 전달
-    // =============================
+    // ===================================================================
+    // Model: 데이터 담당. Firebase와의 통신 등 실제 데이터 소스를 다루는 역할.
+    // Presenter나 View에 대해서는 아무것도 몰라야 합니다 (독립적).
+    // LoginModel이 이 규칙을 따라서 구현해야 합니다.
+    // ===================================================================
     interface Model {
-        //콜백 AuthCallback 인터페이스를 Contract로 승격
+        // --- 콜백 인터페이스 ---
+        // Model의 작업(네트워크 통신 등)은 대부분 비동기로 이루어집니다.
+        // 작업이 끝났을 때 Presenter에게 성공/실패를 알려주기 위한 연락책입니다.
         interface AuthCallback {
             void onSuccess(FirebaseUser user);
             void onFailure(Exception e);
         }
-        // 🔹 이메일 로그인 방식 조회 결과 콜백
-        public interface FetchCallback {
+
+        interface FetchCallback {
             void onResult(List<String> methods);
         }
-        void signInWithEmail(String email, String password, AuthCallback callback);
-        // Firebase 로그인 요청
 
+        // --- Presenter가 Model에게 요청하는 작업들 ---
+        void signInWithEmail(String email, String password, AuthCallback callback);
         void fetchSignInMethods(String email, FetchCallback callback);
-        // Firebase에서 이메일 로그인 방식(비밀번호/구글 등) 조회
-        // 👉 추가
         void signInWithGoogle(String idToken, AuthCallback callback);
-        void signInAnonyGuest(AuthCallback callback); // 게스트 로그인 (익명)
+        void signInAnonyGuest(AuthCallback callback);
     }
 }

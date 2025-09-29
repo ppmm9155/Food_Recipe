@@ -1,104 +1,186 @@
-// File: app/src/main/java/com/example/food_recipe/splash/SplashActivity.java
+
 package com.example.food_recipe.splash;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.splashscreen.SplashScreen;
 
 import com.example.food_recipe.login.LoginActivity;
 import com.example.food_recipe.main.MainActivity;
-
+import com.example.food_recipe.utils.AutoLoginManager;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 /**
- * ✅ SplashActivity (MVP의 View 역할)
+ *  스플래시 화면 (앱의 첫인상)
  *
- * 이 클래스는 "화면"만 담당합니다.
- * - 화면 전환(Main/Login으로 이동)
- * - 간단한 로딩/로그 출력
- *
- * 핵심 판단(자동로그인 여부, Firebase 세션 확인 등)은
- * Presenter + Model이 수행합니다.
- * → 그래서 여기서는 복잡한 if/else나 Firebase 코드를 직접 쓰지 않습니다.
- *
- * [MVP 한 줄 요약]
- * - Model: 데이터/비즈니스 로직 (예: 로그인 상태 판단)
- * - View : 화면 그리기/전환 (Activity, XML)
- * - Presenter: Model과 View를 연결(중간 관리자)
+ * 이 화면은 앱이 시작될 때 가장 먼저 사용자에게 보여지는 로딩 화면입니다.
+ * 이 화면의 가장 중요한 임무는 "사용자가 현재 로그인 상태인지 아닌지"를 확인해서,
+ * 로그인 상태라면 메인 화면으로, 아니라면 로그인 화면으로 보내주는 것입니다.
  */
-@SuppressLint("CustomSplashScreen") // Android 12+ 스플래시 화면을 커스텀 레이아웃 없이 쓰기 위한 안내
-public class SplashActivity extends AppCompatActivity implements SplashContract.View {
+@SuppressLint("CustomSplashScreen")
+public class SplashActivity extends AppCompatActivity {
 
-    // Presenter는 View와 Model을 이어주는 "중간 관리자"입니다.
-    // View는 Presenter에게 "시작해!"라고 부탁만 하고, 결과를 콜백으로 전달받아 화면을 바꿉니다.
-    private SplashContract.Presenter presenter;
+    // Logcat에서 "SplashActivity" 태그로 로그를 필터링해서 보기 위한 이름표입니다.
+    private static final String TAG = "SplashActivity";
 
+    // Firebase의 로그인 상태 변경을 실시간으로 감지하는 "알람 장치"입니다.
+    private FirebaseAuth.AuthStateListener authStateListener;
+
+    // Firebase 인증 기능(로그인, 로그아웃 등)을 사용하기 위한 "만능 도구"입니다.
+    private FirebaseAuth firebaseAuth;
+
+    // 화면 전환이 두 번 이상 실행되는 것을 막기 위한 "안전 스위치"입니다. (true가 되면 더 이상 작동 안함)
+    private boolean isUserNavigated = false;
+
+    /**
+     * Activity가 처음 생성될 때 호출되는 가장 중요한 메서드입니다.
+     * (앱 실행 시 가장 먼저 실행되는 코드 블록)
+     */
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        // Android 12(API 31)+ 공식 스플래시 API.
-        // 앱 실행 직후 로고/아이콘이 깔끔하게 보이도록 시스템이 처리합니다.
+        // Android 12 버전부터 공식적으로 지원하는 스플래시 스크린 API를 설치합니다.
+        // 이걸 호출해야 `res/values/themes.xml`에 정의한 스플래시 스타일이 적용됩니다.
         SplashScreen.installSplashScreen(this);
-
         super.onCreate(savedInstanceState);
 
-        // 1) Presenter 생성 시 Model도 함께 주입합니다.
-        //    - new SplashModel(getApplicationContext())
-        //      : Model은 Context가 필요한데, Activity 컨텍스트 대신
-        //        Application 컨텍스트를 주어 메모리 누수(액티비티 참조 유지) 위험을 줄입니다.
-        presenter = new SplashPresenter(new SplashModel(getApplicationContext()));
+        // Firebase 인증 도구를 초기화합니다. (사용할 준비)
+        firebaseAuth = FirebaseAuth.getInstance();
 
-        // 2) View 연결: Presenter가 이 화면(SplashActivity)에 접근할 수 있게 합니다.
-        presenter.attach(this);
+        // "알람 장치"를 설정합니다.
+        // 이 코드는 로그인 상태가 바뀔 때마다 (로그인, 로그아웃, 게스트 세션 확인 등) 자동으로 실행됩니다.
+        authStateListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth auth) {
+                // 안전 스위치가 켜져있으면(이미 화면 전환을 했다면), 아무것도 하지 않고 즉시 종료합니다.
+                if (isUserNavigated) {
+                    return;
+                }
 
-        // 3) 로직 시작: Presenter가 내부에서 Model에 "메인으로 갈 수 있나?"를 물어보고,
-        //    판단 결과에 맞게 아래의 navigateToMain()/navigateToLogin()을 호출하게 됩니다.
-        presenter.start();
+                // 현재 로그인된 사용자 정보를 가져옵니다. 없으면 null이 됩니다.
+                FirebaseUser user = auth.getCurrentUser();
+
+                // Handler: "나 이 작업 1초 뒤에 실행해줘" 라고 예약하는 비서입니다.
+                // 왜 딜레이를 줄까요?
+                // 1. 스플래시 화면이 너무 빨리 '휙'하고 사라지는 것을 방지합니다.
+                // 2. 게스트 로그인처럼 Firebase가 상태를 확인하는 데 아주 약간의 시간이 걸릴 수 있는데,
+                //    안정적으로 기다려주기 위함입니다.
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    // 1초 뒤에 이 코드가 실행됩니다.
+
+                    // [변경] 로그인 판단 로직이 변경되었습니다.
+                    // 이전에는 user가 null이 아니면 무조건 메인으로 갔지만,
+                    // 이제는 게스트 사용자의 경우 '자동 로그인' 체크 여부를 추가로 확인합니다.
+                    if (shouldAutoLogin(user)) {
+                        // [변경] user 객체가 있고, 자동 로그인 조건도 만족!
+                        // (이메일, 구글 사용자는 항상 통과, 게스트는 자동로그인 체크해야 통과)
+                        Log.d(TAG, "상태 변경 감지: 자동 로그인 조건 만족 -> 메인으로 이동");
+
+                        // 화면 전환 직전에, 이 Activity가 아직 살아있는지(파괴되지 않았는지) 최종 확인합니다.
+                        // (앱 종료 버튼을 누르는 등 예외적인 상황에서 오류를 방지하는 안전 코드)
+                        if (!isDestroyed() && !isFinishing()) {
+                            isUserNavigated = true; // 안전 스위치를 켜서 중복 실행을 막습니다.
+                            navigateToMain();       // 메인 화면으로 이동!
+                        }
+                    } else {
+                        // [변경] user 객체가 없거나, 자동 로그인 조건을 만족하지 못함!
+                        // (예: 게스트 사용자가 '자동 로그인'을 체크하지 않은 경우)
+                        Log.d(TAG, "상태 변경 감지: 자동 로그인 조건 불만족 -> 로그인으로 이동");
+
+                        if (!isDestroyed() && !isFinishing()) {
+                            isUserNavigated = true; // 안전 스위치를 켭니다.
+                            navigateToLogin();      // 로그인 화면으로 이동!
+                        }
+                    }
+                }, 1000); // 1000 밀리초 = 1초
+            }
+        };
     }
 
-    @Override
-    protected void onDestroy() {
-        // Activity가 사라질 때 Presenter와의 연결을 끊어줍니다.
-        // 이렇게 해야 Presenter가 죽은 화면을 붙잡고 있지 않아 메모리 누수가 나지 않습니다.
-        if (presenter != null) presenter.detach();
-        super.onDestroy();
+    /**
+     * [추가] 자동 로그인을 해야 할지 최종 판단하는 매우 중요한 메서드입니다.
+     * 팀원들을 위해: 이 메서드가 게스트 자동로그인 버그를 해결하는 핵심입니다.
+     * @param user 현재 Firebase에 로그인된 사용자 정보 (null일 수 있음)
+     * @return 메인 화면으로 바로 이동해도 되면 true, 아니면 false
+     */
+    private boolean shouldAutoLogin(FirebaseUser user) {
+        // 1단계: Firebase에 로그인된 사용자가 아예 없으면, 무조건 false (로그인 화면으로)
+        if (user == null) {
+            Log.d(TAG, "shouldAutoLogin: 사용자가 null이므로 false");
+            return false;
+        }
+
+        // 2단계: 사용자가 '게스트(익명)'가 아니라면, (이메일, 구글 등)
+        //        이전 로그인 세션이 남아있는 것이므로 무조건 true (메인 화면으로)
+        if (!user.isAnonymous()) {
+            Log.d(TAG, "shouldAutoLogin: 게스트가 아니므로 true");
+            return true;
+        }
+
+        // 3단계: 여기까지 왔다면 사용자는 '게스트'입니다.
+        //        이 경우에는 SharedPreferences에 저장된 '자동 로그인' 체크 여부를 확인해서 반환합니다.
+        //        - 사용자가 '자동 로그인'을 체크했다면: true (메인 화면으로)
+        //        - 사용자가 '자동 로그인'을 체크 안했다면: false (로그인 화면으로)
+        boolean isAutoLoginEnabled = AutoLoginManager.isAutoLoginEnabled(this);
+        Log.d(TAG, "shouldAutoLogin: 게스트 사용자이며, 자동로그인 체크 상태 = " + isAutoLoginEnabled);
+        return isAutoLoginEnabled;
     }
 
-    // ======================
-    // ⬇️ View 인터페이스 구현부
-    // Presenter가 결과에 따라 아래 메서드를 호출합니다.
-    // ======================
 
+    /**
+     * Activity가 사용자에게 보이기 시작할 때 호출됩니다. (onCreate 다음)
+     */
     @Override
-    public void navigateToMain() {
-        // 메인 화면으로 이동하고, 스플래시는 닫습니다(뒤로가기 눌러도 안 돌아오게).
+    protected void onStart() {
+        super.onStart();
+        // 화면이 다시 보일 때마다 안전 스위치를 초기화합니다.
+        isUserNavigated = false;
+        // 위에서 설정한 "알람 장치"를 Firebase에 등록합니다. 이제부터 로그인 상태 변경을 감지하기 시작합니다.
+        firebaseAuth.addAuthStateListener(authStateListener);
+    }
+
+    /**
+     * Activity가 사용자에게 보이지 않게 될 때 호출됩니다. (다른 화면으로 이동하거나, 앱 종료 시)
+     */
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // "알람 장치"를 해제합니다.
+        // 왜 해제할까요? 이 화면이 꺼졌는데도 계속 알람이 울리면, 배터리 낭비와 메모리 누수의 원인이 됩니다.
+        // 반드시 짝을 맞춰 등록/해제를 해주어야 합니다.
+        if (authStateListener != null) {
+            firebaseAuth.removeAuthStateListener(authStateListener);
+        }
+    }
+
+    /**
+
+     * 메인 화면으로 이동하는 책임을 맡은 작은 로봇(메서드)입니다.
+     */
+    private void navigateToMain() {
+        Log.d(TAG, "메서드 호출: navigateToMain");
         Intent intent = new Intent(SplashActivity.this, MainActivity.class);
         startActivity(intent);
-        finish(); // 스플래시는 스택에서 제거
-    }
-
-    @Override
-    public void navigateToLogin() {
-        // 로그인 화면으로 이동하고, 스플래시는 닫습니다.
-        Intent intent = new Intent(SplashActivity.this, LoginActivity.class);
-        startActivity(intent);
+        // finish(): "내 임무는 끝났으니, 나 자신(스플래시 화면)을 닫아줘!"
+        // 이걸 호출해야 뒤로가기 버튼을 눌렀을 때 스플래시 화면이 다시 나타나지 않습니다.
         finish();
     }
 
-    @Override
-    public void showLoading(boolean show) {
-        // 스플래시는 시스템이 기본 로딩 UI를 보여주므로,
-        // 여기서는 단순히 로그만 남깁니다.
-        // (만약 커스텀 로딩 UI가 필요하면 ProgressBar 등을 추가하면 됩니다.)
-        Log.d("SplashActivity", "showLoading=" + show);
-    }
-
-    @Override
-    public void log(String msg) {
-        // 디버깅 편의를 위한 공용 로그 메서드
-        Log.d("SplashActivity", msg);
+    /**
+     * 로그인 화면으로 이동하는 책임을 맡은 작은 로봇(메서드)입니다.
+     */
+    private void navigateToLogin() {
+        Log.d(TAG, "메서드 호출: navigateToLogin");
+        Intent intent = new Intent(SplashActivity.this, LoginActivity.class);
+        startActivity(intent);
+        finish(); // 마찬가지로, 스플래시 화면은 닫습니다.
     }
 }
