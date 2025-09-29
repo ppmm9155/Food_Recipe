@@ -25,6 +25,7 @@ public class AutoLoginManager {
     // (새로추가됨) 로그인 제공자 유형을 나타내는 상수
     public static final String PROVIDER_EMAIL = "EMAIL";
     public static final String PROVIDER_GOOGLE = "GOOGLE";
+    public static final String PROVIDER_GUEST = "GUEST";
     public static final String PROVIDER_UNKNOWN = "UNKNOWN"; // (새로추가됨) 기본 또는 알 수 없는 제공자
 
     private static SharedPreferences sp(Context context) {
