@@ -185,6 +185,33 @@ public class LoginPresenter implements LoginContract.Presenter {
     }
 
     @Override
+    public void attemptGusetLogin(boolean autoLoginChecked) {
+        if (view == null) return;
+
+        view.setUiEnabled(false);
+
+        model.signInAnonyGuest(new LoginContract.Model.AuthCallback() {
+            @Override
+            public void onSuccess(FirebaseUser user) {
+                if (view != null) {
+                    AutoLoginManager.setCurrentLoginProvider(view.getContext(), AutoLoginManager.PROVIDER_GUEST);
+                    view.setUiEnabled(true);
+                    //view.onLoginSuccess(autoLoginChecked);
+                    view.onGuestLoginSuccess(autoLoginChecked);
+                }
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                if (view != null) {
+                    view.setUiEnabled(true);
+                    view.toast("게스트 로그인 실패: " + e.getMessage());
+                }
+            }
+        });
+    }
+
+    @Override
     public void detachView() {
         android.util.Log.d("LoginPresenter", "detachView() called, view 참조 해제 요청");
         // 현재 view가 final이라 null 처리 불가 → 로그만 남김

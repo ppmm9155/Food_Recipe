@@ -25,6 +25,7 @@ public interface LoginContract {
         void toast(String msg);                // Toast 메시지 표시
         void setUiEnabled(boolean enabled);    // 버튼/입력창 활성화 or 비활성화
         void navigateToHome();                 // 로그인 성공 후 홈 화면 이동
+        void onGuestLoginSuccess(boolean autoLoginChecked);            // 게스트 로그인 성공 처리
 
 
 
@@ -51,10 +52,11 @@ public interface LoginContract {
         // autoLoginChecked: 자동 로그인 체크 여부
 
         boolean isAmbiguous(String code, Exception e); // Firebase 에러코드가 모호한 상황인지 판별
-        void refineAmbiguousWithFetch(String email);   // 모호할 경우, fetchSignInMethods로 재확인
+        void refineAmbiguousWithFetch(String email); // 모호할 경우, fetchSignInMethods로 재확인
         // 👉 추가
         void handleGoogleLoginResult(android.content.Intent data, boolean autoLoginChecked);
-        void detachView();                             // View 참조 해제 (메모리 누수 방지용)
+        void attemptGusetLogin(boolean autoLoginChecked); // 게스트 로그인 시도
+        void detachView(); // View 참조 해제 (메모리 누수 방지용)
     }
 
     // =============================
@@ -80,6 +82,6 @@ public interface LoginContract {
         // Firebase에서 이메일 로그인 방식(비밀번호/구글 등) 조회
         // 👉 추가
         void signInWithGoogle(String idToken, AuthCallback callback);
-
+        void signInAnonyGuest(AuthCallback callback); // 게스트 로그인 (익명)
     }
 }

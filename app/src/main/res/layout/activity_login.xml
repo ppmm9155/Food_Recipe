@@ -167,21 +167,22 @@
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/joinT"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="회원가입"
-                android:textColor="?attr/colorOnBackground"
-                android:textStyle="bold"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="6dp"
+                android:layout_height="match_parent"
                 android:clickable="true"
                 android:focusable="true"
-                android:foreground="?attr/selectableItemBackgroundBorderless" />
+                android:foreground="?attr/selectableItemBackgroundBorderless"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="6dp"
+                android:text="회원가입"
+                android:textColor="?attr/colorOnBackground"
+                android:textStyle="bold" />
         </LinearLayout>
 
         <!-- 게스트 로그인 -->
         <com.google.android.material.textview.MaterialTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:id="@+id/login_guest"
             android:text="게스트 로그인"
             android:textStyle="bold"
             android:textColor="?attr/colorOnBackground"

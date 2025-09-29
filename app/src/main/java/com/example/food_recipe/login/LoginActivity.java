@@ -24,6 +24,7 @@ import com.example.food_recipe.R;
 
 import com.example.food_recipe.utils.AutoLoginManager;
 
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -33,6 +34,7 @@ import com.example.food_recipe.utils.SimpleWatcher;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.material.textview.MaterialTextView;
 
 
 public class LoginActivity extends AppCompatActivity implements LoginContract.View {
@@ -42,6 +44,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     private static final int RC_GOOGLE_SIGN_IN = 9001; // 요청 코드
     private GoogleSignInClient googleClient;
 
+    MaterialTextView guestLogin;
     private TextInputLayout tilEmail, tilPassword;
     private TextInputEditText etEmail, etPassword;
     private MaterialCheckBox cbAutoLogin;
@@ -66,6 +69,9 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         cbAutoLogin = findViewById(R.id.autoLoginCheckBox);
         btnLogin = findViewById(R.id.login_btn);
         btnGoogleLogin = findViewById(R.id.login_btn_googleLogin); // 👉 추가
+        //게스트 로그인
+        guestLogin = findViewById(R.id.login_guest);
+
 
         View contentView = findViewById(R.id.login); // 콘텐츠를 담고 있는 부모 뷰
 
@@ -103,6 +109,12 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
             startActivityForResult(signInIntent, RC_GOOGLE_SIGN_IN);
         });
 
+        //게스트 로그인 이벤트 등록
+        guestLogin.setOnClickListener(v -> {
+            // Presenter에게 게스트 로그인 요청 전달
+            presenter.attemptGusetLogin(cbAutoLogin.isChecked());
+        });
+
         // 찾기/회원가입 이동
         findViewById(R.id.joinT).setOnClickListener(v ->
                 startActivity(new Intent(this, JoinActivity.class)));
@@ -112,6 +124,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
 
         findViewById(R.id.Tfind_password).setOnClickListener(v ->
                 startActivity(new Intent(this, FindPsActivity.class)));
+
     }
 
     // 👉 구글 로그인 결과 Presenter로 위임(+ 자동로그인 체크 상태 전달)
@@ -207,6 +220,13 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         navigateToHome();
         finish();
     }
+
+        @Override
+        public void onGuestLoginSuccess(boolean autoLoginChecked) {
+            // 게스트 로그인 성공이라면 따로 구분하고 싶다면 여기서 처리 가능
+            toast("게스트 로그인 성공");
+            navigateToHome();
+        }
 
     private String text(TextInputEditText et) {
         return et != null && et.getText() != null ? et.getText().toString() : "";

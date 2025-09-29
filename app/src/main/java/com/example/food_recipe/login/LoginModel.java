@@ -78,4 +78,22 @@ public class LoginModel implements LoginContract.Model {
                 });
     }
 
+    //게스트 로그인 실행 (Firebase 익명 로그인)
+    @Override
+    public void signInAnonyGuest(AuthCallback callback) {
+        mAuth.signInAnonymously().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                FirebaseUser user = mAuth.getCurrentUser();
+                Log.d(TAG, "signInAnonymously:success UID=" + (user != null ? user.getUid() : "null"));
+                callback.onSuccess(user);
+            } else {
+                Log.w(TAG, "signInAnonymously:failure", task.getException());
+                callback.onFailure(task.getException());
+            }
+        })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "signInAnonymously:onFailure:", e);
+                    callback.onFailure(e);
+                });
+    }
 }
