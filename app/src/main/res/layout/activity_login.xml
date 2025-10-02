@@ -32,7 +32,7 @@
 
         <!-- 이메일 -->
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilEmail"
+            android:id="@+id/login_tilEmail"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -45,7 +45,7 @@
             app:errorIconDrawable="@null">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/ETemail"
+                android:id="@+id/login_ETemail"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="이메일"
@@ -59,7 +59,7 @@
 
         <!-- 비밀번호 (눈 아이콘 + 에러 아이콘 겹침 방지: errorIconDrawable 제거) -->
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilPassword"
+            android:id="@+id/login_tilPassword"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -71,7 +71,7 @@
             app:errorIconDrawable="@null">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/ETpassword"
+                android:id="@+id/login_ETpassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="비밀번호"
@@ -80,7 +80,7 @@
 
         <!-- 자동 로그인 -->
         <com.google.android.material.checkbox.MaterialCheckBox
-            android:id="@+id/autoLoginCheckBox"
+            android:id="@+id/login_autoLoginCheckBox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="자동 로그인 하기"
@@ -123,7 +123,7 @@
             android:layout_marginBottom="12dp">
 
             <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/Tfind_id"
+                android:id="@+id/login_Tfind_id"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="아이디 찾기"
@@ -144,7 +144,7 @@
                 app:dividerColor="?attr/colorOnSurfaceVariant" />
 
             <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/Tfind_password"
+                android:id="@+id/login_Tfind_password"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="비밀번호 찾기"
@@ -165,7 +165,7 @@
                 app:dividerColor="?attr/colorOnSurfaceVariant" />
 
             <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/joinT"
+                android:id="@+id/login_joinT"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:clickable="true"

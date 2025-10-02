@@ -61,19 +61,19 @@ public class JoinActivity extends AppCompatActivity implements JoinContract.View
     }
 
     private void bindViews() {
-        tilId = findViewById(R.id.tilId);
-        tilEmail = findViewById(R.id.tilEmail);
-        tilPassword = findViewById(R.id.tilPassword);
-        tilPasswordConfirm = findViewById(R.id.tilPasswordConfirm);
+        tilId = findViewById(R.id.join_tilId);
+        tilEmail = findViewById(R.id.join_tilEmail);
+        tilPassword = findViewById(R.id.join_tilPassword);
+        tilPasswordConfirm = findViewById(R.id.join_tilPasswordConfirm);
 
-        etId = findViewById(R.id.Join_etId);
-        etEmail = findViewById(R.id.Join_etEmail);
-        etPassword = findViewById(R.id.Join_etPassword);
-        etPasswordConfirm = findViewById(R.id.Join_etPasswordConfirm);
+        etId = findViewById(R.id.join_etId);
+        etEmail = findViewById(R.id.join_etEmail);
+        etPassword = findViewById(R.id.join_etPassword);
+        etPasswordConfirm = findViewById(R.id.join_etPasswordConfirm);
 
-        btnCheckId = findViewById(R.id.btnCheckId);
-        btnVerifyEmail = findViewById(R.id.btnVerifyEmail);
-        btnRegister = findViewById(R.id.Join_btnRegister);
+        btnCheckId = findViewById(R.id.join_btnCheckId);
+        btnVerifyEmail = findViewById(R.id.join_btnVerifyEmail);
+        btnRegister = findViewById(R.id.join_btnRegister);
     }
 
     private void bindEvents() {

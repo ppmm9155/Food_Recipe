@@ -86,11 +86,11 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         setContentView(R.layout.activity_login);
 
         // 2. 위젯 연결: 코드의 변수(그릇)와 XML의 UI 요소를 'id'로 연결합니다.
-        tilEmail = findViewById(R.id.tilEmail);
-        etEmail = findViewById(R.id.ETemail);
-        tilPassword = findViewById(R.id.tilPassword);
-        etPassword = findViewById(R.id.ETpassword);
-        cbAutoLogin = findViewById(R.id.autoLoginCheckBox);
+        tilEmail = findViewById(R.id.login_tilEmail);
+        etEmail = findViewById(R.id.login_ETemail);
+        tilPassword = findViewById(R.id.login_tilPassword);
+        etPassword = findViewById(R.id.login_ETpassword);
+        cbAutoLogin = findViewById(R.id.login_autoLoginCheckBox);
         btnLogin = findViewById(R.id.login_btn);
         btnGoogleLogin = findViewById(R.id.login_btn_googleLogin);
         //guestLogin = findViewById(R.id.login_guest);
@@ -138,13 +138,13 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         });*/
 
         // 회원가입, 아이디/비밀번호 찾기 화면으로 이동하는 버튼들
-        findViewById(R.id.joinT).setOnClickListener(v ->
+        findViewById(R.id.login_joinT).setOnClickListener(v ->
                 startActivity(new Intent(this, JoinActivity.class)));
 
-        findViewById(R.id.Tfind_id).setOnClickListener(v ->
+        findViewById(R.id.login_Tfind_id).setOnClickListener(v ->
                 startActivity(new Intent(this, FindIdActivity.class)));
 
-        findViewById(R.id.Tfind_password).setOnClickListener(v ->
+        findViewById(R.id.login_Tfind_password).setOnClickListener(v ->
                 startActivity(new Intent(this, FindPsActivity.class)));
     }
 

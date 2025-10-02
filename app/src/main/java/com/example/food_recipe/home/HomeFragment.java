@@ -25,7 +25,7 @@ public class HomeFragment extends Fragment implements HomeContract.View {
             @Nullable Bundle savedInstanceState
     ) {
         View root = inflater.inflate(R.layout.fragment_main, container, false);
-        title = root.findViewById(R.id.home_title);
+        title = root.findViewById(R.id.fmain_home_title);
 
         // 간단 DI (필요 시 Hilt로 대체 가능)
         presenter = new HomePresenter(new HomeModel());

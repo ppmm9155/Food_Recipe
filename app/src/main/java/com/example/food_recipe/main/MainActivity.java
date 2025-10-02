@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
         MaterialToolbar toolbar = findViewById(R.id.main_toolbar);
         setSupportActionBar(toolbar);
 
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
+        BottomNavigationView bottomNav = findViewById(R.id.main_bottom_nav);
         View mainContainer = findViewById(R.id.main_container);
 
         // 충돌 방지 센서 부착 (하단 네비게이션바만 처리)
@@ -89,7 +89,11 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
 
         // 앱 시작 시 기본으로 선택될 프래그먼트를 설정합니다.
         if (savedInstanceState == null) {
-            bottomNav.setSelectedItemId(R.id.nav_favorites);
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.main_container, new HomeFragment())
+                    .commit();
+
+            bottomNav.setSelectedItemId(R.id.nav_none);
         }
     }
 
