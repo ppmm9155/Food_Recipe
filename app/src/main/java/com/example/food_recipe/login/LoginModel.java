@@ -78,7 +78,7 @@ public class LoginModel implements LoginContract.Model {
                 });
     }
 
-    //게스트 로그인 실행 (Firebase 익명 로그인)
+    /*//게스트 로그인 실행 (Firebase 익명 로그인)
     @Override
     public void signInAnonyGuest(AuthCallback callback) {
         mAuth.signInAnonymously().addOnCompleteListener(task -> {
@@ -95,5 +95,5 @@ public class LoginModel implements LoginContract.Model {
                     Log.e(TAG, "signInAnonymously:onFailure:", e);
                     callback.onFailure(e);
                 });
-    }
+    }*/
 }
