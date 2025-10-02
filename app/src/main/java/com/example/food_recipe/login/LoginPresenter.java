@@ -219,7 +219,7 @@ public class LoginPresenter implements LoginContract.Presenter {
     /**
      * View로부터 "게스트 로그인" 요청을 받았을 때 호출됩니다.
      */
-    @Override
+    /*@Override
     public void attemptGusetLogin(boolean autoLoginChecked) {
         if (view == null) return;
 
@@ -247,7 +247,7 @@ public class LoginPresenter implements LoginContract.Presenter {
                 }
             }
         });
-    }
+    }*/
 
     /**
      * View(Activity)가 파괴될 때 호출되어, 메모리 누수를 방지합니다.

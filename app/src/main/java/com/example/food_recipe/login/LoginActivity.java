@@ -93,7 +93,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         cbAutoLogin = findViewById(R.id.autoLoginCheckBox);
         btnLogin = findViewById(R.id.login_btn);
         btnGoogleLogin = findViewById(R.id.login_btn_googleLogin);
-        guestLogin = findViewById(R.id.login_guest);
+        //guestLogin = findViewById(R.id.login_guest);
 
         // Edge-to-Edge 디자인으로 인해 시스템 UI(상태바 등)와 겹치는 문제를 해결하는 코드
         View contentView = findViewById(R.id.login); // 화면의 최상위 레이아웃
@@ -132,10 +132,10 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
             startActivityForResult(signInIntent, RC_GOOGLE_SIGN_IN);
         });
 
-        // "게스트 로그인 텍스트가 클릭되면, 자동로그인 체크상태를 매니저에게 전달해줘"
+        /*// "게스트 로그인 텍스트가 클릭되면, 자동로그인 체크상태를 매니저에게 전달해줘"
         guestLogin.setOnClickListener(v -> {
             presenter.attemptGusetLogin(cbAutoLogin.isChecked());
-        });
+        });*/
 
         // 회원가입, 아이디/비밀번호 찾기 화면으로 이동하는 버튼들
         findViewById(R.id.joinT).setOnClickListener(v ->

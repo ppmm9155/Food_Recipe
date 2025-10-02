@@ -53,7 +53,7 @@ public interface LoginContract {
         // --- View가 Presenter에게 요청하는 작업들 ---
         void attemptLogin(String rawEmail, String password, boolean autoLoginChecked);
         void handleGoogleLoginResult(android.content.Intent data, boolean autoLoginChecked);
-        void attemptGusetLogin(boolean autoLoginChecked);
+        //void attemptGusetLogin(boolean autoLoginChecked); //게스트 로그인
 
         // --- 내부 로직 처리 ---
         // Firebase 에러가 애매할 때 (e.g. "INVALID_LOGIN_CREDENTIALS"), 이게 단순 비밀번호 오류인지, 계정이 없는건지 판단하기 위한 로직
@@ -86,6 +86,7 @@ public interface LoginContract {
         void signInWithEmail(String email, String password, AuthCallback callback);
         void fetchSignInMethods(String email, FetchCallback callback);
         void signInWithGoogle(String idToken, AuthCallback callback);
-        void signInAnonyGuest(AuthCallback callback);
+
+        //void signInAnonyGuest(AuthCallback callback); //게스트 로그인실행
     }
 }
