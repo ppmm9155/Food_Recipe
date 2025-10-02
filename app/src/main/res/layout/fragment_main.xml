@@ -10,7 +10,7 @@
 
     <!-- 로그인 화면과 동일한 패딩/배치 -->
     <LinearLayout
-        android:id="@+id/home_root"
+        android:id="@+id/fmain_home_root"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -22,7 +22,7 @@
 
         <!-- 환영 메시지 -->
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/home_title"
+            android:id="@+id/fmain_home_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="오늘 뭐 먹을까?"
@@ -34,7 +34,7 @@
 
         <!-- ⭐ 오늘의 추천 레시피 (재료 없으면 인기 레시피 대체) -->
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/label_recommended"
+            android:id="@+id/fmain_label_recommended"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="⭐ 오늘의 추천 레시피"
@@ -45,7 +45,7 @@
 
         <!-- 가로 스크롤 리스트: 2~3개가 한 화면에 보이도록 높이 제한 -->
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_recommended"
+            android:id="@+id/fmain_rv_recommended"
             android:layout_width="match_parent"
             android:layout_height="160dp"
             android:overScrollMode="never"
@@ -53,7 +53,7 @@
 
         <!-- 🔥 지금 인기 있는 레시피 -->
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/label_popular"
+            android:id="@+id/fmain_label_popular"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="🔥 지금 인기 있는 레시피"
@@ -63,7 +63,7 @@
             android:layout_marginBottom="12dp"/>
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_popular"
+            android:id="@+id/fmain_rv_popular"
             android:layout_width="match_parent"
             android:layout_height="140dp"
             android:overScrollMode="never"
@@ -71,7 +71,7 @@
 
         <!-- 🕑 최근 본 / 즐겨찾기 미리보기 (헤더 + 더보기) -->
         <LinearLayout
-            android:id="@+id/recentfav_header"
+            android:id="@+id/fmain_recentfav_header"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -79,7 +79,7 @@
             android:layout_marginBottom="12dp">
 
             <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/label_recentfav"
+                android:id="@+id/fmain_label_recentfav"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -90,7 +90,7 @@
 
             <!-- 즐겨찾기 탭으로 이동 -->
             <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/btn_more_fav"
+                android:id="@+id/fmain_btn_more_fav"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="더보기 >"
@@ -105,7 +105,7 @@
 
         <!-- Empty State: 최근 본/즐겨찾기 데이터가 없을 때 -->
         <LinearLayout
-            android:id="@+id/empty_recentfav"
+            android:id="@+id/fmain_empty_recentfav"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -115,7 +115,7 @@
             android:layout_marginBottom="12dp">
 
             <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/tv_recentfav_empty"
+                android:id="@+id/fmain_tv_recentfav_empty"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="아직 본 레시피나 즐겨찾기가 없어요 👀"
@@ -124,7 +124,7 @@
                 android:layout_marginBottom="8dp"/>
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_go_explore"
+                android:id="@+id/fmain_btn_go_explore"
                 style="@style/Widget.App.Button.Outlined"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -133,7 +133,7 @@
 
         <!-- 미리보기 리스트 (작은 카드 2~3개만 노출) -->
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_recentfav_preview"
+            android:id="@+id/fmain_rv_recentfav_preview"
             android:layout_width="match_parent"
             android:layout_height="120dp"
             android:overScrollMode="never"/>

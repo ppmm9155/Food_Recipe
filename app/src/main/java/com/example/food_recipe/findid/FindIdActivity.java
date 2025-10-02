@@ -30,7 +30,7 @@ public class FindIdActivity extends AppCompatActivity implements FindIdContract.
         setContentView(R.layout.activity_find_id);
 
         // Phase 3: 충돌 방지 센서 부착
-        View contentView = findViewById(R.id.findid);
+        View contentView = findViewById(R.id.fi_findid);
         ViewCompat.setOnApplyWindowInsetsListener(contentView, (v, windowInsets) -> {
             // 버그 수정: WindowInsetsCompat -> Insets 타입으로 변경
             Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());

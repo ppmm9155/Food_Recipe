@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
         MaterialToolbar toolbar = findViewById(R.id.main_toolbar);
         setSupportActionBar(toolbar);
 
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
+        BottomNavigationView bottomNav = findViewById(R.id.main_bottom_nav);
         View mainContainer = findViewById(R.id.main_container);
 
         ViewCompat.setOnApplyWindowInsetsListener(mainContainer, (v, windowInsets) -> {
@@ -89,10 +89,11 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.main_container, new HomeFragment())
                     .commit();
-
+          
             // [추가] BottomNavigationView의 자동선택 동작을 무효화하기 위해, 메뉴에 추가한 보이지 않는 더미 아이템을 선택합니다.
             //      이렇게 하면 시각적으로는 아무 탭도 선택되지 않은 상태가 됩니다.
             //      (복구 방법: 만약 이 기능을 제거하고 싶다면, 이 아래 한 줄의 코드만 주석 처리하거나 삭제하면 됩니다.)
+
             bottomNav.setSelectedItemId(R.id.nav_none);
         }
     }

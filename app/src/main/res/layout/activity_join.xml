@@ -20,7 +20,7 @@
 
         <!-- 제목 -->
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/Join_tvTitle"
+            android:id="@+id/join_tvTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="회원가입"
@@ -37,7 +37,7 @@
             android:layout_marginBottom="12dp">
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilId"
+                android:id="@+id/join_tilId"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -45,7 +45,7 @@
                 app:helperText="아이디는 4~16자, 영문/숫자만 허용됩니다.">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/Join_etId"
+                    android:id="@+id/join_etId"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="아이디"
@@ -54,7 +54,7 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnCheckId"
+                android:id="@+id/join_btnCheckId"
                 style="@style/Widget.App.Button.Outlined"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
@@ -72,7 +72,7 @@
             android:layout_marginBottom="12dp">
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilEmail"
+                android:id="@+id/join_tilEmail"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -80,7 +80,7 @@
                 app:helperText="올바른 이메일 형식을 입력하세요.">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/Join_etEmail"
+                    android:id="@+id/join_etEmail"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="이메일"
@@ -88,7 +88,7 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnVerifyEmail"
+                android:id="@+id/join_btnVerifyEmail"
                 style="@style/Widget.App.Button.Outlined"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
@@ -100,7 +100,7 @@
 
         <!-- 비밀번호 -->
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilPassword"
+            android:id="@+id/join_tilPassword"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -109,7 +109,7 @@
             app:helperText="비밀번호는 8자 이상, 영문/숫자/특수문자 포함 권장">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/Join_etPassword"
+                android:id="@+id/join_etPassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="비밀번호"
@@ -118,7 +118,7 @@
 
         <!-- 비밀번호 재입력 -->
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilPasswordConfirm"
+            android:id="@+id/join_tilPasswordConfirm"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -127,7 +127,7 @@
             app:helperText="비밀번호를 다시 입력해주세요.">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/Join_etPasswordConfirm"
+                android:id="@+id/join_etPasswordConfirm"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="비밀번호 재입력"
@@ -136,7 +136,7 @@
 
         <!-- 회원가입 버튼 -->
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/Join_btnRegister"
+            android:id="@+id/join_btnRegister"
             style="@style/Widget.App.Button.Filled"
             android:layout_width="match_parent"
             android:layout_height="48dp"

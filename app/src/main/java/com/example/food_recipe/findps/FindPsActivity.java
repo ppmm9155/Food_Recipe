@@ -32,7 +32,7 @@ public class FindPsActivity extends AppCompatActivity implements FindPsContract.
         setContentView(R.layout.activity_find_password);
 
         // Phase 3: 충돌 방지 센서 부착
-        View contentView = findViewById(R.id.find);
+        View contentView = findViewById(R.id.fs_findps);
         ViewCompat.setOnApplyWindowInsetsListener(contentView, (v, windowInsets) -> {
             // 버그 수정: WindowInsetsCompat -> Insets 타입으로 변경
             Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());

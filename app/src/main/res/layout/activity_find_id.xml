@@ -8,7 +8,7 @@
     android:background="?attr/colorSurface">
 
     <LinearLayout
-        android:id="@+id/findid"
+        android:id="@+id/fi_findid"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
@@ -140,6 +140,5 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_weight="1.5" />
-
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>
