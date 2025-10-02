@@ -1,6 +1,6 @@
 package com.example.food_recipe.main;
 
-import android.content.Context; // (새로추가됨) Context 사용을 위해 import
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
@@ -26,16 +26,14 @@ import com.google.android.material.appbar.MaterialToolbar;
 public class MainActivity extends AppCompatActivity implements MainContract.View {
 
     private MainContract.Presenter presenter;
-    private Menu optionsMenu; // (새로추가됨) 옵션 메뉴 객체를 저장하기 위한 멤버 변수
+    private Menu optionsMenu;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Edge-to-Edge 모드 활성화
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
-        // 상태표시줄 아이콘을 밝은 색으로 변경
         WindowInsetsControllerCompat windowInsetsController = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
         if (windowInsetsController != null) {
             windowInsetsController.setAppearanceLightStatusBars(false);
@@ -46,28 +44,19 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
         presenter = new MainPresenter(this);
         presenter.attach(this);
 
-        // --- UI 요소 초기화 ---
         MaterialToolbar toolbar = findViewById(R.id.main_toolbar);
         setSupportActionBar(toolbar);
 
         BottomNavigationView bottomNav = findViewById(R.id.main_bottom_nav);
         View mainContainer = findViewById(R.id.main_container);
 
-        // 충돌 방지 센서 부착 (하단 네비게이션바만 처리)
         ViewCompat.setOnApplyWindowInsetsListener(mainContainer, (v, windowInsets) -> {
             Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-
-            // AppBarLayout의 패딩 처리는 XML의 fitsSystemWindows가 담당하므로, 해당 코드는 삭제합니다.
-
-            // BottomNavigationView의 하단 패딩을 네비게이션 바 높이만큼 추가
             bottomNav.setPadding(bottomNav.getPaddingLeft(), bottomNav.getPaddingTop(), bottomNav.getPaddingRight(), insets.bottom);
-
-            // Inset을 소비했음을 시스템에 알림
             return WindowInsetsCompat.CONSUMED;
         });
 
 
-        // 하단 네비게이션 아이템 클릭 시 동작을 설정합니다.
         bottomNav.setOnItemSelectedListener(item -> {
             Fragment selected = null;
             int id = item.getItemId();
@@ -76,7 +65,10 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
             } else if (id == R.id.nav_search) {
                 Toast.makeText(this, "레시피 검색 화면 (추후 구현)", Toast.LENGTH_SHORT).show();
             } else if (id == R.id.nav_favorites) {
-                selected = new HomeFragment();
+                // [변경] HomeFragment와 즐겨찾기 탭의 연결을 끊었습니다.
+                // [주석 처리] selected = new HomeFragment();
+                // [추가] 즐겨찾기 프래그먼트는 나중에 별도로 추가될 예정이므로, 현재는 토스트 메시지만 띄웁니다.
+                Toast.makeText(this, "즐겨찾기 화면 (추후 구현)", Toast.LENGTH_SHORT).show();
             }
 
             if (selected != null) {
@@ -87,22 +79,29 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
             return true;
         });
 
-        // 앱 시작 시 기본으로 선택될 프래그먼트를 설정합니다.
+        // [삭제] 이전에 이 위치에 있던 'bottomNav.setSelectedItemId(R.id.nav_favorites);' 코드를 삭제했습니다.
+        //      해당 코드는 MainActivity 진입 시 '즐겨찾기' 탭을 강제로 선택하는 역할을 했습니다.
+
+        // [추가] MainActivity가 처음 생성되었을 때, 기본으로 HomeFragment를 표시하는 코드입니다.
+        //      이 코드는 하단 네비게이션 탭의 '선택 상태'와는 완전히 독립적으로 동작하여,
+        //      HomeFragment(메인 UI)를 화면에 보여주면서도 하단 탭은 아무것도 선택되지 않은 상태로 만들 수 있습니다.
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.main_container, new HomeFragment())
                     .commit();
+          
+            // [추가] BottomNavigationView의 자동선택 동작을 무효화하기 위해, 메뉴에 추가한 보이지 않는 더미 아이템을 선택합니다.
+            //      이렇게 하면 시각적으로는 아무 탭도 선택되지 않은 상태가 됩니다.
+            //      (복구 방법: 만약 이 기능을 제거하고 싶다면, 이 아래 한 줄의 코드만 주석 처리하거나 삭제하면 됩니다.)
 
             bottomNav.setSelectedItemId(R.id.nav_none);
         }
     }
 
-    // === Activity 생명주기 관련 메서드 ===
-
     @Override
     protected void onStart() {
         super.onStart();
-        presenter.start(); // Presenter에게 시작을 알림 (로그인 상태 확인 등)
+        presenter.start();
     }
 
     @Override
@@ -111,14 +110,11 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
         super.onDestroy();
     }
 
-    // === 툴바 메뉴 관련 메서드 ===
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_toolbar_menu, menu);
-        this.optionsMenu = menu; // (새로추가됨) 메뉴 객체 저장
+        this.optionsMenu = menu;
 
-        // --- 프로필 아이콘 클릭 리스너 설정 추가 ---
         MenuItem profileItem = menu.findItem(R.id.action_profile);
         if (profileItem != null) {
             View actionView = profileItem.getActionView();
@@ -128,12 +124,6 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
                 });
             }
         }
-        // --- 여기까지 추가 ---
-        // (새로추가됨) 초기 presenter 상태에 따라 로그아웃 버튼 활성화 여부 반영 (선택적이지만 권장)
-        // 이 시점에는 presenter가 아직 start()를 호출하지 않았을 수 있으므로,
-        // presenter.start() 완료 후 또는 로그인 상태가 명확해진 후 호출하는 것이 더 정확할 수 있습니다.
-        // presenter.start() 내부의 onLoggedIn 콜백에서 setLogoutEnabled(true)가 호출되므로,
-        // 여기서 별도로 호출할 필요는 없을 수 있습니다. 또는 onPrepareOptionsMenu에서 처리할 수도 있습니다.
         return true;
     }
 
@@ -141,19 +131,15 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_profile) {
-            // 이 부분은 actionView의 리스너에서 이미 처리하므로, 여기서는 호출되지 않거나
-            // 중복될 수 있습니다. 필요에 따라 주석 처리하거나 다른 방식으로 관리할 수 있습니다.
             return true;
         } else if (id == R.id.action_logout) {
-            if (item.isEnabled()) { // (새로추가됨) 버튼이 활성화되어 있을 때만 Presenter 호출
+            if (item.isEnabled()) {
                 presenter.onLogoutClicked();
             }
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
-
-    // === Presenter의 지시를 수행하는 메서드 (MainContract.View 구현) ===
 
     @Override
     public void showLogoutMessage(String message) {
@@ -169,16 +155,10 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
 
     @Override
     public void setLogoutEnabled(boolean enabled) {
-        // (변경된부분) 실제 로그아웃 메뉴 아이템 활성화/비활성화
         if (optionsMenu != null) {
             MenuItem logoutItem = optionsMenu.findItem(R.id.action_logout);
             if (logoutItem != null) {
                 logoutItem.setEnabled(enabled);
-                // (선택적) 아이콘의 알파값을 변경하여 시각적 피드백 강화
-                // Drawable icon = logoutItem.getIcon();
-                // if (icon != null) {
-                //    icon.setAlpha(enabled ? 255 : 130);
-                // }
                 android.util.Log.d("MainActivity", "setLogoutEnabled: Logout menu item " + (enabled ? "enabled" : "disabled"));
             } else {
                 android.util.Log.w("MainActivity", "setLogoutEnabled: Logout menu item (R.id.action_logout) not found.");
@@ -188,9 +168,8 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
         }
     }
 
-    // (새로추가됨) MainContract.View 인터페이스의 getContext() 메소드 구현
     @Override
     public Context getContext() {
-        return this; // Activity Context 반환
+        return this;
     }
 }
