@@ -122,7 +122,7 @@
             android:gravity="center"
             android:layout_marginBottom="12dp">
 
-            <com.google.android.material.textview.MaterialTextView
+            <!-- <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/login_Tfind_id"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -133,15 +133,15 @@
                 android:paddingVertical="6dp"
                 android:clickable="true"
                 android:focusable="true"
-                android:foreground="?attr/selectableItemBackgroundBorderless" />
+                android:foreground="?attr/selectableItemBackgroundBorderless" /> -->
 
-            <com.google.android.material.divider.MaterialDivider
+            <!-- <com.google.android.material.divider.MaterialDivider
                 android:layout_width="1dp"
                 android:layout_height="16dp"
                 app:dividerInsetStart="6dp"
                 app:dividerInsetEnd="6dp"
                 app:thickness="1dp"
-                app:dividerColor="?attr/colorOnSurfaceVariant" />
+                app:dividerColor="?attr/colorOnSurfaceVariant" /> -->
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/login_Tfind_password"

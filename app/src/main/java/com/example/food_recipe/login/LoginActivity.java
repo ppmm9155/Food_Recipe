@@ -141,8 +141,8 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         findViewById(R.id.login_joinT).setOnClickListener(v ->
                 startActivity(new Intent(this, JoinActivity.class)));
 
-        findViewById(R.id.login_Tfind_id).setOnClickListener(v ->
-                startActivity(new Intent(this, FindIdActivity.class)));
+        /* findViewById(R.id.login_Tfind_id).setOnClickListener(v ->
+                startActivity(new Intent(this, FindIdActivity.class))); */
 
         findViewById(R.id.login_Tfind_password).setOnClickListener(v ->
                 startActivity(new Intent(this, FindPsActivity.class)));
