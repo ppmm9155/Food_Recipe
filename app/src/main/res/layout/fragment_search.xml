@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    [변경] 최상위 레이아웃을 LinearLayout/NestedScrollView에서 ConstraintLayout으로 변경합니다.
+    [기존 구조 유지] 최상위 레이아웃으로 ConstraintLayout을 계속 사용합니다.
     ConstraintLayout은 복잡한 화면 구조에서 뷰의 위치를 가장 정확하고 안정적으로 제어하는 현대적인 방식입니다.
 -->
 <androidx.constraintlayout.widget.ConstraintLayout
@@ -10,19 +10,37 @@
     android:layout_height="match_parent">
 
     <!--
-        [변경] TextView에 제약(Constraint)을 추가하여 화면의 정중앙에 위치시킵니다.
-        - 상/하/좌/우를 모두 부모(parent)에 연결하면, 마치 네 방향에서 고무줄로 당기는 것처럼
-          물리적으로 완벽한 중앙에 위치하게 됩니다.
-        - 이는 gravity 속성보다 훨씬 더 정확하고 신뢰성 높은 중앙 정렬 방식입니다.
-
-        [삭제] 기존의 감싸고 있던 LinearLayout과 NestedScrollView는 삭제되었습니다.
+        [삭제] 화면 중앙에 위치하던 임시 TextView("레시피 검색")를 삭제합니다.
+        이제 실제 검색 기능을 수행할 위젯들을 배치합니다.
     -->
-    <TextView
-        android:layout_width="wrap_content"
+
+    <!--
+        [추가] 레시피 검색을 위한 SearchView(검색창)를 추가합니다.
+        - 화면 상단에 위치시키기 위해, 상/좌/우를 부모(parent)에 제약(Constraint)합니다.
+        - iconifiedByDefault="false" : 처음부터 검색창이 펼쳐져 있도록 설정합니다.
+        - queryHint : 사용자에게 어떤 내용을 검색할 수 있는지 안내하는 힌트 텍스트입니다.
+    -->
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/search_view"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="레시피 검색"
-        android:textAppearance="?attr/textAppearanceHeadlineMedium"
+        app:iconifiedByDefault="false"
+        app:queryHint="레시피, 재료 검색"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!--
+        [추가] 검색 결과를 보여줄 RecyclerView(목록)를 추가합니다.
+        - 상단은 SearchView의 바로 아래에 위치시키고, 나머지(하/좌/우)는 부모에 제약하여
+          SearchView를 제외한 나머지 모든 공간을 가득 채우도록 설정합니다.
+        - 가로/세로 크기를 모두 '0dp'로 설정하는 것이 ConstraintLayout에서 남는 공간을 채우는 핵심입니다.
+    -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view_recipes"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/search_view"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

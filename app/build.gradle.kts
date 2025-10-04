@@ -40,7 +40,7 @@ android {
 dependencies {
 
     implementation(libs.appcompat) // AndroidX AppCompat 라이브러리 (이전 Android 버전과의 호환성 및 다양한 UI 요소 제공)
-    // implementation(libs.material) // Google의 머티리얼 디자인 가이드라인을 따르는 UI 컴포넌트 모음 (삭제)
+    // implementation(libs.material) // Google의 머티리얼 디자인 가이드라인을 따르는 UI 컴포넌트 모음
     implementation(libs.material) // Material 라이브러리 버전 명시적 강제 적용
     implementation(libs.activity) // Jetpack Activity 라이브러리 (Activity Result API, ComponentActivity 등 포함)
     implementation(libs.constraintlayout) // ConstraintLayout을 사용하여 유연하고 효율적인 UI 레이아웃 구성
@@ -58,12 +58,18 @@ dependencies {
     androidTestImplementation(libs.espresso.core) // 안드로이드 UI 테스트 자동화를 위한 Espresso 프레임워크의 핵심 라이브러리
 
     implementation(libs.core.splashscreen) //SplashScreen API
-    // implementation(libs.material.v1120) // 중복된 Material 의존성 제거
+
 
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
     implementation(libs.play.services.auth)
     implementation(libs.coordinatorlayout)
+
+    // [기존 코드 유지] Glide: URL로부터 이미지를 효율적으로 로드하고 캐싱하는 라이브러리입니다. RecipeAdapter에서 사용합니다.
+    implementation("com.github.bumptech.glide:glide:5.0.5")
+
+    // [추가] Algolia: 빠르고 강력한 호스팅 검색 API 서비스를 제공하는 라이브러리입니다. Presenter에서 검색 기능을 구현하기 위해 사용합니다.
+    implementation("com.algolia:algoliasearch-android:3.+")
 
     
 }
