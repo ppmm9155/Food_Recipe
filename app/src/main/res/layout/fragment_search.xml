@@ -1,151 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<!--
+    [변경] 최상위 레이아웃을 LinearLayout/NestedScrollView에서 ConstraintLayout으로 변경합니다.
+    ConstraintLayout은 복잡한 화면 구조에서 뷰의 위치를 가장 정확하고 안정적으로 제어하는 현대적인 방식입니다.
+-->
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@android:color/white">
+    android:layout_height="match_parent">
 
     <!--
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:background="#D9D9D9"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp">
+        [변경] TextView에 제약(Constraint)을 추가하여 화면의 정중앙에 위치시킵니다.
+        - 상/하/좌/우를 모두 부모(parent)에 연결하면, 마치 네 방향에서 고무줄로 당기는 것처럼
+          물리적으로 완벽한 중앙에 위치하게 됩니다.
+        - 이는 gravity 속성보다 훨씬 더 정확하고 신뢰성 높은 중앙 정렬 방식입니다.
 
-        <TextView
-            android:id="@+id/tv_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:text="레시피 찾기"
-            android:textStyle="bold"
-            android:textSize="22sp" />
-
-        <TextView
-            android:id="@+id/tv_profile"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:gravity="center"
-            android:text="👤"
-            android:textSize="18sp" />
-    </RelativeLayout> -->
-
-    <!-- 검색 아이콘 -->
+        [삭제] 기존의 감싸고 있던 LinearLayout과 NestedScrollView는 삭제되었습니다.
+    -->
     <TextView
-        android:id="@+id/se_tv_search_icon"
-        android:layout_width="wrap_content"
-        android:layout_height="40dp"
-        android:gravity="center_vertical"
-        android:paddingStart="16dp"
-        android:textSize="18sp" />
-        <!-- android:text="🔍" -->
-
-    <!-- 카테고리 체크박스 -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="#D9D9D9"
-        android:padding="8dp"
-        android:gravity="center_vertical">
-
-        <CheckBox
-            android:id="@+id/se_cb_korean"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="한식"
-            android:checked="true" />
-
-        <CheckBox
-            android:id="@+id/se_cb_western"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="양식"
-            android:layout_marginStart="12dp"/>
-
-        <CheckBox
-            android:id="@+id/se_cb_chinese"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="중식"
-            android:layout_marginStart="12dp"/>
-
-        <CheckBox
-            android:id="@+id/se_cb_japanese"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="일식"
-            android:layout_marginStart="12dp"/>
-    </LinearLayout>
-
-    <!-- 정렬 텍스트 -->
-    <TextView
-        android:id="@+id/se_tv_sort"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:layout_gravity="end"
-        android:text="인기순"
-        android:textSize="14sp"/>
+        android:text="레시피 검색"
+        android:textAppearance="?attr/textAppearanceHeadlineMedium"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- 레시피 리스트 -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/se_rv_recipes"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:paddingTop="4dp"
-        android:paddingBottom="4dp"/>
-
-    <!--
-    <LinearLayout
-        android:id="@+id/bottom_bar"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:background="#D9D9D9"
-        android:orientation="horizontal">
-
-        <LinearLayout
-            android:id="@+id/btn_ingr"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="재료 입력"
-                android:textSize="13sp"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/btn_find"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="레시피 찾기"
-                android:textStyle="bold"
-                android:textSize="13sp"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/btn_user"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="사용자"
-                android:textSize="13sp"/>
-        </LinearLayout>
-    </LinearLayout> -->
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

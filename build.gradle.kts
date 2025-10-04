@@ -11,6 +11,8 @@ plugins {
     // 'apply false'의 의미는 위와 동일하며, 모듈 수준에서 실제로 적용합니다.
     // 버전은 libs.versions.toml을 통해 관리됩니다.
     alias(libs.plugins.google.gms.google.services) apply false
+
+
     
 
 }

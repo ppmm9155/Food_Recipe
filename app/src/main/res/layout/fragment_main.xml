@@ -5,10 +5,18 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:fitsSystemWindows="true"
     android:background="?attr/colorSurface">
+    <!--
+        [삭제된 속성]
+        1. android:fitsSystemWindows="true"
+        2. app:layout_behavior="@string/appbar_scrolling_view_behavior"
 
-    <!-- 로그인 화면과 동일한 패딩/배치 -->
+        이 두 속성의 역할은 이제 activity_main.xml의 CoordinatorLayout과
+        FragmentContainerView가 담당하므로, 여기서는 반드시 삭제해야
+        속성 충돌로 인한 오류가 발생하지 않습니다.
+    -->
+
+    <!-- 내부 LinearLayout 및 모든 하위 뷰들은 변경 없이 100% 그대로 유지됩니다. -->
     <LinearLayout
         android:id="@+id/fmain_home_root"
         android:layout_width="match_parent"
