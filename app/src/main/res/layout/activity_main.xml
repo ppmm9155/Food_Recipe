@@ -1,13 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    activity_main.xml 파일은 앱의 메인 화면 레이아웃을 정의합니다.
-    UI 요소(버튼, 텍스트, 이미지 등)를 어떻게 배치할지 결정하는 설계도와 같습니다.
--->
-
-<!--
-    <RelativeLayout> : 이 화면의 가장 바깥쪽 컨테이너(틀)입니다.
-    이름처럼, 내부에 있는 UI 요소들을 서로 '상대적인' 위치에 배치할 수 있습니다.
-    (예: 'A의 오른쪽에 B 배치', '화면 맨 아래에 C 고정' 등)
+    [최종 구조 변경] 최상위 레이아웃을 RelativeLayout으로 변경합니다.
+    이는 하단 네비게이션 바를 제외한 '콘텐츠 영역'의 크기를 명확하게 분리하여
+    내부 프래그먼트들이 정확한 공간을 할당받도록 하기 위한 가장 확실한 구조입니다.
 -->
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
@@ -15,64 +10,68 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- 1. 화면 상단에 위치할 앱바(AppBar) 영역 -->
     <!--
-        <com.google.android.material.appbar.AppBarLayout> : 툴바(Toolbar)를 감싸는 컨테이너입니다.
-        스크롤과 관련된 동작이나 그림자 효과 등을 관리합니다.
-    -->
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/main_appbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"     
-        android:fitsSystemWindows="true"        
-        android:background="@color/black_2">    
-
-        <!--
-            <com.google.android.material.appbar.MaterialToolbar> : 화면의 제목과 메뉴 등을 표시하는 툴바입니다.
-            최신 Material Design 스타일이 적용된 툴바입니다.
-        -->
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/main_toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="64dp"
-            android:theme="@style/MyToolbarTheme"           
-            app:title="Food Recipe"                         
-            app:titleTextColor="@color/white"               
-            app:navigationIconTint="@color/white"           
-            app:menu="@menu/main_toolbar_menu"             
-            app:titleTextAppearance="@style/MyToolbarTitleStyle" 
-            app:contentInsetStart="24dp" />                 
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <!-- 2. 화면 하단에 위치할 네비게이션 바 -->
-    <!--
-        <com.google.android.material.bottomnavigation.BottomNavigationView> : 화면 하단에 고정되어
-        주요 메뉴(홈, 검색, 즐겨찾기 등) 간의 이동을 돕는 UI 컴포넌트입니다.
+        [변경] BottomNavigationView의 위치를 RelativeLayout의 규칙으로 제어합니다.
+        - android:layout_alignParentBottom="true" 속성은 이 뷰를 부모의 맨 아래에 고정시킵니다.
+        - 이렇게 하면 이 뷰의 공간이 다른 콘텐츠 영역과 겹치지 않고 명확하게 분리됩니다.
+        [삭제] CoordinatorLayout 내부에서 사용되던 android:layout_gravity="bottom"은 삭제합니다.
     -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/main_bottom_nav"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true" 
-        android:background="@color/black_2"     
-        app:itemIconTint="@color/bottom_nav_icon_tint_selector" 
-        app:itemTextColor="@color/white"                        
-        app:menu="@menu/bottom_nav_menu"                        
+        android:layout_alignParentBottom="true"
+        android:background="@color/black_2"
+        app:itemIconTint="@color/bottom_nav_icon_tint_selector"
+        app:itemTextColor="@color/white"
+        app:menu="@menu/bottom_nav_menu"
         app:itemActiveIndicatorStyle="@style/MyBottomNavActiveIndicatorStyle" />
-    <!-- 3. 메인 콘텐츠가 표시될 중앙 영역 -->
+
     <!--
-        <FrameLayout> : UI 요소를 겹겹이 쌓을 수 있는 가장 단순한 레이아웃입니다.
-        여기서는 하단 네비게이션 바의 선택에 따라 다양한 화면 조각(Fragment)들이 교체되어 보여질 공간입니다.
-        - android:layout_below="@id/appbar"       : 위에 있는 앱바(@id/appbar)의 '아래에' 위치시킵니다.
-        - android:layout_above="@id/bottom_nav"   : 아래에 있는 네비게이션 바(@id/bottom_nav)의 '위에' 위치시킵니다.
-        결과적으로 앱바와 네비게이션 바 사이의 남는 공간 전체를 차지하게 됩니다.
+        [변경] 기존의 CoordinatorLayout을 RelativeLayout의 자식으로 배치합니다.
+        [추가] android:layout_above="@+id/main_bottom_nav" 속성을 추가하여
+               이 레이아웃이 BottomNavigationView의 '바로 위' 공간 전체를 차지하도록 지정합니다.
+               이것이 프래그먼트의 중앙 정렬 문제를 해결하는 핵심입니다.
     -->
-    <FrameLayout
-        android:id="@+id/main_container"
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/main_appbar"
-        android:layout_above="@id/main_bottom_nav"/>
+        android:layout_above="@id/main_bottom_nav">
+
+        <!-- AppBarLayout과 Toolbar는 기존 구조 그대로 유지됩니다. -->
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/main_appbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fitsSystemWindows="true"
+            android:background="@color/black_2">
+
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/main_toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:theme="@style/MyToolbarTheme"
+                app:title="Food Recipe"
+                app:titleTextColor="@color/white"
+                app:navigationIconTint="@color/white"
+                app:menu="@menu/main_toolbar_menu"
+                app:titleTextAppearance="@style/MyToolbarTitleStyle"
+                app:contentInsetStart="24dp" />
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <!--
+            FragmentContainerView는 이제 정확한 크기의 공간(CoordinatorLayout) 내부에
+            배치되므로, 내부 프래그먼트의 중앙 정렬이 완벽하게 동작합니다.
+        -->
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/nav_host_fragment"
+            android:name="androidx.navigation.fragment.NavHostFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:defaultNavHost="true"
+            app:navGraph="@navigation/navgraph"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
 </RelativeLayout>
