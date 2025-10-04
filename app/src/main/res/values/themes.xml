@@ -37,6 +37,10 @@
         <item name="colorSurface">@color/white</item>
         <!-- colorOnSurface : Surface 색상 위에 표시될 콘텐츠의 색상입니다. -->
         <item name="colorOnSurface">@color/black</item>
+
+        <!-- [수정] 스크롤 시 앱 바(App Bar)가 들어올려질 때의 배경색을 지정합니다. -->
+        <item name="colorSurfaceContainer">@color/black_2</item>
+
         <!-- color... : 그 외 UI 요소들의 색상을 정의합니다. (Variant, Outline, Secondary 등) -->
         <item name="colorSurfaceVariant">@color/white</item>
         <item name="colorOnSurfaceVariant">@color/gray_600</item>
@@ -65,6 +69,13 @@
     <!-- ================================================================================ -->
     <!-- | 특정 UI 컴포넌트(버튼, 툴바 등)를 위한 개별 스타일 정의                         | -->
     <!-- ================================================================================ -->
+
+    <!--
+        [추가] 툴바의 팝업 메뉴('로그아웃' 등)를 위한 전용 테마 오버레이입니다.
+        Toolbar에 적용된 어두운 테마의 영향을 받지 않고, 항상 '밝은' 테마(흰색 배경, 검은 글씨)를
+        강제하기 위해 사용합니다. parent로 "ThemeOverlay.Material3.Light"를 사용합니다.
+    -->
+    <style name="ThemeOverlay.App.PopupMenu" parent="ThemeOverlay.Material3.Light"/>
 
     <!-- 채워진 버튼(Filled Button)을 위한 커스텀 스타일 -->
     <style name="Widget.App.Button.Filled" parent="Widget.Material3.Button">

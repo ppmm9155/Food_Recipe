@@ -46,11 +46,17 @@
             android:fitsSystemWindows="true"
             android:background="@color/black_2">
 
+            <!--
+                [변경] app:popupTheme 속성의 값을 새로 만든 @style/ThemeOverlay.App.PopupMenu로 변경합니다.
+                이것은 툴바의 자체 테마(android:theme)가 가진 어두운 팝업 규칙을 무시하고,
+                우리가 정의한 '팝업 전용 라이트 테마'를 강제로 사용하도록 만드는 가장 확실한 방법입니다.
+            -->
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/main_toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="64dp"
                 android:theme="@style/MyToolbarTheme"
+                app:popupTheme="@style/ThemeOverlay.App.PopupMenu"
                 app:title="Food Recipe"
                 app:titleTextColor="@color/white"
                 app:navigationIconTint="@color/white"

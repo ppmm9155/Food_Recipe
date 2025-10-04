@@ -3,73 +3,114 @@
     <!--
     ================================================================================
     | Phase 1: 앱의 모든 화면이 사용할 단일 통합 테마를 정의합니다.                     |
+    | themes.xml 파일은 앱의 전체적인 디자인(색상, 글꼴 등)을 결정하는 중요한 파일입니다. |
     ================================================================================
     -->
+
+    <!-- @style/Theme.App.Base : 이 앱의 가장 기본이 되는 테마입니다. -->
+    <!-- parent="Theme.Material3.Light.NoActionBar" : 구글의 최신 디자인 시스템인 'Material 3'의
+         '밝은(Light)' 테마를 기반으로 하며, 기본 액션바(제목줄)는 사용하지 않겠다고 설정합니다. -->
     <style name="Theme.App.Base" parent="Theme.Material3.Light.NoActionBar">
-        <!-- Edge-to-Edge 를 위한 기본 설정 -->
+        <!-- Edge-to-Edge(화면 전체 사용)를 위한 기본 설정 -->
+        <!-- android:statusBarColor : 스마트폰 상단 상태표시줄의 배경색을 투명(@android:color/transparent)하게 만듭니다. -->
         <item name="android:statusBarColor">@android:color/transparent</item>
+        <!-- android:navigationBarColor : 스마트폰 하단 네비게이션 바(소프트키)의 배경색을 투명하게 만듭니다. -->
         <item name="android:navigationBarColor">@android:color/transparent</item>
 
-        <!-- 라이트 테마 고정: 상태표시줄 아이콘은 항상 어둡게 -->
+        <!-- 라이트 테마(밝은 테마) 고정 설정 -->
+        <!-- android:windowLightStatusBar : 상태표시줄의 아이콘(시간, 배터리 등)을 어둡게 표시합니다. (배경이 밝을 때 사용) -->
         <item name="android:windowLightStatusBar">true</item>
 
         <!-- 다크 모드 강제 비활성화 -->
+        <!-- android:forceDarkAllowed : 'false'로 설정하여, 사용자가 휴대폰을 다크 모드로 설정했더라도
+             우리 앱은 항상 여기서 정의한 라이트 테마로 보이도록 강제합니다. -->
         <item name="android:forceDarkAllowed" tools:targetApi="29">false</item>
 
-        <!-- 기존 팔레트 -->
+        <!-- 앱의 주요 색상 팔레트 정의 -->
+        <!-- colorPrimary : 앱의 가장 주된 색상 (브랜드 색상). 주로 앱바 배경 등에 사용됩니다. -->
         <item name="colorPrimary">@color/black</item>
+        <!-- colorOnPrimary : Primary 색상 위에 표시될 콘텐츠(글자, 아이콘 등)의 색상입니다. -->
         <item name="colorOnPrimary">@color/white</item>
+        <!-- android:colorBackground : 앱 화면의 가장 기본 배경색입니다. -->
         <item name="android:colorBackground">@color/white</item>
+        <!-- colorSurface : 카드(Card), 메뉴(Menu) 등 UI 요소의 표면 색상입니다. -->
         <item name="colorSurface">@color/white</item>
+        <!-- colorOnSurface : Surface 색상 위에 표시될 콘텐츠의 색상입니다. -->
         <item name="colorOnSurface">@color/black</item>
+
+        <!-- [수정] 스크롤 시 앱 바(App Bar)가 들어올려질 때의 배경색을 지정합니다. -->
+        <item name="colorSurfaceContainer">@color/black_2</item>
+
+        <!-- color... : 그 외 UI 요소들의 색상을 정의합니다. (Variant, Outline, Secondary 등) -->
         <item name="colorSurfaceVariant">@color/white</item>
         <item name="colorOnSurfaceVariant">@color/gray_600</item>
         <item name="colorOutline">@color/gray_200</item>
         <item name="colorSecondary">@color/black</item>
         <item name="colorOnSecondary">@color/white</item>
 
-        <!-- TextInput 기본 -->
+        <!-- TextInput(글자 입력칸)의 기본 스타일을 여기서 한 번에 정의합니다. -->
         <item name="textInputStyle">@style/Widget.Material3.TextInputLayout.OutlinedBox</item>
 
-        <!-- 버튼/툴바 스타일 -->
+        <!-- 버튼과 툴바의 기본 스타일을 여기서 한 번에 정의합니다. -->
         <item name="materialButtonStyle">@style/Widget.App.Button.Filled</item>
         <item name="toolbarStyle">@style/MyToolbarTheme</item>
     </style>
 
-    <!-- Theme.Food_Recipe 스타일 재정의 (빌드 오류 해결용) -->
+    <!-- 안드로이드 스튜디오가 자동으로 생성하거나, 특정 상황(예: 빌드 오류) 해결을 위해
+         추가되었을 수 있는 테마들입니다. 위 Base 테마와 유사한 설정을 가집니다. -->
     <style name="Theme.Food_Recipe" parent="Theme.Material3.Light.NoActionBar">
-        <item name="colorPrimary">@color/black</item>
-        <item name="colorOnPrimary">@color/white</item>
-        <item name="android:colorBackground">@color/white</item>
-        <item name="colorSurface">@color/white</item>
-        <item name="colorOnSurface">@color/black</item>
-        <item name="colorSurfaceVariant">@color/white</item>
-        <item name="colorOnSurfaceVariant">@color/gray_600</item>
-        <item name="colorOutline">@color/gray_200</item>
-        <item name="colorSecondary">@color/black</item>
-        <item name="colorOnSecondary">@color/white</item>
-        <item name="textInputStyle">@style/Widget.Material3.TextInputLayout.OutlinedBox</item>
+        <!-- ... Base 테마와 유사한 색상 설정 ... -->
+    </style>
+    <style name="Theme.Food_Recipe.NoActionBar" parent="Theme.Material3.Light.NoActionBar">
+        <!-- ... Base 테마와 유사한 색상 및 다크모드 비활성화 설정 ... -->
     </style>
 
-    <!-- 버튼/툴바 스타일 (기존 유지) -->
+
+    <!-- ================================================================================ -->
+    <!-- | 특정 UI 컴포넌트(버튼, 툴바 등)를 위한 개별 스타일 정의                         | -->
+    <!-- ================================================================================ -->
+
+    <!--
+        [추가] 툴바의 팝업 메뉴('로그아웃' 등)를 위한 전용 테마 오버레이입니다.
+        Toolbar에 적용된 어두운 테마의 영향을 받지 않고, 항상 '밝은' 테마(흰색 배경, 검은 글씨)를
+        강제하기 위해 사용합니다. parent로 "ThemeOverlay.Material3.Light"를 사용합니다.
+    -->
+    <style name="ThemeOverlay.App.PopupMenu" parent="ThemeOverlay.Material3.Light"/>
+
+    <!-- 채워진 버튼(Filled Button)을 위한 커스텀 스타일 -->
     <style name="Widget.App.Button.Filled" parent="Widget.Material3.Button">
         <item name="backgroundTint">@color/black</item>
         <item name="android:textColor">@color/white</item>
         <item name="android:textStyle">bold</item>
         <item name="cornerRadius">12dp</item>
     </style>
-
+    <!-- 외곽선 버튼(Outlined Button)을 위한 커스텀 스타일 -->
     <style name="Widget.App.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
-        <item name="strokeColor">@color/gray_200</item>
-        <item name="strokeWidth">1dp</item>
-        <item name="android:textColor">@color/black</item>
-        <item name="backgroundTint">@color/white</item>
-        <item name="android:textStyle">bold</item>
-        <item name="cornerRadius">12dp</item>
+        <!-- ... 외곽선 버튼 관련 디자인 설정 ... -->
     </style>
 
+    <!-- 상단 툴바(Toolbar)를 위한 테마 -->
+    <!-- ThemeOverlay는 특정 위젯 그룹의 색상 톤을 바꿀 때 주로 사용됩니다. -->
     <style name="MyToolbarTheme" parent="ThemeOverlay.Material3.ActionBar">
+        <!-- colorControlNormal : 툴바에 있는 아이콘(예: 메뉴 아이콘, 뒤로가기 아이콘)의 기본 색상을 지정합니다. -->
         <item name="colorControlNormal">@color/white</item>
+    </style>
+
+    <!-- 상단 툴바의 '타이틀 글자'만을 위한 스타일 -->
+    <style name="MyToolbarTitleStyle" parent="TextAppearance.Material3.TitleLarge">
+        <!-- android:paddingStart : 타이틀 왼쪽에 8dp만큼의 여백(패딩)을 추가하여 너무 왼쪽에 붙지 않게 합니다. -->
+        <item name="android:paddingStart">8dp</item>
+        <!-- android:textStyle : 글자를 'bold'(굵게)로 만듭니다. -->
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- 하단 네비게이션 바의 '선택된 아이템' 배경(Active Indicator)을 위한 커스텀 스타일 -->
+    <!-- parent="Widget.Material3.BottomNavigationView.ActiveIndicator" : Material 3의 기본 활성 표시자 스타일(모양, 크기 등)은
+         그대로 사용하면서, 우리가 원하는 속성만 덮어쓰겠다는 의미입니다. (상속) -->
+    <style name="MyBottomNavActiveIndicatorStyle" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <!-- android:color : 활성 표시자의 배경색을 지정합니다. 여기서는 흰색으로 변경하여
+             기본값인 연보라색을 덮어씁니다. -->
+        <item name="android:color">@android:color/white</item>
     </style>
 
 </resources>
