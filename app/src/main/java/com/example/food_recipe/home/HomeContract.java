@@ -13,7 +13,8 @@ import java.util.List;
 public interface HomeContract {
 
     interface View {
-        void showRecipes(List<Recipe> recipes);
+        void showPopularRecipes(List<Recipe> recipes);
+        void showRecommendedRecipes(List<Recipe> recipes);
         void showPersonalizedGreeting(@Nullable String username);
         void showError(String message);
         void showLoadingIndicator();
@@ -36,7 +37,13 @@ public interface HomeContract {
         /**
          * [추가] Firebase로부터 인기 레시피 목록을 가져오는 임무를 정의합니다.
          */
-        void fetchPopularRecipes(RecipesCallback cb);
+        void fetchPopularRecipes(RecipesCallback cb); //오늘의 추천 레시피
+
+        /**
+         * [추가] Firebase로부터 추천 레시피 목록을 가져오는 임무를 정의합니다.
+         */
+        void fetchRecommendedRecipes(RecipesCallback cb); // 지금 인기 있는 레시피
+
 
         // --- 콜백 인터페이스들 ---
 

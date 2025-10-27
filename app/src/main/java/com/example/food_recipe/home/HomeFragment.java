@@ -70,11 +70,18 @@ public class HomeFragment extends Fragment implements HomeContract.View {
     }
 
     // === HomeContract.View 구현 ===
-
+    
+    
+    //오늘의 추천 레시피
     @Override
-    public void showRecipes(List<Recipe> recipes) {
-        recommendedAdapter.setRecipes(recipes);
+    public void showPopularRecipes(List<Recipe> recipes) {
         popularAdapter.setRecipes(recipes);
+    }
+    
+    //지금 인기 있는 레시피
+    @Override
+    public void showRecommendedRecipes(List<Recipe> recipes) {
+        recommendedAdapter.setRecipes(recipes);
     }
 
     /**
