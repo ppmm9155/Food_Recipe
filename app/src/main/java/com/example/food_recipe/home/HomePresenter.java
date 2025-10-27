@@ -29,7 +29,8 @@ public class HomePresenter implements HomeContract.Presenter {
     @Override
     public void start() {
         fetchUsername();
-        fetchPopularRecipes(); // 메서드 이름 변경
+        fetchPopularRecipes();
+        fetchRecommendedRecipes();
     }
 
     /**
@@ -59,13 +60,30 @@ public class HomePresenter implements HomeContract.Presenter {
             @Override
             public void onSuccess(List<Recipe> recipes) {
                 view.hideLoadingIndicator();
-                view.showRecipes(recipes);
+                view.showPopularRecipes(recipes);
             }
 
             @Override
             public void onError(Exception e) {
                 view.hideLoadingIndicator();
-                view.showError("레시피를 불러오는 데 실패했습니다: " + e.getMessage());
+                view.showError("인기 레시피를 불러오는 데 실패했습니다: " + e.getMessage());
+            }
+        });
+    }
+
+    private void fetchRecommendedRecipes() {
+        view.showLoadingIndicator();
+        model.fetchRecommendedRecipes(new HomeContract.Model.RecipesCallback() {
+            @Override
+            public void onSuccess(List<Recipe> recipes) {
+                view.hideLoadingIndicator();
+                view.showRecommendedRecipes(recipes);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                view.hideLoadingIndicator();
+                view.showError("추천 레시피를 불러오는 데 실패했습니다: " + e.getMessage());
             }
         });
     }

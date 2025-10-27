@@ -11,6 +11,7 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -75,6 +76,42 @@ public class HomeModel implements HomeContract.Model {
                         recipes.add(new Recipe(id, title, ingredientsString, imageUrl, cookingTime, viewCount, recommendCount));
                     }
                     cb.onSuccess(recipes);
+                })
+                .addOnFailureListener(cb::onError);
+    }
+
+    @Override
+    public void fetchRecommendedRecipes(RecipesCallback cb) {
+        db.collection("recipes")
+                .limit(50) // 충분히 많은 레시피를 가져와서 섞습니다.
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<Recipe> recipes = new ArrayList<>();
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        // Firestore 문서를 Recipe 객체로 변환합니다.
+                        String id = document.getId();
+                        String title = document.getString("title");
+                        String imageUrl = document.getString("imageUrl");
+                        String cookingTime = document.getString("cooking_time");
+                        long viewCount = document.getLong("view_count") != null ? document.getLong("view_count") : 0;
+                        long recommendCount = document.getLong("recommend_count") != null ? document.getLong("recommend_count") : 0;
+
+                        // 재료(ingredients) 필드를 문자열로 변환합니다.
+                        List<String> ingredientsList = (List<String>) document.get("ingredients");
+                        String ingredientsString = "";
+                        if (ingredientsList != null && !ingredientsList.isEmpty()) {
+                            ingredientsString = String.join(", ", ingredientsList);
+                        }
+
+                        recipes.add(new Recipe(id, title, ingredientsString, imageUrl, cookingTime, viewCount, recommendCount));
+                    }
+                    // [추가] 레시피 목록을 무작위로 섞습니다.
+                    Collections.shuffle(recipes);
+
+                    // [추가] 섞인 목록에서 10개만 선택합니다.
+                    List<Recipe> recommendedRecipes = new ArrayList<>(recipes.subList(0, Math.min(10, recipes.size())));
+
+                    cb.onSuccess(recommendedRecipes);
                 })
                 .addOnFailureListener(cb::onError);
     }
