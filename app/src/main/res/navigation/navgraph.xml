@@ -9,7 +9,11 @@
         android:id="@+id/home_fragment"
         android:name="com.example.food_recipe.home.HomeFragment"
         android:label="fragment_home"
-        tools:layout="@layout/fragment_main" />
+        tools:layout="@layout/fragment_main" >
+        <action
+            android:id="@+id/action_home_fragment_to_recipeDetailFragment"
+            app:destination="@id/recipeDetailFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/nav_favorites"
@@ -27,6 +31,21 @@
         android:id="@+id/nav_search"
         android:name="com.example.food_recipe.search.SearchFragment"
         android:label="fragment_search"
-        tools:layout="@layout/fragment_search" />
+        tools:layout="@layout/fragment_search" >
+        <!-- [추가] 검색 화면에서 상세 화면으로 이동하는 경로를 정의합니다. -->
+        <action
+            android:id="@+id/action_searchFragment_to_recipeDetailFragment"
+            app:destination="@id/recipeDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/recipeDetailFragment"
+        android:name="com.example.food_recipe.recipedetail.RecipeDetailFragment"
+        android:label="fragment_recipe_detail"
+        tools:layout="@layout/fragment_recipe_detail" >
+        <argument
+            android:name="rcpSno"
+            app:argType="string" />
+    </fragment>
 
 </navigation>
