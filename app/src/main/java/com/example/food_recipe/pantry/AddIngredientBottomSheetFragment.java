@@ -31,19 +31,9 @@ import java.util.Locale;
  */
 public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment implements AddIngredientContract.View {
 
-    /**
-     * 부모 프래그먼트(PantryFragment)와 통신하기 위한 Fragment Result API의 요청 키입니다.
-     * 재료 추가가 성공적으로 완료되었음을 알릴 때 사용됩니다.
-     */
     public static final String REQUEST_KEY_INGREDIENT_ADDED = "request_key_ingredient_added";
-
-    /**
-     * Fragment Result API를 통해 전달될 데이터(Bundle)의 키입니다.
-     * 재료 추가 성공 여부(boolean)를 담는 데 사용됩니다.
-     */
     public static final String BUNDLE_KEY_INGREDIENT_ADDED = "bundle_key_ingredient_added";
 
-    // View 컴포넌트
     private TextInputEditText etName;
     private ChipGroup chipGroupCategory;
     private TextInputEditText etQuantity;
@@ -52,16 +42,12 @@ public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment 
     private Button btnExpiration;
     private Button btnSave;
 
-    /** 사용자가 선택한 유통기한 날짜 정보를 저장하는 Calendar 객체입니다. */
     private Calendar selectedExpirationDate;
-
-    /** MVP 패턴의 Presenter 인터페이스입니다. */
     private AddIngredientContract.Presenter mPresenter;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // 이 프래그먼트의 UI 레이아웃을 인플레이트합니다.
         return inflater.inflate(R.layout.bottom_sheet_add_ingredient, container, false);
     }
 
@@ -94,22 +80,21 @@ public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment 
             String unit = spinnerUnit.getSelectedItem().toString();
 
             Chip selectedChip = getView().findViewById(chipGroupCategory.getCheckedChipId());
-            String category = selectedChip != null ? selectedChip.getText().toString() : "기타"; // 기본값 설정
+            String category = selectedChip != null ? selectedChip.getText().toString() : "기타 ✨";
 
             int selectedStorageId = radioGroupStorage.getCheckedRadioButtonId();
             RadioButton selectedRadioButton = getView().findViewById(selectedStorageId);
-            String storage = selectedRadioButton != null ? selectedRadioButton.getText().toString() : "냉장"; // 기본값 설정
+            String storage = selectedRadioButton != null ? selectedRadioButton.getText().toString() : "냉장";
 
-            // Presenter에 재료 저장을 요청합니다.
             mPresenter.saveIngredient(name, quantityStr, category, unit, storage, selectedExpirationDate);
         });
     }
 
     /**
-     * 재료 카테고리를 선택할 수 있는 Chip들을 동적으로 생성하고 ChipGroup에 추가합니다.
+     * [변경] 재료 카테고리 Chip 생성 시, 이모지를 포함한 텍스트로 설정합니다.
      */
     private void setupCategoryChips() {
-        List<String> categories = Arrays.asList("채소", "과일", "육류", "수산물", "유제품", "기타");
+        List<String> categories = Arrays.asList("채소 🥦", "과일 🍎", "육류 🥩", "수산물 🐟", "유제품 🥛", "기타 ✨");
         for (String category : categories) {
             Chip chip = new Chip(getContext());
             chip.setText(category);
@@ -121,7 +106,6 @@ public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment 
             ((Chip) chipGroupCategory.getChildAt(0)).setChecked(true);
         }
     }
-
     /**
      * 재료의 단위를 선택할 수 있는 Spinner를 설정합니다.
      */
@@ -131,13 +115,12 @@ public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment 
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerUnit.setAdapter(adapter);
     }
-
     /**
      * 유통기한 선택 버튼의 초기 값 설정 및 클릭 이벤트를 처리합니다.
      * 클릭 시 DatePickerDialog를 표시합니다.
      */
     private void setupExpirationDateButton() {
-        selectedExpirationDate = Calendar.getInstance(); // 오늘 날짜로 초기화
+        selectedExpirationDate = Calendar.getInstance();
         updateExpirationDateButtonText();
 
         btnExpiration.setOnClickListener(v -> {
@@ -151,12 +134,10 @@ public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment 
                     selectedExpirationDate.get(Calendar.MONTH),
                     selectedExpirationDate.get(Calendar.DAY_OF_MONTH)
             );
-            // 선택 가능한 최소 날짜를 오늘로 설정합니다.
             datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis());
             datePickerDialog.show();
         });
     }
-
     /**
      * 선택된 유통기한 날짜를 버튼의 텍스트에 업데이트합니다.
      */
@@ -166,9 +147,7 @@ public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment 
         String formattedDate = sdf.format(selectedExpirationDate.getTime());
         btnExpiration.setText("유통기한: " + formattedDate);
     }
-
     // ===== AddIngredientContract.View 구현부 =====
-
     @Override
     public void showNameEmptyError() {
         Toast.makeText(getContext(), "재료 이름을 입력해주세요.", Toast.LENGTH_SHORT).show();
@@ -186,10 +165,8 @@ public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment 
 
     @Override
     public void closeBottomSheet() {
-        // 모든 처리가 완료되면 BottomSheet를 닫습니다.
         dismiss();
     }
-
     /**
      * 재료 추가 성공 시, 부모 프래그먼트(PantryFragment)에 결과를 전달합니다.
      * Fragment Result API를 사용하여 데이터가 추가되었음을 알립니다.
