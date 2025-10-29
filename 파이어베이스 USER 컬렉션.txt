@@ -3,6 +3,7 @@
 createdAt
 email
 emailVerified
+myIngredients
 provider
 uid
 username
