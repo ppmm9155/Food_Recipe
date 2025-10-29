@@ -13,6 +13,7 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.WriteBatch;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -144,6 +145,7 @@ public class JoinModel implements JoinContract.Model {
         userDoc.put("emailVerified", fUser.isEmailVerified());
         userDoc.put("createdAt", FieldValue.serverTimestamp());
         userDoc.put("provider", "password");
+        userDoc.put("myIngredients", new ArrayList<>()); // 음식 재료 필드 추가
 
         Map<String, Object> unameDoc = new HashMap<>();
         unameDoc.put("uid", uid);

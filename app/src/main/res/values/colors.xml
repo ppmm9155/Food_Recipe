@@ -7,8 +7,11 @@
     <color name="gray_200">#E6E6E6</color>
     <color name="gray_400">#9E9E9E</color>
     <color name="gray_600">#757575</color>
-    <color name="gray_700">#FF424242</color> <!-- 누락된 gray_700 색상 추가 -->
+    <color name="gray_700">#FF424242</color>
 
-    <color name="black_2">#212121</color> <!-- 약간 밝은 블랙(다크 배경용) -->
-    <!-- 필요하면 다른 색상들 -->
+    <color name="black_2">#212121</color>
+
+    <!-- [추가] D-Day 표시를 위해 추가된 색상 -->
+    <color name="red">#FF5252</color>
+    <color name="orange">#FF9800</color>
 </resources>

@@ -1,99 +1,152 @@
 package com.example.food_recipe.login;
 
-import android.util.Log; // (새로추가됨) 로그 사용을 위해
+import android.util.Log;
 
-import com.google.firebase.auth.*;
+import androidx.annotation.NonNull;
 
-import java.util.List;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.WriteBatch;
 
-// ✅ Model 클래스
-// - FirebaseAuth를 사용해서 실제 "데이터 처리(로그인, 이메일 확인)"를 담당
-// - View나 Presenter에 의존하지 않고 오직 Firebase와 통신만 함
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+
 public class LoginModel implements LoginContract.Model {
 
-    // (새로추가됨) 로그 태그
     private static final String TAG = "LoginModel";
 
-    // Firebase 인증 객체 생성 (싱글톤: 앱 전체에서 하나만 사용)
     private final FirebaseAuth mAuth = FirebaseAuth.getInstance();
+    private final FirebaseFirestore db = FirebaseFirestore.getInstance(); // Firestore 인스턴스 추가
 
-    // 🔹 이메일 + 비밀번호 로그인 실행
-    // - Presenter가 호출 → Model이 Firebase와 통신 → 결과를 Callback으로 돌려줌
     @Override
     public void signInWithEmail(String email, String password, AuthCallback callback) {
-        mAuth.signInWithEmailAndPassword(email, password)   // Firebase 로그인 API 호출
+        mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        // 로그인 성공 → 현재 로그인된 FirebaseUser 반환
                         callback.onSuccess(mAuth.getCurrentUser());
                     } else {
-                        // 로그인 실패 → Exception 전달
                         callback.onFailure(task.getException());
                     }
                 })
-                // 네트워크 오류 등 예외 처리
                 .addOnFailureListener(callback::onFailure);
     }
 
-    // 🔹 특정 이메일의 로그인 방식(비밀번호/구글 등) 확인
-    // - 비밀번호 틀림 vs 사용자 없음 vs 다른 로그인 방식(구글 로그인 등)을 구분하기 위함
     @Override
     public void fetchSignInMethods(String email, FetchCallback callback) {
-        mAuth.fetchSignInMethodsForEmail(email)   // Firebase API 호출
+        mAuth.fetchSignInMethodsForEmail(email)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && task.getResult() != null) {
-                        // 로그인 가능한 방법들(ex: "password", "google.com") 리스트 반환
                         callback.onResult(task.getResult().getSignInMethods());
                     } else {
-                        // 실패 시 null 전달
                         callback.onResult(null);
                     }
                 })
-                // 네트워크 오류 발생 시에도 null 반환
                 .addOnFailureListener(e -> callback.onResult(null));
     }
-    // 🔹 구글 로그인 실행
-    // - Presenter가 호출 → Model이 Firebase와 통신 → 결과를 Callback으로 돌려줌
+
     @Override
     public void signInWithGoogle(String idToken, AuthCallback callback) {
         AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
-        mAuth.signInWithCredential(credential)   // Firebase 구글 로그인 API 호출
+        mAuth.signInWithCredential(credential)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
-                        // (새로추가됨) Google 로그인 성공 로그
-                        Log.d(TAG, "signInWithGoogle:success | User UID: " + (user != null ? user.getUid() : "null"));
-                        callback.onSuccess(user);
+                        if (user != null) {
+                            Log.d(TAG, "signInWithGoogle:success | User UID: " + user.getUid());
+                            // Firestore에 사용자 정보 저장 로직 호출
+                            saveGoogleUserToFirestore(user, callback);
+                        } else {
+                            callback.onFailure(new IllegalStateException("FirebaseUser is null after Google Sign-In."));
+                        }
                     } else {
-                        // (새로추가됨) Google 로그인 실패 로그
                         Log.w(TAG, "signInWithGoogle:failure", task.getException());
                         callback.onFailure(task.getException());
                     }
                 })
-                // 네트워크 오류 등 예외 처리
                 .addOnFailureListener(e -> {
-                    // (새로추가됨) Google 로그인 리스너 자체 실패 로그
                     Log.e(TAG, "signInWithGoogle:addOnFailureListener", e);
                     callback.onFailure(e);
                 });
     }
 
-    /*//게스트 로그인 실행 (Firebase 익명 로그인)
-    @Override
-    public void signInAnonyGuest(AuthCallback callback) {
-        mAuth.signInAnonymously().addOnCompleteListener(task -> {
+    /**
+     * 구글 로그인 성공 후, Firestore 'users' 컬렉션에 사용자 정보를 저장합니다.
+     * 이미 해당 UID의 문서가 존재하면 아무 작업도 하지 않습니다. (최초 로그인 시에만 저장)
+     */
+    private void saveGoogleUserToFirestore(@NonNull FirebaseUser fUser, AuthCallback callback) {
+        DocumentReference userRef = db.collection("users").document(fUser.getUid());
+
+        userRef.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                FirebaseUser user = mAuth.getCurrentUser();
-                Log.d(TAG, "signInAnonymously:success UID=" + (user != null ? user.getUid() : "null"));
-                callback.onSuccess(user);
+                DocumentSnapshot document = task.getResult();
+                if (document != null && document.exists()) {
+                    // 문서가 이미 존재하므로, Firestore에 쓸 필요 없이 바로 로그인 성공 처리
+                    Log.d(TAG, "User profile already exists in Firestore. UID: " + fUser.getUid());
+                    callback.onSuccess(fUser);
+                } else {
+                    // 문서가 없으므로, 새로 생성 (최초 구글 로그인)
+                    Log.d(TAG, "User profile does not exist. Creating new one. UID: " + fUser.getUid());
+                    writeNewGoogleUserProfile(fUser, callback);
+                }
             } else {
-                Log.w(TAG, "signInAnonymously:failure", task.getException());
-                callback.onFailure(task.getException());
+                // 문서 존재 여부 확인 실패. 일단 로그는 남기지만, 로그인 흐름은 계속 진행시킴.
+                Log.e(TAG, "Failed to check user existence in Firestore.", task.getException());
+                callback.onSuccess(fUser); // DB에 쓰지 못했더라도 인증은 성공했으므로 콜백 호출
             }
-        })
+        });
+    }
+
+    /**
+     * Firestore에 새로운 구글 사용자 프로필 문서를 생성합니다.
+     */
+    private void writeNewGoogleUserProfile(@NonNull FirebaseUser fUser, AuthCallback callback) {
+        String uid = fUser.getUid();
+        String username = fUser.getDisplayName();
+        if (username == null || username.trim().isEmpty()) {
+            // 표시 이름이 없는 경우 이메일 앞부분을 사용
+            username = fUser.getEmail().split("@")[0];
+        }
+        String lower = username.toLowerCase(Locale.ROOT);
+
+        // 'usernames' 컬렉션용 문서 참조
+        DocumentReference nameRef = db.collection("usernames").document(lower);
+
+        Map<String, Object> userDoc = new HashMap<>();
+        userDoc.put("uid", uid);
+        userDoc.put("username", username);
+        userDoc.put("usernameLower", lower);
+        userDoc.put("email", fUser.getEmail());
+        userDoc.put("emailVerified", fUser.isEmailVerified());
+        userDoc.put("createdAt", FieldValue.serverTimestamp());
+        userDoc.put("provider", "google.com"); // provider를 google.com으로 명시
+        userDoc.put("myIngredients", new ArrayList<>()); // 음식 재료 필드 추가
+
+        Map<String, Object> unameDoc = new HashMap<>();
+        unameDoc.put("uid", uid);
+        unameDoc.put("createdAt", FieldValue.serverTimestamp());
+
+        // Batch Write로 users와 usernames 컬렉션에 원자적으로 쓰기
+        WriteBatch batch = db.batch();
+        batch.set(nameRef, unameDoc);
+        batch.set(db.collection("users").document(uid), userDoc);
+
+        batch.commit()
+                .addOnSuccessListener(v -> {
+                    Log.d(TAG, "Firestore batch write successful for Google user.");
+                    callback.onSuccess(fUser); // DB 저장 성공 후 최종 로그인 성공 콜백
+                })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "signInAnonymously:onFailure:", e);
-                    callback.onFailure(e);
+                    Log.e(TAG, "Firestore batch write failed for Google user.", e);
+                    // DB 저장은 실패했지만, 인증 자체는 성공했으므로 로그인 성공 콜백을 호출해줌
+                    callback.onSuccess(fUser);
                 });
-    }*/
+    }
 }
