@@ -1,30 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    [변경] 최상위 레이아웃을 LinearLayout/NestedScrollView에서 ConstraintLayout으로 변경합니다.
-    ConstraintLayout은 복잡한 화면 구조에서 뷰의 위치를 가장 정확하고 안정적으로 제어하는 현대적인 방식입니다.
--->
-<androidx.constraintlayout.widget.ConstraintLayout
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".pantry.PantryFragment">
 
-    <!--
-        [변경] TextView에 제약(Constraint)을 추가하여 화면의 정중앙에 위치시킵니다.
-        - 상/하/좌/우를 모두 부모(parent)에 연결하면, 마치 네 방향에서 고무줄로 당기는 것처럼
-          물리적으로 완벽한 중앙에 위치하게 됩니다.
-        - 이는 gravity 속성보다 훨씬 더 정확하고 신뢰성 높은 중앙 정렬 방식입니다.
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/pantry_recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="8dp"
+        android:clipToPadding="false"
+        android:visibility="gone"
+        tools:listitem="@layout/list_item_pantry"
+        tools:visibility="visible"/>
 
-        [삭제] 기존의 감싸고 있던 LinearLayout과 NestedScrollView는 삭제되었습니다.
-    -->
-    <TextView
+    <LinearLayout
+        android:id="@+id/pantry_empty_view_container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="냉장고"
-        android:textAppearance="?attr/textAppearanceHeadlineMedium"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:visibility="visible"
+        tools:visibility="gone">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <ImageView
+            android:id="@+id/pantry_iv_empty_icon"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@drawable/ic_pantry_empty"
+            app:tint="?attr/colorOnSurfaceVariant"
+            android:contentDescription="@string/app_name" />
+
+        <TextView
+            android:id="@+id/pantry_tv_empty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="냉장고가 비어있어요.\n아래 버튼으로 첫 재료를 추가해보세요!\n\n(추가된 재료는 옆으로 밀어서 삭제할 수 있어요.)"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:gravity="center"/>
+    </LinearLayout>
+
+    <!-- [추가] 데이터 로딩 중에 표시될 ProgressBar 입니다. -->
+    <ProgressBar
+        android:id="@+id/pantry_progressBar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/pantry_fab_add"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:contentDescription="재료 추가"
+        app:srcCompat="@android:drawable/ic_input_add"
+        app:backgroundTint="@color/black_2"
+        app:tint="@android:color/white" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
