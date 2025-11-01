@@ -1,25 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    [기존 구조 유지] 최상위 레이아웃으로 ConstraintLayout을 계속 사용합니다.
-    ConstraintLayout은 복잡한 화면 구조에서 뷰의 위치를 가장 정확하고 안정적으로 제어하는 현대적인 방식입니다.
--->
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!--
-        [삭제] 화면 중앙에 위치하던 임시 TextView("레시피 검색")를 삭제합니다.
-        이제 실제 검색 기능을 수행할 위젯들을 배치합니다.
-    -->
-
-    <!--
-        [추가] 레시피 검색을 위한 SearchView(검색창)를 추가합니다.
-        - 화면 상단에 위치시키기 위해, 상/좌/우를 부모(parent)에 제약(Constraint)합니다.
-        - iconifiedByDefault="false" : 처음부터 검색창이 펼쳐져 있도록 설정합니다.
-        - queryHint : 사용자에게 어떤 내용을 검색할 수 있는지 안내하는 힌트 텍스트입니다.
-    -->
+    <!-- ... (SearchView, ChipGroup, Button 등 기존 UI는 동일) ... -->
     <androidx.appcompat.widget.SearchView
         android:id="@+id/search_view"
         android:layout_width="0dp"
@@ -30,17 +16,49 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!--
-        [추가] 검색 결과를 보여줄 RecyclerView(목록)를 추가합니다.
-        - 상단은 SearchView의 바로 아래에 위치시키고, 나머지(하/좌/우)는 부모에 제약하여
-          SearchView를 제외한 나머지 모든 공간을 가득 채우도록 설정합니다.
-        - 가로/세로 크기를 모두 '0dp'로 설정하는 것이 ConstraintLayout에서 남는 공간을 채우는 핵심입니다.
-    -->
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/search_chip_group"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintTop_toBottomOf="@id/search_view"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/search_btn_pantry_import"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="🧊 내 냉장고 재료로 검색하기"
+        android:gravity="center_vertical"
+        app:layout_constraintTop_toBottomOf="@id/search_chip_group"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"/>
+
+    <!-- [기존 유지] 검색 결과를 보여줄 RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view_recipes"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/search_view"
+        app:layout_constraintTop_toBottomOf="@id/search_btn_pantry_import"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- [추가] 검색 결과가 없을 때 보여줄 안내 문구용 TextView -->
+    <TextView
+        android:id="@+id/text_view_empty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="해당하는 레시피가 없습니다."
+        android:textSize="16sp"
+        android:textColor="@color/gray_600"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/search_btn_pantry_import"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
