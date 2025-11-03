@@ -3,9 +3,12 @@ package com.example.food_recipe.main;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -89,6 +92,22 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
         });
     }
 
+    // [추가] 아이콘이 포함된 커스텀 토스트 메시지를 표시하는 함수입니다.
+    private void showCustomToast(String message) {
+        LayoutInflater inflater = getLayoutInflater();
+        // [수정] 두 번째 인자를 null로 변경하여 특정 부모 뷰를 찾지 않도록 합니다.
+        View layout = inflater.inflate(R.layout.custom_toast, null);
+
+        TextView text = layout.findViewById(R.id.toast_text);
+        text.setText(message);
+
+        Toast toast = new Toast(getApplicationContext());
+        toast.setGravity(Gravity.BOTTOM, 0, 200);
+        toast.setDuration(Toast.LENGTH_SHORT);
+        toast.setView(layout);
+        toast.show();
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -120,7 +139,8 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
 
     @Override
     public void showLogoutMessage(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        // [변경] 기본 토스트 대신 새로 만든 커스텀 토스트 함수를 사용합니다.
+        showCustomToast(message);
     }
 
     @Override
