@@ -55,8 +55,13 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
         BottomNavigationView bottomNav = findViewById(R.id.main_bottom_nav);
         NavigationUI.setupWithNavController(bottomNav, navController);
 
-        // [변경] 기존의 addOnDestinationChangedListener를 확장하여 하단 탭의 가시성을 제어합니다.
+        // [변경] 기존의 addOnDestinationChangedListener를 확장하여 하단 탭 가시성 및 툴바 제목을 제어합니다.
         navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
+            // [추가] navgraph.xml에 정의된 label을 가져와 툴바의 제목으로 설정합니다.
+            if (destination.getLabel() != null) {
+                getSupportActionBar().setTitle(destination.getLabel());
+            }
+
             // [추가] 하단 탭을 보여줄 최상위 레벨의 화면 ID들을 Set으로 정의합니다.
             // Set을 사용하면 ID를 효율적으로 확인할 수 있습니다.
             Set<Integer> topLevelDestinations = new HashSet<>();

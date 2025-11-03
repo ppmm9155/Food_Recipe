@@ -57,7 +57,6 @@
                 android:layout_height="64dp"
                 android:theme="@style/MyToolbarTheme"
                 app:popupTheme="@style/ThemeOverlay.App.PopupMenu"
-                app:title="Food Recipe"
                 app:titleTextColor="@color/white"
                 app:navigationIconTint="@color/white"
                 app:menu="@menu/main_toolbar_menu"

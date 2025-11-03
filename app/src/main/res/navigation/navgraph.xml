@@ -8,18 +8,17 @@
     <fragment
         android:id="@+id/home_fragment"
         android:name="com.example.food_recipe.home.HomeFragment"
-        android:label="fragment_home"
+        android:label="요리GO조리GO"
         tools:layout="@layout/fragment_main" >
         <action
             android:id="@+id/action_home_fragment_to_recipeDetailFragment"
             app:destination="@id/recipeDetailFragment" />
     </fragment>
 
-    <!-- [최종 수정] 정상 동작하는 searchFragment의 action 설정을 그대로 복사하여 적용합니다. -->
     <fragment
         android:id="@+id/nav_favorites"
         android:name="com.example.food_recipe.favorites.FavoritesFragment"
-        android:label="fragment_favorites"
+        android:label="즐겨찾기"
         tools:layout="@layout/fragment_favorites" >
         <action
             android:id="@+id/action_favoritesFragment_to_recipeDetailFragment"
@@ -29,13 +28,13 @@
     <fragment
         android:id="@+id/nav_pantry"
         android:name="com.example.food_recipe.pantry.PantryFragment"
-        android:label="fragment_pantry"
+        android:label="냉장고"
         tools:layout="@layout/fragment_pantry" />
 
     <fragment
         android:id="@+id/nav_search"
         android:name="com.example.food_recipe.search.SearchFragment"
-        android:label="fragment_search"
+        android:label="레시피 검색"
         tools:layout="@layout/fragment_search" >
         <action
             android:id="@+id/action_searchFragment_to_recipeDetailFragment"
@@ -45,7 +44,7 @@
     <fragment
         android:id="@+id/recipeDetailFragment"
         android:name="com.example.food_recipe.recipedetail.RecipeDetailFragment"
-        android:label="fragment_recipe_detail"
+        android:label="레시피"
         tools:layout="@layout/fragment_recipe_detail" >
         <argument
             android:name="rcpSno"
