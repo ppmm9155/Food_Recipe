@@ -9,13 +9,15 @@ import com.google.firebase.firestore.PropertyName;
 public class CookingStep {
 
     /**
-     * 요리 단계의 순서 번호입니다.
+     * [규칙 수정] Firestore 필드명('step')과 매핑합니다.
      */
+    @PropertyName("step")
     private long step;
 
     /**
-     * 해당 단계에서 수행할 작업에 대한 텍스트 설명입니다.
+     * [규칙 수정] Firestore 필드명('description')과 매핑합니다.
      */
+    @PropertyName("description")
     private String description;
 
     /**

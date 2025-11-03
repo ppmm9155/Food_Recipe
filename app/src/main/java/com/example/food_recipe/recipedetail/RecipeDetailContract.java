@@ -3,58 +3,79 @@ package com.example.food_recipe.recipedetail;
 import com.example.food_recipe.model.Recipe;
 
 /**
- * 레시피 상세 화면의 View와 Presenter 사이의 통신 규칙을 정의하는 계약(Contract) 인터페이스입니다.
- * 이 인터페이스는 View와 Presenter 간의 결합도를 낮추어, 각 컴포넌트의 독립적인 개발과 테스트를 용이하게 합니다.
+ * [변경] 즐겨찾기 기능 관련 인터페이스를 추가하여 계약을 확장합니다.
  */
 public interface RecipeDetailContract {
 
     /**
      * View가 반드시 구현해야 하는 기능 목록을 정의합니다.
-     * Presenter는 이 인터페이스에 정의된 메소드만을 호출하여 View를 제어합니다.
      */
     interface View {
-        /**
-         * Presenter가 성공적으로 레시피 데이터를 가져왔을 때, View에게 데이터를 화면에 표시하라고 지시합니다.
-         *
-         * @param recipe 화면에 표시할 상세 레시피 데이터 객체.
-         */
         void showRecipe(Recipe recipe);
-
-        /**
-         * 데이터 로딩이 시작될 때, View에게 로딩 인디케이터(예: ProgressBar)를 보여주라고 지시합니다.
-         */
         void showLoading();
-
-        /**
-         * 데이터 로딩이 완료되면, View에게 로딩 인디케이터를 숨기라고 지시합니다.
-         */
         void hideLoading();
+        void showError(String message);
 
         /**
-         * 데이터 로딩 과정에서 오류가 발생했을 때, View에게 에러 메시지를 표시하라고 지시합니다.
-         *
-         * @param message 표시할 에러 메시지 문자열.
+         * [추가] Presenter가 즐겨찾기 상태를 확인한 후, View에게 UI를 업데이트하라고 지시합니다.
+         * @param isBookmarked true일 경우 '채워진 하트', false일 경우 '빈 하트'로 UI를 설정합니다.
          */
-        void showError(String message);
+        void setBookmarkState(boolean isBookmarked);
+
+        /**
+         * [추가] 즐겨찾기 추가/삭제 작업의 결과를 사용자에게 간단한 메시지(Toast 등)로 보여줍니다.
+         * @param message 표시할 메시지 (예: "즐겨찾기에 추가되었습니다.")
+         */
+        void showBookmarkResult(String message);
     }
 
     /**
      * Presenter가 반드시 구현해야 하는 기능 목록을 정의합니다.
-     * View는 이 인터페이스에 정의된 메소드만을 호출하여 Presenter에게 작업을 요청합니다.
      */
     interface Presenter {
-        /**
-         * View가 특정 레시피의 상세 정보를 요청할 때 호출하는 메소드입니다.
-         * Presenter는 이 요청을 받아 Model에게 데이터 로드를 지시합니다.
-         *
-         * @param rcpSno 불러올 레시피의 고유 식별 번호.
-         */
         void loadRecipe(String rcpSno);
+        void detachView();
 
         /**
-         * View가 파괴될 때(예: 화면 전환) 호출됩니다.
-         * Presenter가 View에 대한 참조를 안전하게 해제하여 메모리 누수를 방지하기 위해 사용됩니다.
+         * [추가] View에서 즐겨찾기 아이콘이 클릭되었을 때 호출됩니다.
+         * Presenter는 이 요청을 받아 Model에게 즐겨찾기 상태 변경을 지시합니다.
          */
-        void detachView();
+        void onBookmarkClicked();
+    }
+
+    /**
+     * [추가] Model이 반드시 구현해야 하는 기능 목록을 정의합니다.
+     * 데이터 처리 로직을 담당합니다.
+     */
+    interface Model {
+        /**
+         * [추가] 특정 레시피의 상세 정보를 Firestore에서 가져옵니다.
+         * @param rcpSno 조회할 레시피의 ID
+         * @param callback 결과를 비동기적으로 전달받을 콜백
+         */
+        void getRecipeDetails(String rcpSno, OnFinishedListener<Recipe> callback);
+
+        /**
+         * [추가] 현재 사용자가 해당 레시피를 즐겨찾기 했는지 상태를 확인합니다.
+         * @param recipeId 확인할 레시피의 ID
+         * @param callback 결과를 비동기적으로 전달받을 콜백
+         */
+        void checkBookmarkState(String recipeId, OnFinishedListener<Boolean> callback);
+
+        /**
+         * [추가] 즐겨찾기 상태를 변경합니다. (추가 또는 삭제)
+         * @param recipeId 상태를 변경할 레시피의 ID
+         * @param callback 작업 완료 후 결과를 비동기적으로 전달받을 콜백
+         */
+        void toggleBookmark(String recipeId, OnFinishedListener<Boolean> callback);
+
+        /**
+         * [추가] Model의 비동기 작업 결과를 Presenter에게 전달하기 위한 범용 콜백 인터페이스입니다.
+         * @param <T> 성공 시 전달받을 데이터의 타입
+         */
+        interface OnFinishedListener<T> {
+            void onSuccess(T result);
+            void onError(Exception e);
+        }
     }
 }

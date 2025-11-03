@@ -1,106 +1,107 @@
 package com.example.food_recipe.model;
 
-import com.google.firebase.firestore.PropertyName;
+import android.util.Log;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.Exclude;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-/**
- * 레시피 한 개에 대한 모든 정보를 담는 데이터 모델 클래스 (POJO) 입니다.
- * 이 클래스는 Firestore 문서의 데이터를 객체로 매핑하거나, UI 레이어에 데이터를 전달하는 데 사용됩니다.
- */
 public class Recipe {
+    private static final String TAG = "Recipe";
 
-    /**
-     * 레시피의 고유 식별 번호입니다.
-     * Firestore 문서의 필드 이름 'RCP_SNO'와 매핑됩니다.
-     */
-    @PropertyName("RCP_SNO")
+    @Exclude
+    private String id;
     private String rcpSno;
-
-    /**
-     * 레시피의 제목입니다.
-     */
-    @PropertyName("title")
     private String title;
-
-    /**
-     * 요리의 양 (예: "2인분").
-     */
-    @PropertyName("servings")
     private String servings;
-
-    /**
-     * 재료 목록을 나타내는 단일 문자열입니다. (주로 Algolia 검색 결과에서 사용)
-     */
-    @PropertyName("ingredients_raw")
     private String ingredientsRaw;
-
-    /**
-     * 각 재료를 문자열로 담고 있는 리스트입니다. (주로 Firestore에서 사용)
-     */
-    @PropertyName("ingredients")
     private List<String> ingredients;
-
-    /**
-     * 레시피의 대표 이미지 URL입니다.
-     */
-    @PropertyName("imageUrl")
     private String imageUrl;
-
-    /**
-     * 요리의 난이도 (예: "초급").
-     */
-    @PropertyName("difficulty")
     private String difficulty;
-
-    /**
-     * 예상 조리 시간 (예: "30분").
-     */
-    @PropertyName("cooking_time")
     private String cookingTime;
-
-    /**
-     * 요리 단계별 정보를 담고 있는 {@link CookingStep} 객체의 리스트입니다.
-     */
-    @PropertyName("cooking_steps")
     private List<CookingStep> cookingSteps;
-
-    /**
-     * 요리 카테고리의 종류 (예: "한식").
-     */
-    @PropertyName("category_kind")
     private String categoryKind;
-
-    /**
-     * 레시피의 조회수입니다.
-     */
-    @PropertyName("view_count")
     private long viewCount;
-
-    /**
-     * 레시피의 추천수입니다.
-     */
-    @PropertyName("recommend_count")
     private long recommendCount;
-
-    /**
-     * 레시피가 스크랩된 횟수입니다.
-     */
-    @PropertyName("scrap_count")
     private long scrapCount;
 
-    /**
-     * Firestore의 자동 데이터 매핑을 위한 기본 생성자입니다.
-     */
     public Recipe() {
         // Firestore를 위한 기본 생성자
     }
 
-    // --- Getters: 필드 값을 외부로 반환하는 메소드 ---
+    public static Recipe fromDocumentSnapshot(DocumentSnapshot doc) {
+        Recipe recipe = new Recipe();
+        try {
+            recipe.setId(doc.getId());
+            recipe.setRcpSno(doc.getString("RCP_SNO"));
+            recipe.setTitle(doc.getString("title"));
+            recipe.setServings(doc.getString("servings"));
+            recipe.setIngredientsRaw(doc.getString("ingredients_raw"));
+            recipe.setImageUrl(doc.getString("imageUrl"));
+            recipe.setDifficulty(doc.getString("difficulty"));
+            recipe.setCookingTime(doc.getString("cooking_time"));
+            recipe.setCategoryKind(doc.getString("category_kind"));
 
+            List<String> ingredientsList = (List<String>) doc.get("ingredients");
+            if (ingredientsList != null) {
+                recipe.setIngredients(ingredientsList);
+            } else {
+                recipe.setIngredients(new ArrayList<>());
+            }
+
+            Long viewCount = doc.getLong("view_count");
+            recipe.setViewCount(viewCount != null ? viewCount : 0);
+            Long recommendCount = doc.getLong("recommend_count");
+            recipe.setRecommendCount(recommendCount != null ? recommendCount : 0);
+            Long scrapCount = doc.getLong("scrap_count");
+            recipe.setScrapCount(scrapCount != null ? scrapCount : 0);
+
+            List<CookingStep> steps = new ArrayList<>();
+            List<Map<String, Object>> stepsMapList = (List<Map<String, Object>>) doc.get("cooking_steps");
+            if (stepsMapList != null) {
+                for (Map<String, Object> stepMap : stepsMapList) {
+                    CookingStep step = new CookingStep();
+                    Object stepNumber = stepMap.get("step");
+                    if (stepNumber instanceof Long) {
+                        step.setStep((Long) stepNumber);
+                    }
+                    step.setDescription((String) stepMap.get("description"));
+                    step.setImageUrl((String) stepMap.get("imageUrl"));
+                    steps.add(step);
+                }
+            }
+            recipe.setCookingSteps(steps);
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error parsing recipe document: " + doc.getId(), e);
+            if (recipe.title == null) recipe.setTitle("데이터 변환 오류");
+        }
+        return recipe;
+    }
+
+    // --- Getters ---
+
+    @Exclude
+    public String getId() { return id; }
     public String getRcpSno() { return rcpSno; }
     public String getTitle() { return title; }
     public String getServings() { return servings; }
-    public String getIngredientsRaw() { return ingredientsRaw; }
+    
+    /**
+     * [UI 개선] 재료 정보가 null일 경우 "정보 없음"을 반환하고,
+     * "[재료] " 접두사가 있을 경우 이를 제거하여 반환합니다.
+     */
+    public String getIngredientsRaw() {
+        if (ingredientsRaw == null || ingredientsRaw.isEmpty()) {
+            return "정보 없음";
+        }
+        if (ingredientsRaw.startsWith("[재료] ")) {
+            return ingredientsRaw.substring(5); // "[재료] " 다음부터의 문자열을 반환
+        }
+        return ingredientsRaw;
+    }
+    
     public List<String> getIngredients() { return ingredients; }
     public String getImageUrl() { return imageUrl; }
     public String getDifficulty() { return difficulty; }
@@ -116,8 +117,10 @@ public class Recipe {
     public long getRecommendCount() { return recommendCount; }
     public long getScrapCount() { return scrapCount; }
 
-    // --- Setters: 필드 값을 외부에서 설정하는 메소드 ---
+    // --- Setters ---
 
+    @Exclude
+    public void setId(String id) { this.id = id; }
     public void setRcpSno(String rcpSno) { this.rcpSno = rcpSno; }
     public void setTitle(String title) { this.title = title; }
     public void setServings(String servings) { this.servings = servings; }
