@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -19,6 +20,9 @@ import com.example.food_recipe.R;
 import com.example.food_recipe.login.LoginActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.appbar.MaterialToolbar;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity implements MainContract.View {
 
@@ -51,8 +55,26 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
         BottomNavigationView bottomNav = findViewById(R.id.main_bottom_nav);
         NavigationUI.setupWithNavController(bottomNav, navController);
 
+        // [변경] 기존의 addOnDestinationChangedListener를 확장하여 하단 탭의 가시성을 제어합니다.
         navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
-            // [최종 수정] ID를 다시 home_fragment로 되돌려 navgraph.xml과 완벽하게 일치시킵니다.
+            // [추가] 하단 탭을 보여줄 최상위 레벨의 화면 ID들을 Set으로 정의합니다.
+            // Set을 사용하면 ID를 효율적으로 확인할 수 있습니다.
+            Set<Integer> topLevelDestinations = new HashSet<>();
+            topLevelDestinations.add(R.id.home_fragment);
+            topLevelDestinations.add(R.id.nav_search);
+            topLevelDestinations.add(R.id.nav_favorites);
+            topLevelDestinations.add(R.id.nav_pantry);
+
+            // [추가] 현재 화면의 ID가 최상위 레벨 Set에 포함되어 있는지 확인합니다.
+            if (topLevelDestinations.contains(destination.getId())) {
+                // 포함되어 있다면 하단 네비게이션 바를 보여줍니다.
+                bottomNav.setVisibility(View.VISIBLE);
+            } else {
+                // 포함되어 있지 않다면 (예: 레시피 상세 화면) 하단 네비게이션 바를 숨깁니다.
+                bottomNav.setVisibility(View.GONE);
+            }
+
+            // [기존 로직 유지] ID를 다시 home_fragment로 되돌려 navgraph.xml과 완벽하게 일치시킵니다.
             if (destination.getId() == R.id.home_fragment) {
                 int selectedItemId = bottomNav.getSelectedItemId();
                 if (selectedItemId != 0) {
