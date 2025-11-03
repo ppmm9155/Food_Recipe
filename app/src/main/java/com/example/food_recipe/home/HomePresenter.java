@@ -1,90 +1,108 @@
 package com.example.food_recipe.home;
 
-import androidx.annotation.Nullable;
-
+import android.content.Context;
 import com.example.food_recipe.model.Recipe;
-
 import java.util.List;
 
 /**
- * [수정] ARCHITECTURE_SUMMARY.md 설계도에 맞춘 최종 Presenter입니다.
- * 이제 Algolia와 직접 통신하지 않으며, 모든 데이터 요청을 Model에게 위임합니다.
+ * [변경] HomeContract.Presenter 인터페이스를 구현하도록 수정하고, '최근 본/즐겨찾기' 로직을 추가합니다.
  */
 public class HomePresenter implements HomeContract.Presenter {
 
-    private final HomeContract.View view;
+    private HomeContract.View view;
     private final HomeContract.Model model;
 
-    /**
-     * [수정] 생성자에서 Algolia 관련 코드를 모두 제거합니다.
-     */
-    public HomePresenter(HomeContract.View view, HomeContract.Model model) {
+    public HomePresenter(HomeContract.View view, Context context) {
         this.view = view;
-        this.model = model;
+        this.model = new HomeModel(context);
     }
 
-    /**
-     * [수정] View가 준비되면, Model에게 데이터 요청을 시작합니다.
-     */
     @Override
     public void start() {
-        fetchUsername();
-        fetchPopularRecipes();
-        fetchRecommendedRecipes();
+        loadUserName();
+        loadRecommendedRecipes();
+        loadPopularRecipes();
+        loadRecentAndFavorites();
+    }
+
+    private void loadUserName() {
+        model.getUserName(new HomeContract.Model.OnFinishedListener<String>() {
+            @Override
+            public void onSuccess(String userName) {
+                if (view != null) {
+                    view.setUserName(userName);
+                }
+            }
+            @Override
+            public void onError(Exception e) {
+                if (view != null) {
+                    view.setUserName(null); // 실패 시 기본값 처리
+                }
+            }
+        });
+    }
+
+    private void loadRecommendedRecipes() {
+        model.getRecommendedRecipes(new HomeContract.Model.OnFinishedListener<List<Recipe>>() {
+            @Override
+            public void onSuccess(List<Recipe> recipes) {
+                if (view != null) {
+                    view.showRecommendedRecipes(recipes);
+                }
+            }
+            @Override
+            public void onError(Exception e) {
+                if (view != null) {
+                    view.showError("추천 레시피 로딩 실패: " + e.getMessage());
+                }
+            }
+        });
+    }
+
+    private void loadPopularRecipes() {
+        model.getPopularRecipes(new HomeContract.Model.OnFinishedListener<List<Recipe>>() {
+            @Override
+            public void onSuccess(List<Recipe> recipes) {
+                if (view != null) {
+                    view.showPopularRecipes(recipes);
+                }
+            }
+            @Override
+            public void onError(Exception e) {
+                if (view != null) {
+                    view.showError("인기 레시피 로딩 실패: " + e.getMessage());
+                }
+            }
+        });
     }
 
     /**
-     * 사용자 이름을 가져옵니다. (기존 유지)
+     * [추가] '최근 본/즐겨찾기' 목록 로드를 시작하고, 결과에 따라 View를 제어합니다.
      */
-    private void fetchUsername() {
-        model.fetchUsername(new HomeContract.Model.UsernameCallback() {
+    private void loadRecentAndFavorites() {
+        model.getRecentAndFavoriteRecipes(new HomeContract.Model.OnFinishedListener<List<Recipe>>() {
             @Override
-            public void onSuccess(@Nullable String username) {
-                view.showPersonalizedGreeting(username);
+            public void onSuccess(List<Recipe> recipes) {
+                if (view != null) {
+                    if (recipes == null || recipes.isEmpty()) {
+                        view.showEmptyRecentAndFavorites();
+                    } else {
+                        view.showRecentAndFavorites(recipes);
+                    }
+                }
             }
-
             @Override
             public void onError(Exception e) {
-                e.printStackTrace();
-                view.showPersonalizedGreeting(null); // 실패 시 기본 문구 표시
+                if (view != null) {
+                    // 이 부분은 에러를 표시하기보단, 그냥 빈 화면을 보여주는 것이 사용자 경험에 더 좋습니다.
+                    view.showEmptyRecentAndFavorites();
+                }
             }
         });
     }
 
-    /**
-     * [수정] Model을 통해 인기 레시피 목록을 가져오도록 로직을 완전히 변경합니다.
-     */
-    private void fetchPopularRecipes() {
-        view.showLoadingIndicator();
-        model.fetchPopularRecipes(new HomeContract.Model.RecipesCallback() {
-            @Override
-            public void onSuccess(List<Recipe> recipes) {
-                view.hideLoadingIndicator();
-                view.showPopularRecipes(recipes);
-            }
-
-            @Override
-            public void onError(Exception e) {
-                view.hideLoadingIndicator();
-                view.showError("인기 레시피를 불러오는 데 실패했습니다: " + e.getMessage());
-            }
-        });
-    }
-
-    private void fetchRecommendedRecipes() {
-        view.showLoadingIndicator();
-        model.fetchRecommendedRecipes(new HomeContract.Model.RecipesCallback() {
-            @Override
-            public void onSuccess(List<Recipe> recipes) {
-                view.hideLoadingIndicator();
-                view.showRecommendedRecipes(recipes);
-            }
-
-            @Override
-            public void onError(Exception e) {
-                view.hideLoadingIndicator();
-                view.showError("추천 레시피를 불러오는 데 실패했습니다: " + e.getMessage());
-            }
-        });
+    @Override
+    public void detachView() {
+        this.view = null;
     }
 }

@@ -1,6 +1,8 @@
 package com.example.food_recipe.recipedetail;
 
+import android.content.Context;
 import com.example.food_recipe.model.Recipe;
+import com.example.food_recipe.utils.RecentRecipeManager;
 
 /**
  * [변경] Model과의 상호작용 시, RCP_SNO 대신 실제 문서 ID를 사용하도록 수정합니다.
@@ -10,14 +12,16 @@ public class RecipeDetailPresenter implements RecipeDetailContract.Presenter {
     private RecipeDetailContract.View view;
     private final RecipeDetailContract.Model model;
     private Recipe currentRecipe;
+    private final Context context; // [추가] Context 참조
 
-    public RecipeDetailPresenter(RecipeDetailContract.View view) {
+    public RecipeDetailPresenter(RecipeDetailContract.View view, Context context) {
         this.view = view;
         this.model = new RecipeDetailModel();
+        this.context = context; // [추가] Context 초기화
     }
 
     /**
-     * [변경] 레시피 로드 성공 후, 즐겨찾기 상태를 확인할 때 실제 문서 ID를 사용하도록 수정합니다.
+     * [변경] 레시피 로드 성공 후, '최근 본 레시피' 목록에 현재 레시피를 추가합니다.
      */
     @Override
     public void loadRecipe(String rcpSno) {
@@ -31,8 +35,10 @@ public class RecipeDetailPresenter implements RecipeDetailContract.Presenter {
                 currentRecipe = recipe;
                 if (view != null) {
                     view.showRecipe(recipe);
-                    // [변경] rcpSno 대신 실제 문서 ID(recipe.getId())를 사용하여 즐겨찾기 상태를 체크합니다.
                     checkBookmarkStatus(recipe.getId());
+
+                    // [추가] 최근 본 레시피 목록에 추가
+                    RecentRecipeManager.addRecentRecipe(context, recipe.getId());
                 }
             }
 
@@ -46,9 +52,6 @@ public class RecipeDetailPresenter implements RecipeDetailContract.Presenter {
         });
     }
 
-    /**
-     * [변경] 메소드 시그니처는 동일하지만, 내부 로직에서 넘어온 recipeId가 실제 문서 ID임을 인지하고 사용합니다.
-     */
     private void checkBookmarkStatus(String recipeId) {
         model.checkBookmarkState(recipeId, new RecipeDetailContract.Model.OnFinishedListener<Boolean>() {
             @Override
@@ -69,9 +72,6 @@ public class RecipeDetailPresenter implements RecipeDetailContract.Presenter {
         });
     }
 
-    /**
-     * [변경] 즐겨찾기 상태를 토글할 때, RCP_SNO 대신 실제 문서 ID를 Model에 전달합니다.
-     */
     @Override
     public void onBookmarkClicked() {
         if (currentRecipe == null || currentRecipe.getId() == null) {
@@ -81,7 +81,6 @@ public class RecipeDetailPresenter implements RecipeDetailContract.Presenter {
             return;
         }
 
-        // [변경] currentRecipe.getRcpSno() 대신 currentRecipe.getId()를 사용합니다.
         model.toggleBookmark(currentRecipe.getId(), new RecipeDetailContract.Model.OnFinishedListener<Boolean>() {
             @Override
             public void onSuccess(Boolean isBookmarked) {

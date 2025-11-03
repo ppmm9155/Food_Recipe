@@ -30,7 +30,6 @@ public class RecipeDetailFragment extends Fragment implements RecipeDetailContra
     private RecipeDetailContract.Presenter presenter;
     private String rcpSno;
 
-    // [변경] 즐겨찾기 아이콘(ivBookmark) 참조를 추가합니다.
     private NestedScrollView scrollView;
     private ProgressBar progressBar;
     private ImageView ivRecipeImage;
@@ -43,13 +42,17 @@ public class RecipeDetailFragment extends Fragment implements RecipeDetailContra
     private RecyclerView rvCookingSteps;
     private CookingStepAdapter cookingStepAdapter;
 
+    /**
+     * [변경] Presenter 생성 시, SharedPreferences 접근에 필요한 Context를 전달합니다.
+     */
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             rcpSno = getArguments().getString("rcpSno");
         }
-        presenter = new RecipeDetailPresenter(this);
+        // Presenter에게 Context를 전달하여 RecentRecipeManager를 사용할 수 있도록 합니다.
+        presenter = new RecipeDetailPresenter(this, requireContext());
     }
 
     @Nullable
@@ -58,9 +61,6 @@ public class RecipeDetailFragment extends Fragment implements RecipeDetailContra
         return inflater.inflate(R.layout.fragment_recipe_detail, container, false);
     }
 
-    /**
-     * [변경] 즐겨찾기 아이콘(ivBookmark)을 초기화하고 클릭 리스너를 설정합니다.
-     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -69,7 +69,7 @@ public class RecipeDetailFragment extends Fragment implements RecipeDetailContra
         progressBar = view.findViewById(R.id.fdetail_progress_bar);
         ivRecipeImage = view.findViewById(R.id.fdetail_iv_image);
         tvTitle = view.findViewById(R.id.fdetail_tv_title);
-        ivBookmark = view.findViewById(R.id.fdetail_iv_bookmark); // [추가] 아이콘 참조 초기화
+        ivBookmark = view.findViewById(R.id.fdetail_iv_bookmark);
         tvServings = view.findViewById(R.id.fdetail_tv_servings);
         tvCookingTime = view.findViewById(R.id.fdetail_tv_cooking_time);
         tvDifficulty = view.findViewById(R.id.fdetail_tv_difficulty);
@@ -77,8 +77,7 @@ public class RecipeDetailFragment extends Fragment implements RecipeDetailContra
         rvCookingSteps = view.findViewById(R.id.fdetail_rv_cooking_steps);
 
         setupRecyclerView();
-
-        // [추가] 즐겨찾기 아이콘 클릭 시 Presenter에 이벤트를 전달합니다.
+        
         ivBookmark.setOnClickListener(v -> presenter.onBookmarkClicked());
 
         if (rcpSno != null) {
@@ -127,10 +126,6 @@ public class RecipeDetailFragment extends Fragment implements RecipeDetailContra
         }
     }
 
-    /**
-     * [추가] Presenter의 지시에 따라 즐겨찾기 아이콘의 상태(채워진/빈 하트)를 변경합니다.
-     * @param isBookmarked true일 경우 '채워진 하트' 아이콘을, false일 경우 '빈 하트' 아이콘을 표시합니다.
-     */
     @Override
     public void setBookmarkState(boolean isBookmarked) {
         if (getContext() == null) return;
@@ -141,10 +136,6 @@ public class RecipeDetailFragment extends Fragment implements RecipeDetailContra
         }
     }
 
-    /**
-     * [추가] Presenter로부터 받은 즐겨찾기 작업 결과 메시지를 사용자에게 Toast로 보여줍니다.
-     * @param message 표시할 메시지 (예: "즐겨찾기에 추가되었습니다.")
-     */
     @Override
     public void showBookmarkResult(String message) {
         if (getContext() != null) {

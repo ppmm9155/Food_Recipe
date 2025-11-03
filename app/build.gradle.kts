@@ -66,8 +66,10 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:5.0.5")
     implementation("com.algolia:algoliasearch-android:3.+")
 
-    // [변경] ViewModel과 LiveData 라이브러리 의존성을 Kotlin DSL 문법에 맞게 수정합니다.
     val lifecycle_version = "2.8.4"
     implementation("androidx.lifecycle:lifecycle-viewmodel:$lifecycle_version")
     implementation("androidx.lifecycle:lifecycle-livedata:$lifecycle_version")
+    
+    // [추가] Gson 라이브러리 의존성을 추가합니다. SharedPreferences에 객체를 저장/로드하기 위해 사용합니다.
+    implementation("com.google.code.gson:gson:2.10.1")
 }
