@@ -30,7 +30,13 @@ public class SearchModel implements SearchContract.Model {
 
     @Override
     public void searchRecipes(String query, OnRecipesFetchedListener listener) {
-        index.searchAsync(new Query(query), (json, e) -> {
+        // [추가] 검색 결과 하이라이팅을 위한 쿼리 옵션을 설정합니다.
+        Query algoliaQuery = new Query(query)
+                .setAttributesToHighlight("title", "ingredients")
+                .setHighlightPreTag("<b>")
+                .setHighlightPostTag("</b>");
+
+        index.searchAsync(algoliaQuery, (json, e) -> {
             if (e != null) {
                 listener.onError(e.getMessage());
                 return;
@@ -41,20 +47,48 @@ public class SearchModel implements SearchContract.Model {
                 for (int i = 0; i < hits.length(); i++) {
                     JSONObject hit = hits.getJSONObject(i);
                     Recipe recipe = new Recipe();
+
+                    // [변경] highlightResult가 null일 수 있으므로 optJSONObject로 안전하게 접근합니다.
+                    JSONObject highlightResult = hit.optJSONObject("_highlightResult");
+
+                    String title;
+                    // [변경] 하이라이팅 결과가 있을 때만 해당 값을 사용하고, 없으면 원본을 사용합니다.
+                    if (highlightResult != null && highlightResult.has("title")) {
+                        title = highlightResult.getJSONObject("title").getString("value");
+                    } else {
+                        title = hit.optString("title", "제목 없음");
+                    }
+
+                    String ingredientsRaw;
+                    // [변경] 하이라이팅된 재료가 배열(JSONArray)일 것을 가정하고 파싱 로직을 전면 수정합니다.
+                    if (highlightResult != null && highlightResult.has("ingredients")) {
+                        JSONArray highlightedIngredients = highlightResult.getJSONArray("ingredients");
+                        List<String> ingredientsList = new ArrayList<>();
+                        for (int j = 0; j < highlightedIngredients.length(); j++) {
+                            // 각 배열 요소는 {"value": "하이라이팅된 텍스트"} 형태의 객체입니다.
+                            ingredientsList.add(highlightedIngredients.getJSONObject(j).getString("value"));
+                        }
+                        ingredientsRaw = String.join(", ", ingredientsList);
+                    } else {
+                        // 하이라이팅 결과가 없을 경우, 기존처럼 원본 데이터에서 재료 정보를 가져옵니다.
+                        JSONArray ingredientsArray = hit.optJSONArray("ingredients");
+                        if (ingredientsArray != null && ingredientsArray.length() > 0) {
+                            List<String> ingredientsList = new ArrayList<>();
+                            for (int j = 0; j < ingredientsArray.length(); j++) {
+                                ingredientsList.add(ingredientsArray.getString(j));
+                            }
+                            ingredientsRaw = String.join(", ", ingredientsList);
+                        } else {
+                            ingredientsRaw = "재료 정보 없음";
+                        }
+                    }
+
                     recipe.setRcpSno(hit.getString("objectID"));
-                    recipe.setTitle(hit.optString("title", "제목 없음"));
+                    recipe.setTitle(title);
                     recipe.setImageUrl(hit.optString("imageUrl", ""));
                     recipe.setCookingTime(hit.optString("cooking_time", "정보 없음"));
-                    JSONArray ingredientsArray = hit.optJSONArray("ingredients");
-                    if (ingredientsArray != null && ingredientsArray.length() > 0) {
-                        List<String> ingredientsList = new ArrayList<>();
-                        for (int j = 0; j < ingredientsArray.length(); j++) {
-                            ingredientsList.add(ingredientsArray.getString(j));
-                        }
-                        recipe.setIngredientsRaw(String.join(", ", ingredientsList));
-                    } else {
-                        recipe.setIngredientsRaw("재료 정보 없음");
-                    }
+                    recipe.setIngredientsRaw(ingredientsRaw);
+
                     recipes.add(recipe);
                 }
                 listener.onSuccess(recipes);
@@ -77,7 +111,6 @@ public class SearchModel implements SearchContract.Model {
         }
 
         String uid = currentUser.getUid();
-        // [변경] 하위 컬렉션이 아닌, 사용자의 단일 문서를 가져옵니다.
         db.collection("users").document(uid)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -87,16 +120,13 @@ public class SearchModel implements SearchContract.Model {
                     }
 
                     List<String> items = new ArrayList<>();
-                    // [변경] 문서에서 'myIngredients' 필드(배열)를 가져옵니다.
                     Object myIngredientsObj = documentSnapshot.get("myIngredients");
 
                     if (myIngredientsObj instanceof List) {
-                        // Firestore는 배열을 List<Map<String, Object>> 형태로 반환합니다.
                         List<?> rawList = (List<?>) myIngredientsObj;
                         for (Object item : rawList) {
                             if (item instanceof Map) {
                                 Map<String, Object> ingredientMap = (Map<String, Object>) item;
-                                // 각 맵에서 'name' 키의 값을 문자열로 추출합니다.
                                 if (ingredientMap.containsKey("name")) {
                                     items.add(String.valueOf(ingredientMap.get("name")));
                                 }

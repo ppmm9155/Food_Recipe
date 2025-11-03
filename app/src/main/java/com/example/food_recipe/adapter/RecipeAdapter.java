@@ -1,7 +1,10 @@
 package com.example.food_recipe.adapter;
 
 import android.content.Context;
+import android.text.Spannable;
 import android.text.TextUtils;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +12,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import androidx.core.text.HtmlCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -158,13 +163,41 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
                     .load(recipe.getImageUrl())
                     .into(ivRecipeImage);
 
-            tvRecipeTitle.setText(recipe.getTitle());
-            tvCookingTime.setText("조리 시간: " + recipe.getCookingTime());
+            // [변경] 하이라이팅 태그(<b>)를 처리하기 위해 HtmlCompat을 사용합니다.
+            String titleWithTags = recipe.getTitle();
+            if (titleWithTags != null) {
+                Spannable titleSpannable = (Spannable) HtmlCompat.fromHtml(titleWithTags, HtmlCompat.FROM_HTML_MODE_LEGACY);
 
-            // Algolia 검색 결과(String)와 Firestore 데이터(List)를 모두 처리하는 통합 재료 표시 로직
+                // [추가] Spannable 텍스트 내의 모든 StyleSpan(굵은 글씨)을 찾아 색상을 변경합니다.
+                StyleSpan[] styleSpans = titleSpannable.getSpans(0, titleSpannable.length(), StyleSpan.class);
+                for (StyleSpan span : styleSpans) {
+                    if (span.getStyle() == android.graphics.Typeface.BOLD) {
+                        int start = titleSpannable.getSpanStart(span);
+                        int end = titleSpannable.getSpanEnd(span);
+                        // [변경] 기존의 StyleSpan은 제거하고 (제목 전체가 이미 Bold이므로), 색상 Span을 적용합니다.
+                        titleSpannable.removeSpan(span);
+                        titleSpannable.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.search_highlight_color)),
+                                start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    }
+                }
+                tvRecipeTitle.setText(titleSpannable);
+            } else {
+                tvRecipeTitle.setText(""); // 제목이 null일 경우 빈 문자열로 처리
+            }
+
+            // [변경] cookingTime이 null이거나 유효하지 않은 경우를 대비하여 안정성을 강화합니다.
+            String cookingTime = recipe.getCookingTime();
+            if (isValidString(cookingTime)) {
+                tvCookingTime.setText("조리 시간: " + cookingTime);
+            } else {
+                tvCookingTime.setText("조리 시간: 정보 없음");
+            }
+
+            // [변경] 재료 부분도 하이라이팅 태그(<b>)를 처리하도록 수정합니다.
             String ingredientsRaw = recipe.getIngredientsRaw();
             if (isValidString(ingredientsRaw)) {
-                tvIngredients.setText("재료: " + ingredientsRaw);
+                Spannable ingredientsSpannable = (Spannable) HtmlCompat.fromHtml("재료: " + ingredientsRaw, HtmlCompat.FROM_HTML_MODE_LEGACY);
+                tvIngredients.setText(ingredientsSpannable);
             } else {
                 List<String> ingredientsList = recipe.getIngredients();
                 if (ingredientsList != null && !ingredientsList.isEmpty()) {
