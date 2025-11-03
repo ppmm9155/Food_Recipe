@@ -15,11 +15,16 @@
             app:destination="@id/recipeDetailFragment" />
     </fragment>
 
+    <!-- [최종 수정] 정상 동작하는 searchFragment의 action 설정을 그대로 복사하여 적용합니다. -->
     <fragment
         android:id="@+id/nav_favorites"
         android:name="com.example.food_recipe.favorites.FavoritesFragment"
         android:label="fragment_favorites"
-        tools:layout="@layout/fragment_favorites" />
+        tools:layout="@layout/fragment_favorites" >
+        <action
+            android:id="@+id/action_favoritesFragment_to_recipeDetailFragment"
+            app:destination="@id/recipeDetailFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/nav_pantry"
@@ -32,7 +37,6 @@
         android:name="com.example.food_recipe.search.SearchFragment"
         android:label="fragment_search"
         tools:layout="@layout/fragment_search" >
-        <!-- [추가] 검색 화면에서 상세 화면으로 이동하는 경로를 정의합니다. -->
         <action
             android:id="@+id/action_searchFragment_to_recipeDetailFragment"
             app:destination="@id/recipeDetailFragment" />

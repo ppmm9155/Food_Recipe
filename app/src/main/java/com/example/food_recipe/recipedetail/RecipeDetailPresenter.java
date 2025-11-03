@@ -1,80 +1,108 @@
 package com.example.food_recipe.recipedetail;
 
+import android.content.Context;
 import com.example.food_recipe.model.Recipe;
+import com.example.food_recipe.utils.RecentRecipeManager;
 
 /**
- * 레시피 상세 화면의 비즈니스 로직을 처리하고, View와 Model 간의 상호작용을 중재하는 Presenter 클래스입니다.
- * MVP 패턴에서 'Presenter'의 역할을 수행하며, {@link RecipeDetailContract.Presenter} 인터페이스를 구현합니다.
+ * [변경] Model과의 상호작용 시, RCP_SNO 대신 실제 문서 ID를 사용하도록 수정합니다.
  */
 public class RecipeDetailPresenter implements RecipeDetailContract.Presenter {
 
-    /**
-     * Presenter가 제어할 View에 대한 참조입니다.
-     * 메모리 누수 방지를 위해 View가 파괴될 때 null로 설정될 수 있습니다.
-     */
     private RecipeDetailContract.View view;
+    private final RecipeDetailContract.Model model;
+    private Recipe currentRecipe;
+    private final Context context; // [추가] Context 참조
 
-    /**
-     * 데이터를 실제로 가져오는 Model에 대한 참조입니다.
-     */
-    private RecipeDetailModel model;
-
-    /**
-     * RecipeDetailPresenter의 생성자입니다.
-     * View와 Model을 초기화하고 연결합니다.
-     *
-     * @param view 이 Presenter와 연결될 View의 인스턴스.
-     */
-    public RecipeDetailPresenter(RecipeDetailContract.View view) {
+    public RecipeDetailPresenter(RecipeDetailContract.View view, Context context) {
         this.view = view;
-        this.model = new RecipeDetailModel(); // Model 인스턴스 생성
+        this.model = new RecipeDetailModel();
+        this.context = context; // [추가] Context 초기화
     }
 
     /**
-     * View로부터 레시피 데이터 로드 요청을 받아 처리합니다.
-     * Model에게 데이터 조회를 요청하고, 결과를 콜백으로 받아 View에 전달합니다.
-     *
-     * @param rcpSno 불러올 레시피의 고유 식별 번호.
+     * [변경] 레시피 로드 성공 후, '최근 본 레시피' 목록에 현재 레시피를 추가합니다.
      */
     @Override
     public void loadRecipe(String rcpSno) {
         if (view != null) {
-            view.showLoading(); // 데이터 로딩 시작을 View에 알림
+            view.showLoading();
         }
 
-        // Model에게 데이터 조회를 요청하고, 콜백 리스너를 등록합니다.
-        model.getRecipe(rcpSno, new RecipeDetailModel.OnRecipeListener() {
-            /**
-             * Model로부터 데이터를 성공적으로 받았을 때 호출됩니다.
-             * @param recipe 조회된 레시피 객체.
-             */
+        model.getRecipeDetails(rcpSno, new RecipeDetailContract.Model.OnFinishedListener<Recipe>() {
             @Override
             public void onSuccess(Recipe recipe) {
+                currentRecipe = recipe;
                 if (view != null) {
-                    view.showRecipe(recipe); // 조회된 데이터를 View에 전달하여 표시
-                    view.hideLoading();      // 데이터 로딩 완료를 View에 알림
+                    view.showRecipe(recipe);
+                    checkBookmarkStatus(recipe.getId());
+
+                    // [추가] 최근 본 레시피 목록에 추가
+                    RecentRecipeManager.addRecentRecipe(context, recipe.getId());
                 }
             }
 
-            /**
-             * Model로부터 오류 메시지를 받았을 때 호출됩니다.
-             * @param message 발생한 오류 메시지.
-             */
             @Override
-            public void onError(String message) {
+            public void onError(Exception e) {
                 if (view != null) {
-                    view.showError(message); // 오류 메시지를 View에 전달하여 표시
-                    view.hideLoading();      // 데이터 로딩 완료(실패)를 View에 알림
+                    view.showError(e.getMessage());
+                    view.hideLoading();
                 }
             }
         });
     }
 
-    /**
-     * View가 파괴될 때 호출되어, Presenter가 가지고 있던 View의 참조를 해제합니다.
-     * 이는 Activity나 Fragment가 메모리에서 해제될 때, Presenter가 이를 계속 붙잡고 있어 발생하는
-     * 메모리 누수(Memory Leak)를 방지하는 중요한 역할을 합니다.
-     */
+    private void checkBookmarkStatus(String recipeId) {
+        model.checkBookmarkState(recipeId, new RecipeDetailContract.Model.OnFinishedListener<Boolean>() {
+            @Override
+            public void onSuccess(Boolean isBookmarked) {
+                if (view != null) {
+                    view.setBookmarkState(isBookmarked);
+                    view.hideLoading();
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                if (view != null) {
+                    view.showError("즐겨찾기 정보를 불러오는데 실패했습니다: " + e.getMessage());
+                    view.hideLoading();
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onBookmarkClicked() {
+        if (currentRecipe == null || currentRecipe.getId() == null) {
+            if(view != null) {
+                view.showError("레시피 정보가 아직 로드되지 않았거나, 문서 ID가 없습니다.");
+            }
+            return;
+        }
+
+        model.toggleBookmark(currentRecipe.getId(), new RecipeDetailContract.Model.OnFinishedListener<Boolean>() {
+            @Override
+            public void onSuccess(Boolean isBookmarked) {
+                if (view != null) {
+                    view.setBookmarkState(isBookmarked);
+                    if (isBookmarked) {
+                        view.showBookmarkResult("즐겨찾기에 추가되었습니다.");
+                    } else {
+                        view.showBookmarkResult("즐겨찾기에서 해제되었습니다.");
+                    }
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                if (view != null) {
+                    view.showError("작업에 실패했습니다: " + e.getMessage());
+                }
+            }
+        });
+    }
+
     @Override
     public void detachView() {
         this.view = null;
