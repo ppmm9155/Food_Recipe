@@ -14,17 +14,20 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.food_recipe.R;
 import com.example.food_recipe.adapter.CookingStepAdapter;
+import com.example.food_recipe.adapter.IngredientAdapter;
+import com.example.food_recipe.model.Ingredient;
 import com.example.food_recipe.model.Recipe;
 
-/**
- * [변경] 즐겨찾기 관련 UI 이벤트 처리 및 업데이트 로직을 추가합니다.
- */
+import java.util.ArrayList;
+import java.util.List;
+
 public class RecipeDetailFragment extends Fragment implements RecipeDetailContract.View {
 
     private RecipeDetailContract.Presenter presenter;
@@ -38,20 +41,17 @@ public class RecipeDetailFragment extends Fragment implements RecipeDetailContra
     private TextView tvServings;
     private TextView tvCookingTime;
     private TextView tvDifficulty;
-    private TextView tvIngredientsRaw;
+    private RecyclerView rvIngredients;
+    private IngredientAdapter ingredientAdapter;
     private RecyclerView rvCookingSteps;
     private CookingStepAdapter cookingStepAdapter;
 
-    /**
-     * [변경] Presenter 생성 시, SharedPreferences 접근에 필요한 Context를 전달합니다.
-     */
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             rcpSno = getArguments().getString("rcpSno");
         }
-        // Presenter에게 Context를 전달하여 RecentRecipeManager를 사용할 수 있도록 합니다.
         presenter = new RecipeDetailPresenter(this, requireContext());
     }
 
@@ -73,11 +73,11 @@ public class RecipeDetailFragment extends Fragment implements RecipeDetailContra
         tvServings = view.findViewById(R.id.fdetail_tv_servings);
         tvCookingTime = view.findViewById(R.id.fdetail_tv_cooking_time);
         tvDifficulty = view.findViewById(R.id.fdetail_tv_difficulty);
-        tvIngredientsRaw = view.findViewById(R.id.fdetail_tv_ingredients_raw);
+        rvIngredients = view.findViewById(R.id.fdetail_rv_ingredients);
         rvCookingSteps = view.findViewById(R.id.fdetail_rv_cooking_steps);
 
-        setupRecyclerView();
-        
+        setupAdapters();
+
         ivBookmark.setOnClickListener(v -> presenter.onBookmarkClicked());
 
         if (rcpSno != null) {
@@ -85,10 +85,20 @@ public class RecipeDetailFragment extends Fragment implements RecipeDetailContra
         }
     }
 
-    private void setupRecyclerView() {
+    private void setupAdapters() {
+        // 요리 순서 RecyclerView 설정
         rvCookingSteps.setLayoutManager(new LinearLayoutManager(getContext()));
         cookingStepAdapter = new CookingStepAdapter(getContext());
         rvCookingSteps.setAdapter(cookingStepAdapter);
+
+        // 재료 목록 RecyclerView 설정
+        setupIngredientsRecyclerView();
+    }
+
+    private void setupIngredientsRecyclerView() {
+        rvIngredients.setLayoutManager(new GridLayoutManager(getContext(), 2));
+        ingredientAdapter = new IngredientAdapter();
+        rvIngredients.setAdapter(ingredientAdapter);
     }
 
     @Override
@@ -99,8 +109,39 @@ public class RecipeDetailFragment extends Fragment implements RecipeDetailContra
         tvServings.setText(getDisplayText(recipe.getServings(), "정보 없음"));
         tvCookingTime.setText(getDisplayText(recipe.getCookingTime(), "정보 없음"));
         tvDifficulty.setText(getDisplayText(recipe.getDifficulty(), "정보 없음"));
-        tvIngredientsRaw.setText(getDisplayText(recipe.getIngredientsRaw(), "재료 정보가 없습니다."));
+        updateIngredients(recipe.getIngredientsRaw());
         cookingStepAdapter.setSteps(recipe.getCookingSteps());
+    }
+
+    private void updateIngredients(String ingredientsRaw) {
+        String ingredientsText = getDisplayText(ingredientsRaw, "재료 정보가 없습니다.");
+        List<Ingredient> ingredientList = new ArrayList<>();
+
+        if ("재료 정보가 없습니다.".equals(ingredientsText)) {
+            ingredientList.add(new Ingredient(ingredientsText, ""));
+        } else {
+            String[] ingredients = ingredientsText.split("\\|");
+            for (String chunk : ingredients) {
+                String trimmedChunk = chunk.trim();
+                if (trimmedChunk.isEmpty()) {
+                    continue;
+                }
+
+                int lastSpaceIndex = trimmedChunk.lastIndexOf(' ');
+                String name;
+                String quantity;
+
+                if (lastSpaceIndex == -1) {
+                    name = trimmedChunk;
+                    quantity = ""; // 수량 정보 없음
+                } else {
+                    name = trimmedChunk.substring(0, lastSpaceIndex).trim();
+                    quantity = trimmedChunk.substring(lastSpaceIndex + 1).trim();
+                }
+                ingredientList.add(new Ingredient(name, quantity));
+            }
+        }
+        ingredientAdapter.setIngredients(ingredientList);
     }
 
     private String getDisplayText(String text, String fallback) {

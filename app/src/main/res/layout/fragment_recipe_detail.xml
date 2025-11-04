@@ -59,6 +59,7 @@
                 app:layout_constraintTop_toTopOf="@id/fdetail_tv_title"
                 app:layout_constraintBottom_toBottomOf="@id/fdetail_tv_title" />
 
+            <!-- [디자인 개선] 기존 TextView들을 아이콘과 텍스트의 수직 그룹으로 변경합니다. -->
             <LinearLayout
                 android:id="@+id/fdetail_ll_summary"
                 android:layout_width="0dp"
@@ -70,29 +71,65 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent">
 
-                <TextView
-                    android:id="@+id/fdetail_tv_servings"
+                <!-- 인분 정보 -->
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:gravity="center"
-                    tools:text="2인분"/>
+                    android:orientation="vertical"
+                    android:gravity="center">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/outline_groups_24"
+                        android:contentDescription="인분" />
+                    <TextView
+                        android:id="@+id/fdetail_tv_servings"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        tools:text="2인분"/>
+                </LinearLayout>
 
-                <TextView
-                    android:id="@+id/fdetail_tv_cooking_time"
+                <!-- 요리 시간 정보 -->
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:gravity="center"
-                    tools:text="30분 이내"/>
+                    android:orientation="vertical"
+                    android:gravity="center">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/outline_alarm_24"
+                        android:contentDescription="요리 시간"/>
+                    <TextView
+                        android:id="@+id/fdetail_tv_cooking_time"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        tools:text="30분 이내"/>
+                </LinearLayout>
 
-                <TextView
-                    android:id="@+id/fdetail_tv_difficulty"
+                <!-- 난이도 정보 -->
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:gravity="center"
-                    tools:text="초급"/>
+                    android:orientation="vertical"
+                    android:gravity="center">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/outline_local_dining_24"
+                        android:contentDescription="난이도"/>
+                    <TextView
+                        android:id="@+id/fdetail_tv_difficulty"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        tools:text="초급"/>
+                </LinearLayout>
             </LinearLayout>
 
             <View
@@ -116,15 +153,16 @@
                 app:layout_constraintTop_toBottomOf="@id/fdetail_divider_1"
                 app:layout_constraintStart_toStartOf="parent" />
 
-            <TextView
-                android:id="@+id/fdetail_tv_ingredients_raw"
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/fdetail_rv_ingredients"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
+                android:nestedScrollingEnabled="false"
                 app:layout_constraintTop_toBottomOf="@id/fdetail_tv_ingredients_title"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                tools:text="돼지고기 300g, 김치 1/4포기, 두부 1/2모, 대파 1대, 양파 1/2개, ..." />
+                tools:listitem="@layout/list_item_ingredient"/>
 
             <View
                 android:id="@+id/fdetail_divider_2"
@@ -132,7 +170,7 @@
                 android:layout_height="1dp"
                 android:layout_marginTop="16dp"
                 android:background="?android:attr/listDivider"
-                app:layout_constraintTop_toBottomOf="@id/fdetail_tv_ingredients_raw"
+                app:layout_constraintTop_toBottomOf="@id/fdetail_rv_ingredients"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
 

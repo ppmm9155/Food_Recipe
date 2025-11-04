@@ -149,4 +149,28 @@ public class LoginModel implements LoginContract.Model {
                     callback.onSuccess(fUser);
                 });
     }
+
+    // [추가] 사용자의 이메일 인증 상태를 Firestore DB에 업데이트합니다.
+    @Override
+    public void updateUserVerificationStatus(FirebaseUser user) {
+        if (user == null || !user.isEmailVerified()) {
+            // 업데이트할 필요가 없는 경우 (사용자가 없거나, 인증이 안 된 상태) 조용히 종료
+            return;
+        }
+
+        DocumentReference userRef = db.collection("users").document(user.getUid());
+
+        userRef.get().addOnSuccessListener(doc -> {
+            if (doc.exists()) {
+                // 문서가 존재할 때만 업데이트 시도
+                Boolean currentStatus = doc.getBoolean("emailVerified");
+                if (currentStatus == null || !currentStatus) {
+                    // 현재 DB 값이 true가 아닐 경우에만 업데이트 (불필요한 쓰기 방지)
+                    userRef.update("emailVerified", true)
+                        .addOnSuccessListener(v -> Log.d(TAG, "User emailVerified status updated to true."))
+                        .addOnFailureListener(e -> Log.e(TAG, "Failed to update emailVerified status.", e));
+                }
+            }
+        }).addOnFailureListener(e -> Log.e(TAG, "Failed to get user document for update.", e));
+    }
 }

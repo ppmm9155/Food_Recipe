@@ -87,13 +87,44 @@ public class LoginPresenter implements LoginContract.Presenter {
 
             @Override
             public void onSuccess(FirebaseUser user) {
-                if (view != null) {
-                    // [추가] 로그인 성공 기록을 남깁니다.
-                    AutoLoginManager.setAutoLogin(view.getContext(), autoLoginChecked);
-                    AutoLoginManager.setCurrentLoginProvider(view.getContext(), AutoLoginManager.PROVIDER_EMAIL);
-                    view.setUiEnabled(true); // UI 다시 활성화
-                    view.onLoginSuccess(autoLoginChecked); // View에게 최종 성공 처리를 지시
-                }
+                if (view == null) return;
+
+                // [변경] 사용자의 최신 상태(특히, 이메일 인증)를 서버로부터 강제로 다시 가져옵니다.
+                user.reload().addOnCompleteListener(reloadTask -> {
+                    if (reloadTask.isSuccessful()) {
+                        // [변경] 새로고침된 최신 사용자 정보를 가져옵니다.
+                        FirebaseUser refreshedUser = FirebaseAuth.getInstance().getCurrentUser();
+                        if (refreshedUser == null) { // 비정상적인 경우, 로그아웃 처리
+                            view.setUiEnabled(true);
+                            view.toast("사용자 정보를 갱신하지 못했습니다.");
+                            return;
+                        }
+
+                        // [추가] 새로고침된 정보로 이메일 인증 여부를 최종 확인합니다.
+                        if (!refreshedUser.isEmailVerified()) {
+                            view.setUiEnabled(true);
+                            view.toast("이메일 인증을 완료한 후 로그인해주세요.");
+                            FirebaseAuth.getInstance().signOut(); // 미인증 사용자는 즉시 로그아웃
+                            return;
+                        }
+
+                        // [추가] 인증이 확인되면, Firestore DB의 상태를 업데이트하도록 Model에 요청합니다.
+                        model.updateUserVerificationStatus(refreshedUser);
+
+                        // --- 최종 로그인 성공 처리 ---
+                        AutoLoginManager.setAutoLogin(view.getContext(), autoLoginChecked);
+                        AutoLoginManager.setCurrentLoginProvider(view.getContext(), AutoLoginManager.PROVIDER_EMAIL);
+                        view.setUiEnabled(true);
+
+                        view.onLoginSuccess(autoLoginChecked);
+
+                    } else {
+                        // [추가] reload 실패 처리 (네트워크 오류 등)
+                        view.setUiEnabled(true);
+                        view.toast("사용자 정보 갱신에 실패했습니다. 네트워크 상태를 확인해주세요.");
+                        FirebaseAuth.getInstance().signOut();
+                    }
+                });
             }
 
             @Override

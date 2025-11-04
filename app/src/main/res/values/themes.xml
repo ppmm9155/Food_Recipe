@@ -15,7 +15,7 @@
         <item name="android:colorBackground">@color/white</item>
         <item name="colorSurface">@color/white</item>
         <item name="colorOnSurface">@color/black</item>
-        <item name="colorSurfaceContainer">@color/black_2</item>
+        <item name="colorSurfaceContainer">@color/gray_200</item>
         <item name="colorSurfaceVariant">@color/white</item>
         <item name="colorOnSurfaceVariant">@color/gray_600</item>
         <item name="colorOutline">@color/gray_200</item>
