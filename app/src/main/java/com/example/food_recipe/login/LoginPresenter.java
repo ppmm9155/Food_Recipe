@@ -1,6 +1,9 @@
 
 package com.example.food_recipe.login;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+
 import com.example.food_recipe.utils.AutoLoginManager;
 import com.example.food_recipe.utils.ValidationUtils;
 import com.google.firebase.auth.*;
@@ -27,47 +30,35 @@ import com.google.android.gms.common.api.ApiException;
 public class LoginPresenter implements LoginContract.Presenter {
 
     // --- 멤버 변수 ---
-    // Presenter는 View와 Model을 모두 알고 있어야 합니다.
     private final LoginContract.View view;   // "화면 담당 직원"에게 지시를 내리기 위한 리모컨
     private final LoginContract.Model model; // "데이터 전문가"에게 작업을 시키기 위한 리모컨
+    private FirebaseUser unverifiedUser = null; // 이메일 미인증 사용자의 재전송 요청을 처리하기 위해 FirebaseUser 객체를 임시 저장
 
     // --- 설정 값 ---
-    // Firebase 최신 정책 변경으로, 존재하지 않는 이메일로 로그인 시도 시
-    // "USER_NOT_FOUND" 대신 모호한 "INVALID_LOGIN_CREDENTIALS" 에러가 발생합니다.
-    // 이 때, 이메일의 유효성을 추가로 체크해서 "존재하지 않는 사용자"라고 확실히 알려줄지,
-    // 아니면 보안을 위해 "이메일 또는 비밀번호 오류"라고 뭉뚱그려 알려줄지 결정하는 스위치입니다.
-    // false로 두면 더 안전합니다.
     private static final boolean TRUST_FETCH_FOR_USER_NOT_FOUND = false;
+    private static final long RESEND_EMAIL_COOLDOWN_MS = 60 * 1000; // 60초
+
+    // --- SharedPreferences 관련 상수 ---
+    private static final String PREFS_NAME = "LoginPrefs";
+    private static final String PREF_LAST_RESEND_TIMESTAMP = "lastResendTimestamp";
 
     // --- 자주 사용하는 메시지 상수 ---
-    // 똑같은 문자열을 여러 번 쓰는 실수를 방지하고, 나중에 메시지를 바꿀 때 편하도록 상수로 빼둡니다.
     private static final String MSG_INVALID_EMAIL   = "이메일 형식이 올바르지 않습니다.";
     private static final String MSG_USER_NOT_FOUND  = "존재하지 않는 사용자입니다.";
     private static final String MSG_WRONG_PASSWORD  = "비밀번호가 올바르지 않습니다.";
     private static final String MSG_AMBIGUOUS       = "이메일 또는 비밀번호가 올바르지 않습니다.";
 
-    /**
-     * 생성자: LoginPresenter가 처음 만들어질 때 호출됩니다.
-     * @param view 이 Presenter가 제어할 View (화면)
-     * @param model 이 Presenter가 사용할 Model (데이터 처리 도구)
-     */
     public LoginPresenter(LoginContract.View view, LoginContract.Model model) {
         this.view = view;
         this.model = model;
     }
 
-    /**
-     * View로부터 "이메일 로그인" 요청을 받았을 때 호출됩니다.
-     */
     @Override
     public void attemptLogin(String rawEmail, String password, boolean autoLoginChecked) {
-        // 1. 입력값 전처리: 이메일 앞뒤 공백 제거 등
         String email = ValidationUtils.normalizeEmail(rawEmail);
-
-        // 2. 입력값 검증 (Validation): 가장 기본적인 방어 로직
         if (email.isEmpty()) {
             view.showEmailError("이메일을 입력해주세요.");
-            return; // 여기서 작업을 중단합니다.
+            return;
         }
         if (!ValidationUtils.validateEmail(email)) {
             view.showEmailError(MSG_INVALID_EMAIL);
@@ -77,49 +68,36 @@ public class LoginPresenter implements LoginContract.Presenter {
             view.showPasswordError("비밀번호를 입력해주세요.");
             return;
         }
-
-        // 3. 작업 시작 전 UI 비활성화: 사용자가 여러 번 버튼 누르는 것을 방지
         view.setUiEnabled(false);
-
-        // 4. Model에게 실제 로그인 작업 지시 (비동기)
         model.signInWithEmail(email, password, new LoginContract.Model.AuthCallback() {
-            // --- Model의 작업이 끝나면 아래 둘 중 하나가 호출됩니다 ---
 
             @Override
             public void onSuccess(FirebaseUser user) {
                 if (view == null) return;
-
-                // [변경] 사용자의 최신 상태(특히, 이메일 인증)를 서버로부터 강제로 다시 가져옵니다.
                 user.reload().addOnCompleteListener(reloadTask -> {
                     if (reloadTask.isSuccessful()) {
-                        // [변경] 새로고침된 최신 사용자 정보를 가져옵니다.
                         FirebaseUser refreshedUser = FirebaseAuth.getInstance().getCurrentUser();
-                        if (refreshedUser == null) { // 비정상적인 경우, 로그아웃 처리
+                        if (refreshedUser == null) {
                             view.setUiEnabled(true);
                             view.toast("사용자 정보를 갱신하지 못했습니다.");
                             return;
                         }
 
-                        // [추가] 새로고침된 정보로 이메일 인증 여부를 최종 확인합니다.
                         if (!refreshedUser.isEmailVerified()) {
+                            unverifiedUser = refreshedUser;
                             view.setUiEnabled(true);
-                            view.toast("이메일 인증을 완료한 후 로그인해주세요.");
-                            FirebaseAuth.getInstance().signOut(); // 미인증 사용자는 즉시 로그아웃
+                            view.showEmailVerificationRequired();
+                            // [제거] 로그아웃 시점을 Snackbar가 사라진 후로 완전히 이전
                             return;
                         }
 
-                        // [추가] 인증이 확인되면, Firestore DB의 상태를 업데이트하도록 Model에 요청합니다.
                         model.updateUserVerificationStatus(refreshedUser);
-
-                        // --- 최종 로그인 성공 처리 ---
                         AutoLoginManager.setAutoLogin(view.getContext(), autoLoginChecked);
                         AutoLoginManager.setCurrentLoginProvider(view.getContext(), AutoLoginManager.PROVIDER_EMAIL);
                         view.setUiEnabled(true);
-
                         view.onLoginSuccess(autoLoginChecked);
 
                     } else {
-                        // [추가] reload 실패 처리 (네트워크 오류 등)
                         view.setUiEnabled(true);
                         view.toast("사용자 정보 갱신에 실패했습니다. 네트워크 상태를 확인해주세요.");
                         FirebaseAuth.getInstance().signOut();
@@ -129,52 +107,41 @@ public class LoginPresenter implements LoginContract.Presenter {
 
             @Override
             public void onFailure(Exception e) {
-                // 실패 원인을 분석해서 사용자에게 더 친절한 피드백을 줍니다.
                 String code = (e instanceof FirebaseAuthException)
                         ? ((FirebaseAuthException) e).getErrorCode()
                         : null;
 
-                if ("ERROR_USER_NOT_FOUND".equals(code)) { // 이제는 거의 발생하지 않는 예전 에러코드
+                if ("ERROR_USER_NOT_FOUND".equals(code)) {
                     view.showEmailError(MSG_USER_NOT_FOUND);
                 } else if ("ERROR_INVALID_EMAIL".equals(code)) {
                     view.showEmailError(MSG_INVALID_EMAIL);
-                } else if ("ERROR_WRONG_PASSWORD".equals(code)) { // 이것도 예전 에러코드
+                } else if ("ERROR_WRONG_PASSWORD".equals(code)) {
                     view.showWrongPassword();
                 } else if (isAmbiguous(code, e)) {
-                    // 에러가 모호할 경우, 추가 조사를 시작합니다.
                     refineAmbiguousWithFetch(email);
-                    return; // 추가 조사는 비동기이므로, 여기서 UI 활성화를 하지 않고 바로 종료합니다.
+                    return;
                 } else {
-                    // 원인을 알 수 없는 나머지 실패 사례
                     view.toast("로그인 실패");
                 }
-                view.setUiEnabled(true); // UI 다시 활성화
+                view.setUiEnabled(true);
             }
         });
     }
 
-    /**
-     * View로부터 "구글 로그인" 결과 처리를 요청받았을 때 호출됩니다.
-     */
     @Override
     public void handleGoogleLoginResult(android.content.Intent data, boolean autoLoginChecked) {
         try {
-            // 1. 구글 로그인 결과(Intent)에서 사용자 정보(Account)와 ID 토큰을 추출합니다.
             GoogleSignInAccount account =
                     GoogleSignIn.getSignedInAccountFromIntent(data).getResult(ApiException.class);
             if (account == null || account.getIdToken() == null) {
                 view.toast("Google 계정 또는 ID Token이 없습니다.");
                 return;
             }
-
             String idToken = account.getIdToken();
-            view.setUiEnabled(false); // UI 비활성화
-
-            // 2. Model에게 ID 토큰을 전달하며 Firebase 로그인을 지시합니다.
+            view.setUiEnabled(false);
             model.signInWithGoogle(idToken, new LoginContract.Model.AuthCallback() {
                 @Override public void onSuccess(FirebaseUser user) {
                     if (view != null) {
-                        // [추가] 로그인 성공 기록 남기기
                         AutoLoginManager.setAutoLogin(view.getContext(), autoLoginChecked);
                         AutoLoginManager.setCurrentLoginProvider(view.getContext(), AutoLoginManager.PROVIDER_GOOGLE);
                         view.setUiEnabled(true);
@@ -189,104 +156,94 @@ public class LoginPresenter implements LoginContract.Presenter {
                 }
             });
         } catch (ApiException e) {
-            // 구글 로그인 자체가 실패한 경우 (네트워크 오류, 사용자 취소 등)
             if (view != null) {
                 view.toast("Google Sign-In 실패: " + e.getStatusCode());
             }
         }
     }
 
-    /**
-     * Firebase에서 받은 에러가 "모호한" 에러인지 판단합니다.
-     * 최신 Firebase 정책은 보안을 위해 이메일이 틀렸는지, 비밀번호가 틀렸는지 알려주지 않고
-     * "INVALID_LOGIN_CREDENTIALS" 라는 애매한 에러코드를 줍니다.
-     */
+    // [수정] 메일 재전송 시 쿨다운 로직 추가
+    @Override
+    public void resendVerificationEmail() {
+        if (unverifiedUser == null) {
+            view.toast("오류: 사용자 정보가 없습니다. 다시 로그인해주세요.");
+            return;
+        }
+
+        long now = System.currentTimeMillis();
+        long lastSent = getLastResendTimestamp();
+
+        if (now - lastSent < RESEND_EMAIL_COOLDOWN_MS) {
+            long remaining = (lastSent + RESEND_EMAIL_COOLDOWN_MS - now) / 1000;
+            view.showCoolDownMessage("잠시 후 다시 시도해주세요. (" + remaining + "초 남음)");
+            return;
+        }
+
+        unverifiedUser.sendEmailVerification()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        // [추가] 성공 시에만 마지막 전송 시간을 기록하여 쿨다운을 시작합니다.
+                        saveLastResendTimestamp(System.currentTimeMillis());
+                        view.toast("인증 메일을 다시 보냈습니다. 스팸함도 확인해 보세요.");
+                    } else {
+                        view.toast("메일 발송에 실패했습니다: " + task.getException().getMessage());
+                    }
+                });
+    }
+
+    // [수정] Snackbar 상호작용이 끝나면, 그 때 로그아웃을 실행
+    @Override
+    public void onVerificationSnackbarDismissed() {
+        FirebaseAuth.getInstance().signOut();
+    }
+
     @Override
     public boolean isAmbiguous(String code, Exception e) {
         return (e instanceof FirebaseAuthInvalidCredentialsException)
-                || "ERROR_INVALID_CREDENTIAL".equals(code) // 예전 버전의 모호한 에러
-                || "INVALID_LOGIN_CREDENTIALS".equals(code); // 최신 버전의 모호한 에러
+                || "ERROR_INVALID_CREDENTIAL".equals(code)
+                || "INVALID_LOGIN_CREDENTIALS".equals(code);
     }
 
-    /**
-     * 모호한 에러가 발생했을 때, 이메일이 실제로 가입된 계정인지 추가 조사를 지시합니다.
-     */
     @Override
     public void refineAmbiguousWithFetch(String email) {
         model.fetchSignInMethods(email, methods -> {
             if (view == null) return;
-            view.setUiEnabled(true); // 여기서 UI를 다시 활성화합니다.
+            view.setUiEnabled(true);
 
-            // 1. 조사 결과, 해당 이메일로 가입된 계정이 아예 없는 경우
             if (methods == null || methods.isEmpty()) {
                 if (TRUST_FETCH_FOR_USER_NOT_FOUND) {
-                    // 우리 서비스는 이메일 존재 여부를 알려줘도 괜찮다고 판단하면, "존재하지 않는 사용자"라고 명확히 알려줌
                     view.showEmailError(MSG_USER_NOT_FOUND);
                 } else {
-                    // 보안을 중시하면, 그냥 "이메일 또는 비밀번호 오류"라고 알려줌
                     view.showAmbiguous();
                 }
                 return;
             }
 
-            // 2. 조사 결과, 계정은 있지만 '비밀번호' 방식이 아닌 경우
             boolean supportsPassword = methods.contains(EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD);
             boolean isGoogleAccount = methods.contains(GoogleAuthProvider.PROVIDER_ID);
 
             if (isGoogleAccount && !supportsPassword) {
-                // 이메일은 존재하지만, 비밀번호 방식으로는 가입한 적 없고 구글로만 가입한 경우
                 view.toast("이 계정은 Google 로그인을 사용해야 합니다.");
             } else if (supportsPassword) {
-                // 이메일도 존재하고 비밀번호 방식도 지원하는 경우
-                // -> 그렇다면 비밀번호가 틀린 것이 확실합니다.
                 view.showWrongPassword();
             } else {
-                // 그 외의 경우 (다른 로그인 방식 등)
                 view.showAmbiguous();
             }
         });
     }
 
-    /**
-     * View로부터 "게스트 로그인" 요청을 받았을 때 호출됩니다.
-     */
-    /*@Override
-    public void attemptGusetLogin(boolean autoLoginChecked) {
-        if (view == null) return;
+    // --- SharedPreferences 헬퍼 메소드 ---
 
-        view.setUiEnabled(false);
-
-        // Model에게 익명(게스트) 로그인을 지시합니다.
-        model.signInAnonyGuest(new LoginContract.Model.AuthCallback() {
-            @Override
-            public void onSuccess(FirebaseUser user) {
-                if (view != null) {
-                    // [추가] 게스트 로그인 성공 기록을 남깁니다.
-                    AutoLoginManager.setAutoLogin(view.getContext(), autoLoginChecked);
-                    AutoLoginManager.setCurrentLoginProvider(view.getContext(), AutoLoginManager.PROVIDER_GUEST);
-                    view.setUiEnabled(true);
-                    // [리팩토링-변경] 통합된 성공 처리 메소드를 호출합니다.
-                    view.onLoginSuccess(autoLoginChecked);
-                }
-            }
-
-            @Override
-            public void onFailure(Exception e) {
-                if (view != null) {
-                    view.setUiEnabled(true);
-                    view.toast("게스트 로그인 실패: " + e.getMessage());
-                }
-            }
-        });
-    }*/
-
-    /**
-     * View(Activity)가 파괴될 때 호출되어, 메모리 누수를 방지합니다.
-     */
-    @Override
-    public void detachView() {
-        // 현재 구조에서는 view가 final이라 null로 만들 수 없지만,
-        // 만약 Presenter가 긴 작업을 하고 있다면 여기서 중단시키는 코드를 넣을 수 있습니다.
-        // 예를 들어, 네트워크 요청을 취소하는 등의 작업을 합니다.
+    private void saveLastResendTimestamp(long timestamp) {
+        SharedPreferences prefs = view.getContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putLong(PREF_LAST_RESEND_TIMESTAMP, timestamp).apply();
     }
+
+    private long getLastResendTimestamp() {
+        SharedPreferences prefs = view.getContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return prefs.getLong(PREF_LAST_RESEND_TIMESTAMP, 0);
+    }
+
+    @Override
+    public void detachView() {}
 }

@@ -29,6 +29,9 @@ public interface LoginContract {
         void showPasswordError(String msg);
         void showWrongPassword();
         void showAmbiguous();
+        void showEmailVerificationRequired();
+        // [추가] 쿨다운 상태일 때 사용자에게 안내 메시지를 표시하라는 지시
+        void showCoolDownMessage(String message);
 
         void clearEmailError();
         void clearPasswordError();
@@ -53,6 +56,8 @@ public interface LoginContract {
         // --- View가 Presenter에게 요청하는 작업들 ---
         void attemptLogin(String rawEmail, String password, boolean autoLoginChecked);
         void handleGoogleLoginResult(android.content.Intent data, boolean autoLoginChecked);
+        void resendVerificationEmail();
+        void onVerificationSnackbarDismissed();
         //void attemptGusetLogin(boolean autoLoginChecked); //게스트 로그인
 
         // --- 내부 로직 처리 ---

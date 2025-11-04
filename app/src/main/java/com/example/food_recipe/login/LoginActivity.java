@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
@@ -27,6 +28,7 @@ import com.example.food_recipe.utils.AutoLoginManager;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.checkbox.MaterialCheckBox;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -38,7 +40,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.material.textview.MaterialTextView;
 
 /**
- * 🎨 로그인 화면 (View)
+ * 로그인 화면 (View)
  *
  * 이 클래스는 사용자가 보는 '로그인 화면' 그 자체를 담당합니다.
  * 사용자의 터치(클릭)를 감지하고, 입력된 텍스트를 가져오는 역할을 합니다.
@@ -53,6 +55,9 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
 
     // --- 뷰(View) 위젯 변수 선언 ---
     // 나중에 코드에서 사용하기 위해, XML 레이아웃에 있는 UI 요소들을 담을 그릇을 미리 만듭니다.
+    
+    // [추가] Snackbar를 표시할 최상위 레이아웃
+    private CoordinatorLayout coordinatorLayout;
 
     // 구글 로그인 관련 도구들
     private Button btnGoogleLogin; // 구글 로그인 버튼
@@ -86,6 +91,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         setContentView(R.layout.activity_login);
 
         // 2. 위젯 연결: 코드의 변수(그릇)와 XML의 UI 요소를 'id'로 연결합니다.
+        coordinatorLayout = findViewById(R.id.login_coordinator_layout); // [추가] CoordinatorLayout 연결
         tilEmail = findViewById(R.id.login_tilEmail);
         etEmail = findViewById(R.id.login_ETemail);
         tilPassword = findViewById(R.id.login_tilPassword);
@@ -204,6 +210,30 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     public void showAmbiguous() {
         tilEmail.setError("이메일 또는 비밀번호가 올바르지 않습니다.");
         etEmail.requestFocus();
+    }
+    
+    @Override
+    public void showEmailVerificationRequired() {
+        Snackbar.make(coordinatorLayout, "이메일 인증이 필요합니다. 메일함을 확인해주세요.", Snackbar.LENGTH_INDEFINITE)
+                .setAction("메일 재전송", v -> {
+                    presenter.resendVerificationEmail();
+                })
+                .addCallback(new Snackbar.Callback() {
+                    @Override
+                    public void onDismissed(Snackbar transientBottomBar, int event) {
+                        super.onDismissed(transientBottomBar, event);
+                        if (event != DISMISS_EVENT_ACTION) {
+                            presenter.onVerificationSnackbarDismissed();
+                        }
+                    }
+                })
+                .show();
+    }
+    
+    // [추가] Presenter로부터 받은 쿨다운 안내 메시지를 Toast로 표시합니다.
+    @Override
+    public void showCoolDownMessage(String message) {
+        toast(message);
     }
 
     @Override
