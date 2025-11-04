@@ -214,7 +214,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     
     @Override
     public void showEmailVerificationRequired() {
-        Snackbar.make(coordinatorLayout, "이메일 인증이 필요합니다. 메일함을 확인해주세요.", Snackbar.LENGTH_INDEFINITE)
+        Snackbar.make(coordinatorLayout, "이메일 인증이 필요합니다. 메일함을 확인해주세요. (스팸함 포함)", Snackbar.LENGTH_INDEFINITE)
                 .setAction("메일 재전송", v -> {
                     presenter.resendVerificationEmail();
                 })
