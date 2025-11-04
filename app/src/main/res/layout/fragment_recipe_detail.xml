@@ -153,15 +153,16 @@
                 app:layout_constraintTop_toBottomOf="@id/fdetail_divider_1"
                 app:layout_constraintStart_toStartOf="parent" />
 
-            <TextView
-                android:id="@+id/fdetail_tv_ingredients_raw"
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/fdetail_rv_ingredients"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
+                android:nestedScrollingEnabled="false"
                 app:layout_constraintTop_toBottomOf="@id/fdetail_tv_ingredients_title"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                tools:text="돼지고기 300g, 김치 1/4포기, 두부 1/2모, 대파 1대, 양파 1/2개, ..." />
+                tools:listitem="@layout/list_item_ingredient"/>
 
             <View
                 android:id="@+id/fdetail_divider_2"
@@ -169,7 +170,7 @@
                 android:layout_height="1dp"
                 android:layout_marginTop="16dp"
                 android:background="?android:attr/listDivider"
-                app:layout_constraintTop_toBottomOf="@id/fdetail_tv_ingredients_raw"
+                app:layout_constraintTop_toBottomOf="@id/fdetail_rv_ingredients"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
 
