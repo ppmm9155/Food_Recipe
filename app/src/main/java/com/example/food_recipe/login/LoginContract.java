@@ -86,6 +86,9 @@ public interface LoginContract {
         void signInWithEmail(String email, String password, AuthCallback callback);
         void fetchSignInMethods(String email, FetchCallback callback);
         void signInWithGoogle(String idToken, AuthCallback callback);
+        
+        // [추가] 사용자의 이메일 인증 상태를 Firestore DB에 업데이트합니다.
+        void updateUserVerificationStatus(FirebaseUser user);
 
         //void signInAnonyGuest(AuthCallback callback); //게스트 로그인실행
     }
