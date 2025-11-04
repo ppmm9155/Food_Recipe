@@ -106,31 +106,25 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     /**
-     * [추가] 자동 로그인을 해야 할지 최종 판단하는 매우 중요한 메서드입니다.
-     * 팀원들을 위해: 이 메서드가 게스트 자동로그인 버그를 해결하는 핵심입니다.
+     * [변경] 자동 로그인을 해야 할지 최종 판단하는 매우 중요한 메서드입니다.
+     * 모든 사용자(이메일, 구글, 게스트)에 대해 일관된 자동 로그인 정책을 적용하도록 로직이 단순화되었습니다.
      * @param user 현재 Firebase에 로그인된 사용자 정보 (null일 수 있음)
      * @return 메인 화면으로 바로 이동해도 되면 true, 아니면 false
      */
     private boolean shouldAutoLogin(FirebaseUser user) {
-        // 1단계: Firebase에 로그인된 사용자가 아예 없으면, 무조건 false (로그인 화면으로)
+        // [변경] 이 메서드의 로직 전체가 변경되었습니다.
+
+        // 1단계: Firebase에 로그인된 사용자가 아예 없으면, 당연히 자동 로그인이 불가능합니다.
         if (user == null) {
-            Log.d(TAG, "shouldAutoLogin: 사용자가 null이므로 false");
+            Log.d(TAG, "shouldAutoLogin: Firebase 유저가 없으므로 false");
             return false;
         }
 
-        // 2단계: 사용자가 '게스트(익명)'가 아니라면, (이메일, 구글 등)
-        //        이전 로그인 세션이 남아있는 것이므로 무조건 true (메인 화면으로)
-        if (!user.isAnonymous()) {
-            Log.d(TAG, "shouldAutoLogin: 게스트가 아니므로 true");
-            return true;
-        }
-
-        // 3단계: 여기까지 왔다면 사용자는 '게스트'입니다.
-        //        이 경우에는 SharedPreferences에 저장된 '자동 로그인' 체크 여부를 확인해서 반환합니다.
-        //        - 사용자가 '자동 로그인'을 체크했다면: true (메인 화면으로)
-        //        - 사용자가 '자동 로그인'을 체크 안했다면: false (로그인 화면으로)
+        // 2단계: 사용자가 존재한다면, '자동 로그인' 옵션이 켜져 있는지 확인합니다.
+        // 이 한 줄의 코드가 모든 사용자 유형(이메일, 구글, 게스트)에 대한 분기 처리를 대신합니다.
+        // 사용자가 어떤 유형이든, '자동 로그인'을 체크했을 때만 true를 반환합니다.
         boolean isAutoLoginEnabled = AutoLoginManager.isAutoLoginEnabled(this);
-        Log.d(TAG, "shouldAutoLogin: 게스트 사용자이며, 자동로그인 체크 상태 = " + isAutoLoginEnabled);
+        Log.d(TAG, "shouldAutoLogin: 유저 존재. 자동로그인 체크 상태 = " + isAutoLoginEnabled);
         return isAutoLoginEnabled;
     }
 
