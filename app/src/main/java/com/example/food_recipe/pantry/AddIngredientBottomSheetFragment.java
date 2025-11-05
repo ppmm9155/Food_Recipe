@@ -14,6 +14,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.example.food_recipe.R;
+import com.example.food_recipe.utils.StringUtils;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
@@ -74,8 +75,8 @@ public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment 
 
         // '저장' 버튼 클릭 리스너를 설정합니다.
         btnSave.setOnClickListener(v -> {
-            // 사용자가 입력한 값들을 가져옵니다.
-            String name = etName.getText().toString().trim();
+            // [변경] 사용자가 입력한 재료 이름을 StringUtils를 사용해 정규화합니다.
+            String name = StringUtils.normalizeIngredientName(etName.getText().toString());
             String quantityStr = etQuantity.getText().toString().trim();
             String unit = spinnerUnit.getSelectedItem().toString();
 

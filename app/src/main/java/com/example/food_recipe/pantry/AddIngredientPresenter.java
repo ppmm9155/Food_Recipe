@@ -43,7 +43,8 @@ public class AddIngredientPresenter implements AddIngredientContract.Presenter {
      */
     @Override
     public void saveIngredient(String name, String quantityStr, String category, String unit, String storage, Calendar expirationDate) {
-        // 1. 입력 값 유효성 검사
+        // [수정] 1. 입력 값 유효성 검사 순서를 바로잡았습니다.
+        // 이름과 수량이 비어있는지 먼저 확인하여, 앱 안정성을 확보합니다.
         if (TextUtils.isEmpty(name)) {
             mView.showNameEmptyError(); // View에 이름 입력 오류 알림
             return;
@@ -54,8 +55,9 @@ public class AddIngredientPresenter implements AddIngredientContract.Presenter {
         }
 
         // 2. 데이터 가공 및 모델 객체 생성
-        String id = UUID.randomUUID().toString(); // 새 재료를 위한 고유 ID 생성
+        // 유효성 검사가 끝난 후에만 Double.parseDouble을 호출하여 NumberFormatException을 방지합니다.
         double quantity = Double.parseDouble(quantityStr);
+        String id = UUID.randomUUID().toString(); // 새 재료를 위한 고유 ID 생성
 
         PantryItem newItem = new PantryItem(
                 id,

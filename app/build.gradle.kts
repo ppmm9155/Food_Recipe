@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.food_recipe"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -69,7 +69,10 @@ dependencies {
     val lifecycle_version = "2.8.4"
     implementation("androidx.lifecycle:lifecycle-viewmodel:$lifecycle_version")
     implementation("androidx.lifecycle:lifecycle-livedata:$lifecycle_version")
-    
+
     // [추가] Gson 라이브러리 의존성을 추가합니다. SharedPreferences에 객체를 저장/로드하기 위해 사용합니다.
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.google.code.gson:gson:2.13.2")
+
+    // [추가] Open Korean Text(Okt) 라이브러리 의존성을 추가합니다. 한국어 형태소 분석을 위해 사용합니다.
+    implementation(libs.open.korean.text)
 }

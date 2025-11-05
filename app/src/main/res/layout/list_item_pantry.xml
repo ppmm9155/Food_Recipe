@@ -55,7 +55,7 @@
             app:layout_constraintBottom_toBottomOf="@id/pantry_item_tv_name"
             tools:text="500g" />
 
-        <!-- [변경] 유통기한 TextView: 미리보기 텍스트를 D-Day 방식으로 수정 -->
+        <!-- [수정] ID를 Adapter와 일치하도록 변경: pantry_item_tv_expiration_dday -> pantry_item_tv_expiration -->
         <TextView
             android:id="@+id/pantry_item_tv_expiration"
             android:layout_width="wrap_content"
