@@ -2,11 +2,14 @@ package com.example.food_recipe.search;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log; // [추가] 예외 로깅을 위해 import 합니다.
 import com.example.food_recipe.model.Recipe;
+import com.example.food_recipe.utils.StringUtils;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture; // [추가] 비동기 처리를 위해 import 합니다.
 
 /**
  * [변경] ViewModel과 함께 동작하도록 Presenter 로직을 수정합니다.
@@ -17,7 +20,7 @@ public class SearchPresenter implements SearchContract.Presenter {
     private final SearchContract.View view;
     private final SearchContract.Model model;
     private final SearchViewModel viewModel; // [추가] ViewModel 참조
-    
+
     private final Handler searchHandler = new Handler(Looper.getMainLooper());
     private Runnable searchRunnable;
     private static final long SEARCH_DELAY_MS = 300;
@@ -59,15 +62,40 @@ public class SearchPresenter implements SearchContract.Presenter {
 
     @Override
     public void onSearchQuerySubmitted(String query) {
-        String normalizedQuery = query.trim();
-        if (!normalizedQuery.isEmpty()) {
-            List<String> currentChips = new ArrayList<>(viewModel.searchChips.getValue());
-            if (!currentChips.contains(normalizedQuery)) {
-                currentChips.add(normalizedQuery);
-                viewModel.setSearchChips(currentChips); // [변경] View 대신 ViewModel 업데이트
-                triggerDebouncedSearch();
-            }
-        }
+        // [변경] CompletableFuture를 사용하여 명사 추출을 비동기로 처리합니다.
+        CompletableFuture.supplyAsync(() -> StringUtils.extractNouns(query))
+                .thenAccept(extractedNouns -> {
+                    // [변경] UI 업데이트는 메인 스레드에서 수행해야 합니다.
+                    searchHandler.post(() -> {
+                        if (extractedNouns != null && !extractedNouns.isEmpty()) {
+                            List<String> currentChips = new ArrayList<>(viewModel.searchChips.getValue());
+                            boolean isChanged = false;
+                            // [변경] 추출된 모든 명사를 칩으로 추가합니다.
+                            String[] nouns = extractedNouns.split(" ");
+                            for (String noun : nouns) {
+                                if (!currentChips.contains(noun)) {
+                                    currentChips.add(noun);
+                                    isChanged = true;
+                                }
+                            }
+                            if (isChanged) {
+                                viewModel.setSearchChips(currentChips);
+                                triggerDebouncedSearch();
+                            }
+                        }
+                    });
+                })
+                .exceptionally(ex -> {
+                    // [추가] 비동기 작업 중 발생한 예외를 처리합니다.
+                    searchHandler.post(() -> {
+                        // 사용자에게 오류를 알리고 로그를 남깁니다.
+                        view.showError("검색어 분석 중 오류가 발생했습니다.");
+                        Log.e("SearchPresenter", "Error extracting nouns", ex);
+                    });
+                    return null; // exceptionally 블록은 null을 반환해야 합니다.
+                });
+
+        // 검색어 입력창은 비동기 작업 시작과 동시에 바로 비웁니다.
         view.clearSearchViewText();
     }
 
@@ -94,8 +122,10 @@ public class SearchPresenter implements SearchContract.Presenter {
         List<String> currentChips = new ArrayList<>(viewModel.searchChips.getValue());
         boolean isChanged = false;
         for (String ingredient : ingredients) {
-            if (!currentChips.contains(ingredient)) {
-                currentChips.add(ingredient);
+            // [변경] 냉장고에서 가져온 재료도 정규화하여 중복을 방지하고 검색 쿼리의 일관성을 유지합니다.
+            String normalizedIngredient = StringUtils.normalizeIngredientName(ingredient);
+            if (!currentChips.contains(normalizedIngredient)) {
+                currentChips.add(normalizedIngredient);
                 isChanged = true;
             }
         }

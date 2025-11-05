@@ -18,6 +18,7 @@ firebaseFirestore = "26.0.1"
 firebaseFirestoreVersion = "26.0.1"
 material = "1.13.0"
 navigationFragment = "2.9.5"
+openKoreanText = "2.3.1"
 playServicesAuth = "21.4.0"
 
 [libraries]
@@ -39,6 +40,7 @@ google-firebase-firestore = { group = "com.google.firebase", name = "firebase-fi
 material = { module = "com.google.android.material:material", version.ref = "material" }
 navigation-fragment = { module = "androidx.navigation:navigation-fragment", version.ref = "navigationFragment" }
 navigation-ui = { module = "androidx.navigation:navigation-ui", version.ref = "navigationFragment" }
+open-korean-text = { module = "org.openkoreantext:open-korean-text", version.ref = "openKoreanText" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 
 [plugins]

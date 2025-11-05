@@ -1,5 +1,6 @@
 package com.example.food_recipe.search;
 
+import android.util.Log;
 import com.algolia.search.saas.Client;
 import com.algolia.search.saas.Index;
 import com.algolia.search.saas.Query;
@@ -37,6 +38,15 @@ public class SearchModel implements SearchContract.Model {
                 .setHighlightPostTag("</b>");
 
         index.searchAsync(algoliaQuery, (json, e) -> {
+            // [추가] Algolia 응답과 에러를 직접 확인하기 위한 디버깅 로그
+            Log.d("AlgoliaSearch", "Query: " + query);
+            if (e != null) {
+                Log.e("AlgoliaSearch", "Error: ", e);
+            }
+            if (json != null) {
+                Log.d("AlgoliaSearch", "Result: " + json.toString());
+            }
+
             if (e != null) {
                 listener.onError(e.getMessage());
                 return;
