@@ -29,6 +29,7 @@ import com.example.food_recipe.adapter.PantryAdapter;
 import com.example.food_recipe.model.PantryItem;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.auth.FirebaseAuth;
 import java.util.List;
 
 /**
@@ -51,6 +52,10 @@ public class PantryFragment extends Fragment implements PantryContract.View {
     // MVP 및 어댑터
     private PantryContract.Presenter mPresenter;
     private PantryAdapter mAdapter;
+
+    // [추가] Firebase 인증 처리
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
 
     /** 스와이프 시 햅틱 피드백(진동)이 한 번만 발생하도록 제어하기 위한 플래그입니다. */
     private boolean isVibrationTriggered = false;
@@ -75,6 +80,19 @@ public class PantryFragment extends Fragment implements PantryContract.View {
         // Presenter와 Repository를 초기화하고 연결합니다.
         mPresenter = new PantryPresenter(this, PantryRepository.getInstance());
 
+        // [추가] Firebase 인증 리스너를 설정합니다.
+        mAuth = FirebaseAuth.getInstance();
+        mAuthListener = firebaseAuth -> {
+            if (firebaseAuth.getCurrentUser() != null) {
+                // 사용자가 로그인되어 있으면 재료 목록을 불러옵니다.
+                mPresenter.loadPantryItems();
+            } else {
+                // 사용자가 로그아웃되어 있으면 빈 화면을 표시합니다.
+                hideLoading();
+                showEmptyView();
+            }
+        };
+
         // RecyclerView 관련 설정을 초기화합니다.
         setupRecyclerView();
 
@@ -87,8 +105,8 @@ public class PantryFragment extends Fragment implements PantryContract.View {
         // 다른 프래그먼트(BottomSheet)로부터 결과를 받기 위한 리스너를 설정합니다.
         setupFragmentResultListener();
         
-        // 화면에 표시할 재료 데이터를 불러오도록 Presenter에 요청합니다.
-        mPresenter.loadPantryItems();
+        // [삭제] 화면에 표시할 재료 데이터를 불러오도록 Presenter에 요청합니다.
+        // mPresenter.loadPantryItems();
 
         // 사용자에게 스와이프 삭제 기능을 안내하는 다이얼로그를 표시합니다.
         showSwipeToDeleteHelpDialog();
@@ -173,7 +191,7 @@ public class PantryFragment extends Fragment implements PantryContract.View {
                     mAdapter.restoreItem(itemToDelete, position);
                 });
 
-                // 3. 스낵바의 상태 변화(사라짐)를 감지하는 콜백을 추가합니다.
+                // 3. 스낵바의 상태 변화(사짐)를 감지하는 콜백을 추가합니다.
                 snackbar.addCallback(new Snackbar.Callback() {
                     @Override
                     public void onDismissed(Snackbar transientBottomBar, int event) {
@@ -270,6 +288,28 @@ public class PantryFragment extends Fragment implements PantryContract.View {
         }
     }
 
+    /**
+     * [추가] 프래그먼트가 사용자에게 표시되기 시작할 때 호출됩니다.
+     * FirebaseAuth 상태 리스너를 등록하여 로그인/로그아웃 상태 변화를 감지합니다.
+     */
+    @Override
+    public void onStart() {
+        super.onStart();
+        mAuth.addAuthStateListener(mAuthListener);
+    }
+
+    /**
+     * [추가] 프래그먼트가 더 이상 사용자에게 표시되지 않을 때 호출됩니다.
+     * 메모리 누수를 방지하기 위해 FirebaseAuth 상태 리스너를 해제합니다.
+     */
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mAuthListener != null) {
+            mAuth.removeAuthStateListener(mAuthListener);
+        }
+    }
+    
     /**
      * 프래그먼트의 뷰가 파괴될 때 호출됩니다.
      * Presenter와의 연결을 끊어 메모리 누수를 방지합니다.
