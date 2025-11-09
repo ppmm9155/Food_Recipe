@@ -5,26 +5,26 @@ import com.example.food_recipe.model.Recipe;
 import com.example.food_recipe.utils.RecentRecipeManager;
 
 /**
- * [변경] Model과의 상호작용 시, RCP_SNO 대신 실제 문서 ID를 사용하도록 수정합니다.
+ * [변경] 중앙 인증 시스템에 반응하도록 로직을 수정합니다.
  */
 public class RecipeDetailPresenter implements RecipeDetailContract.Presenter {
 
     private RecipeDetailContract.View view;
     private final RecipeDetailContract.Model model;
     private Recipe currentRecipe;
-    private final Context context; // [추가] Context 참조
+    private final Context context;
 
     public RecipeDetailPresenter(RecipeDetailContract.View view, Context context) {
         this.view = view;
         this.model = new RecipeDetailModel();
-        this.context = context; // [추가] Context 초기화
+        this.context = context;
     }
 
     /**
-     * [변경] 레시피 로드 성공 후, '최근 본 레시피' 목록에 현재 레시피를 추가합니다.
+     * [변경] 로그인 상태를 전달받아, 로그인된 경우에만 즐겨찾기 상태를 확인하도록 로직을 변경합니다.
      */
     @Override
-    public void loadRecipe(String rcpSno) {
+    public void loadRecipe(String rcpSno, boolean isLoggedIn) {
         if (view != null) {
             view.showLoading();
         }
@@ -35,9 +35,16 @@ public class RecipeDetailPresenter implements RecipeDetailContract.Presenter {
                 currentRecipe = recipe;
                 if (view != null) {
                     view.showRecipe(recipe);
-                    checkBookmarkStatus(recipe.getId());
 
-                    // [추가] 최근 본 레시피 목록에 추가
+                    // [추가] 로그인 상태일 때만 즐겨찾기 여부를 확인합니다.
+                    if (isLoggedIn) {
+                        checkBookmarkStatus(recipe.getId());
+                    } else {
+                        // 로그아웃 상태이면, 즐겨찾기 안된 상태(빈 하트)로 UI를 설정하고 로딩을 숨깁니다.
+                        view.setBookmarkState(false);
+                        view.hideLoading();
+                    }
+
                     RecentRecipeManager.addRecentRecipe(context, recipe.getId());
                 }
             }

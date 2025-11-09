@@ -10,30 +10,33 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider; // [추가]
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.food_recipe.R;
 import com.example.food_recipe.adapter.RecipeAdapter;
+import com.example.food_recipe.main.AuthViewModel; // [추가]
 import com.example.food_recipe.model.Recipe;
 import java.util.List;
 
 /**
- * [변경] HomeContract.View 인터페이스를 구현하고, '최근 본/즐겨찾기' UI 로직을 추가합니다.
+ * [변경] 중앙 인증 관리(AuthViewModel) 시스템을 사용하도록 리팩토링합니다.
  */
 public class HomeFragment extends Fragment implements HomeContract.View, RecipeAdapter.OnItemClickListener {
 
     private HomeContract.Presenter presenter;
+    private AuthViewModel authViewModel; // [추가]
 
     private TextView titleTextView;
     private RecyclerView recommendedRecyclerView;
     private RecyclerView popularRecyclerView;
-    private RecyclerView recentFavRecyclerView; // [추가]
-    private LinearLayout recentFavEmptyView; // [추가]
+    private RecyclerView recentFavRecyclerView;
+    private LinearLayout recentFavEmptyView;
 
     private RecipeAdapter recommendedAdapter;
     private RecipeAdapter popularAdapter;
-    private RecipeAdapter recentFavAdapter; // [추가]
+    private RecipeAdapter recentFavAdapter;
 
     @Nullable
     @Override
@@ -49,14 +52,32 @@ public class HomeFragment extends Fragment implements HomeContract.View, RecipeA
         titleTextView = view.findViewById(R.id.fmain_home_title);
         recommendedRecyclerView = view.findViewById(R.id.fmain_rv_recommended);
         popularRecyclerView = view.findViewById(R.id.fmain_rv_popular);
-        recentFavRecyclerView = view.findViewById(R.id.fmain_rv_recentfav_preview); // [추가]
-        recentFavEmptyView = view.findViewById(R.id.fmain_empty_recentfav); // [추가]
+        recentFavRecyclerView = view.findViewById(R.id.fmain_rv_recentfav_preview);
+        recentFavEmptyView = view.findViewById(R.id.fmain_empty_recentfav);
 
         setupRecyclerViews();
 
-        // [변경] Presenter 생성 시 Context를 전달합니다.
         presenter = new HomePresenter(this, requireContext());
-        presenter.start();
+
+        // [추가] Activity 범위의 AuthViewModel 인스턴스를 가져옵니다.
+        authViewModel = new ViewModelProvider(requireActivity()).get(AuthViewModel.class);
+
+        // [추가] AuthViewModel의 사용자 상태 변화를 관찰합니다.
+        observeAuthState();
+        
+        // [삭제] presenter.start();
+    }
+    
+    /**
+     * [추가] AuthViewModel의 LiveData를 관찰하여 로그인 상태 변화에 따라 UI를 업데이트합니다.
+     */
+    private void observeAuthState() {
+        authViewModel.user.observe(getViewLifecycleOwner(), firebaseUser -> {
+            // Presenter에게 로그인 상태가 변경되었음을 알립니다.
+            // Presenter가 로그인된 사용자에 맞는 데이터를 로드하거나,
+            // 로그아웃 상태에 맞게 UI를 초기화하는 등의 작업을 처리합니다.
+            presenter.onAuthStateChanged(firebaseUser != null);
+        });
     }
 
     private void setupRecyclerViews() {
@@ -70,7 +91,6 @@ public class HomeFragment extends Fragment implements HomeContract.View, RecipeA
         popularAdapter.setOnItemClickListener(this);
         popularRecyclerView.setAdapter(popularAdapter);
 
-        // [추가] '최근 본/즐겨찾기' RecyclerView 설정
         recentFavRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         recentFavAdapter = new RecipeAdapter(getContext());
         recentFavAdapter.setOnItemClickListener(this);
@@ -82,9 +102,6 @@ public class HomeFragment extends Fragment implements HomeContract.View, RecipeA
         if (recipe != null && recipe.getRcpSno() != null && !recipe.getRcpSno().isEmpty()) {
             Bundle bundle = new Bundle();
             bundle.putString("rcpSno", recipe.getRcpSno());
-            // [주의] 홈 화면에서는 여러 RecyclerView가 하나의 NavController를 공유하므로, action ID를 명시해야 합니다.
-            // NavController가 현재 위치(home)를 기준으로 목적지를 찾을 수 있도록 action ID를 사용합니다.
-            // 만약 ID가 없다면, 앱은 현재 그래프에서 해당 목적지를 찾지 못해 충돌할 수 있습니다.
             NavHostFragment.findNavController(this)
                     .navigate(R.id.action_home_fragment_to_recipeDetailFragment, bundle);
         } else {
@@ -102,9 +119,6 @@ public class HomeFragment extends Fragment implements HomeContract.View, RecipeA
         popularAdapter.setRecipes(recipes);
     }
 
-    /**
-     * [추가] Presenter로부터 받은 '최근 본/즐겨찾기' 목록을 화면에 표시합니다.
-     */
     @Override
     public void showRecentAndFavorites(List<Recipe> recipes) {
         recentFavAdapter.setRecipes(recipes);
@@ -112,9 +126,6 @@ public class HomeFragment extends Fragment implements HomeContract.View, RecipeA
         recentFavEmptyView.setVisibility(View.GONE);
     }
 
-    /**
-     * [추가] '최근 본/즐겨찾기' 목록이 비어있을 때 "Empty State" UI를 표시합니다.
-     */
     @Override
     public void showEmptyRecentAndFavorites() {
         recentFavRecyclerView.setVisibility(View.GONE);

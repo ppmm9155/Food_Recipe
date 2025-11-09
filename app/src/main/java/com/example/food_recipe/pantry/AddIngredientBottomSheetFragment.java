@@ -13,7 +13,9 @@ import android.widget.Spinner;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.ViewModelProvider; // [추가]
 import com.example.food_recipe.R;
+import com.example.food_recipe.main.AuthViewModel; // [추가]
 import com.example.food_recipe.utils.StringUtils;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.chip.Chip;
@@ -29,6 +31,7 @@ import java.util.Locale;
  * 재료 추가 기능을 담당하는 BottomSheet 형태의 프래그먼트입니다.
  * 사용자는 이 화면에서 재료의 이름, 카테고리, 수량, 단위, 보관 장소, 유통기한을 입력할 수 있습니다.
  * MVP 패턴의 View 역할을 하며, 사용자의 입력을 Presenter에 전달하고 결과를 화면에 표시합니다.
+ * [변경] 중앙 인증 관리(AuthViewModel) 시스템을 사용하도록 리팩토링합니다.
  */
 public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment implements AddIngredientContract.View {
 
@@ -45,6 +48,8 @@ public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment 
 
     private Calendar selectedExpirationDate;
     private AddIngredientContract.Presenter mPresenter;
+    // [추가] 공유 ViewModel
+    private AuthViewModel authViewModel;
 
     @Nullable
     @Override
@@ -55,6 +60,9 @@ public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        // [추가] Activity 범위의 AuthViewModel 인스턴스를 가져옵니다.
+        authViewModel = new ViewModelProvider(requireActivity()).get(AuthViewModel.class);
 
         // Presenter를 초기화합니다.
         mPresenter = new AddIngredientPresenter(this, PantryRepository.getInstance());
@@ -75,7 +83,14 @@ public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment 
 
         // '저장' 버튼 클릭 리스너를 설정합니다.
         btnSave.setOnClickListener(v -> {
-            // [변경] 사용자가 입력한 재료 이름을 StringUtils를 사용해 정규화합니다.
+            // [추가] 저장 버튼 클릭 시, 로그인 상태를 먼저 확인하는 방어 코드를 추가합니다.
+            if (authViewModel.user.getValue() == null) {
+                Toast.makeText(getContext(), "로그인 후 다시 시도해주세요.", Toast.LENGTH_SHORT).show();
+                dismiss();
+                return;
+            }
+
+            // [기존 로직 유지] 사용자가 입력한 재료 이름을 StringUtils를 사용해 정규화합니다.
             String name = StringUtils.normalizeIngredientName(etName.getText().toString());
             String quantityStr = etQuantity.getText().toString().trim();
             String unit = spinnerUnit.getSelectedItem().toString();

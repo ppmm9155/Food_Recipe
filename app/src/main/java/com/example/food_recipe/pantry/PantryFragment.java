@@ -21,21 +21,23 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider; // [추가]
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.food_recipe.R;
 import com.example.food_recipe.adapter.PantryAdapter;
+import com.example.food_recipe.main.AuthViewModel; // [추가]
 import com.example.food_recipe.model.PantryItem;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.firebase.auth.FirebaseAuth;
+// [삭제] import com.google.firebase.auth.FirebaseAuth;
 import java.util.List;
 
 /**
- * 냉장고(Pantry) 재료 목록을 보여주는 메인 화면 프래그먼트입니다.
- * MVP 패턴의 View 역할을 하며, Presenter로부터 받은 데이터를 화면에 표시하고
- * 사용자의 입력(재료 추가, 삭제 등)을 Presenter에게 전달합니다.
+ * [변경] 중앙 인증 관리(AuthViewModel) 시스템을 사용하도록 리팩토링합니다.
+ * 이제 이 프래그먼트는 더 이상 자체적으로 인증 상태를 확인하지 않고,
+ * MainActivity로부터 공유되는 ViewModel의 상태 변화에만 반응합니다.
  */
 public class PantryFragment extends Fragment implements PantryContract.View {
 
@@ -53,9 +55,11 @@ public class PantryFragment extends Fragment implements PantryContract.View {
     private PantryContract.Presenter mPresenter;
     private PantryAdapter mAdapter;
 
-    // [추가] Firebase 인증 처리
-    private FirebaseAuth mAuth;
-    private FirebaseAuth.AuthStateListener mAuthListener;
+    // [추가] 공유 ViewModel
+    private AuthViewModel authViewModel;
+
+    // [삭제] private FirebaseAuth mAuth;
+    // [삭제] private FirebaseAuth.AuthStateListener mAuthListener;
 
     /** 스와이프 시 햅틱 피드백(진동)이 한 번만 발생하도록 제어하기 위한 플래그입니다. */
     private boolean isVibrationTriggered = false;
@@ -80,18 +84,12 @@ public class PantryFragment extends Fragment implements PantryContract.View {
         // Presenter와 Repository를 초기화하고 연결합니다.
         mPresenter = new PantryPresenter(this, PantryRepository.getInstance());
 
-        // [추가] Firebase 인증 리스너를 설정합니다.
-        mAuth = FirebaseAuth.getInstance();
-        mAuthListener = firebaseAuth -> {
-            if (firebaseAuth.getCurrentUser() != null) {
-                // 사용자가 로그인되어 있으면 재료 목록을 불러옵니다.
-                mPresenter.loadPantryItems();
-            } else {
-                // 사용자가 로그아웃되어 있으면 빈 화면을 표시합니다.
-                hideLoading();
-                showEmptyView();
-            }
-        };
+        // [추가] Activity 범위의 AuthViewModel 인스턴스를 가져옵니다.
+        authViewModel = new ViewModelProvider(requireActivity()).get(AuthViewModel.class);
+
+        // [삭제] Firebase 인증 리스너를 설정하는 코드를 삭제합니다.
+        // mAuth = FirebaseAuth.getInstance();
+        // mAuthListener = firebaseAuth -> { ... };
 
         // RecyclerView 관련 설정을 초기화합니다.
         setupRecyclerView();
@@ -104,13 +102,34 @@ public class PantryFragment extends Fragment implements PantryContract.View {
 
         // 다른 프래그먼트(BottomSheet)로부터 결과를 받기 위한 리스너를 설정합니다.
         setupFragmentResultListener();
-        
-        // [삭제] 화면에 표시할 재료 데이터를 불러오도록 Presenter에 요청합니다.
-        // mPresenter.loadPantryItems();
+
+        // [추가] AuthViewModel의 사용자 상태 변화를 관찰합니다.
+        observeAuthState();
 
         // 사용자에게 스와이프 삭제 기능을 안내하는 다이얼로그를 표시합니다.
         showSwipeToDeleteHelpDialog();
     }
+
+    /**
+     * [추가] AuthViewModel의 LiveData를 관찰하여 로그인 상태 변화에 따라 UI를 업데이트합니다.
+     * 이것이 중앙 인증 관리 시스템의 핵심입니다.
+     */
+    private void observeAuthState() {
+        authViewModel.user.observe(getViewLifecycleOwner(), firebaseUser -> {
+            if (firebaseUser != null) {
+                // 사용자가 로그인 상태이면, 재료 목록을 불러옵니다.
+                mPresenter.loadPantryItems();
+                fabAdd.show(); // [추가] 로그인 시 FAB 버튼 보이기
+            } else {
+                // 사용자가 로그아웃 상태이면, 빈 화면을 표시하고 관련 UI를 처리합니다.
+                hideLoading();
+                showEmptyView(); // 빈 화면 표시
+                mAdapter.setPantryItems(List.of()); // [추가] 어댑터의 데이터도 비워줍니다.
+                fabAdd.hide(); // [추가] 로그아웃 시 FAB 버튼 숨기기
+            }
+        });
+    }
+
 
     /**
      * 앱 설치 후 한 번만 스와이프 삭제 기능 안내 다이얼로그를 표시합니다.
@@ -165,7 +184,7 @@ public class PantryFragment extends Fragment implements PantryContract.View {
         // 스와이프 동작을 처리할 ItemTouchHelper를 생성하고 RecyclerView에 연결합니다.
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(
                 0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
-            
+
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
                 // 드래그 앤 드롭 기능은 사용하지 않으므로 false를 반환합니다.
@@ -288,20 +307,17 @@ public class PantryFragment extends Fragment implements PantryContract.View {
         }
     }
 
-    /**
-     * [추가] 프래그먼트가 사용자에게 표시되기 시작할 때 호출됩니다.
-     * FirebaseAuth 상태 리스너를 등록하여 로그인/로그아웃 상태 변화를 감지합니다.
-     */
+    // [삭제] onStart() 메소드를 삭제합니다.
+    /*
     @Override
     public void onStart() {
         super.onStart();
         mAuth.addAuthStateListener(mAuthListener);
     }
+    */
 
-    /**
-     * [추가] 프래그먼트가 더 이상 사용자에게 표시되지 않을 때 호출됩니다.
-     * 메모리 누수를 방지하기 위해 FirebaseAuth 상태 리스너를 해제합니다.
-     */
+    // [삭제] onStop() 메소드를 삭제합니다.
+    /*
     @Override
     public void onStop() {
         super.onStop();
@@ -309,7 +325,8 @@ public class PantryFragment extends Fragment implements PantryContract.View {
             mAuth.removeAuthStateListener(mAuthListener);
         }
     }
-    
+    */
+
     /**
      * 프래그먼트의 뷰가 파괴될 때 호출됩니다.
      * Presenter와의 연결을 끊어 메모리 누수를 방지합니다.

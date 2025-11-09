@@ -1,5 +1,6 @@
 package com.example.food_recipe.home;
 
+import androidx.annotation.Nullable;
 import com.example.food_recipe.model.Recipe;
 import java.util.List;
 
@@ -13,13 +14,14 @@ public interface HomeContract {
         void showPopularRecipes(List<Recipe> recipes);
         void showRecentAndFavorites(List<Recipe> recipes);
         void showEmptyRecentAndFavorites();
-        void setUserName(String userName);
+        void setUserName(@Nullable String userName); // [변경] Nullable 어노테이션 추가
         void showError(String message);
     }
 
     interface Presenter {
         void start();
         void detachView();
+        void onAuthStateChanged(boolean isLoggedIn); // [추가]
     }
 
     interface Model {

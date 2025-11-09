@@ -10,18 +10,20 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider; // [추가]
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.food_recipe.R;
 import com.example.food_recipe.adapter.RecipeAdapter;
+import com.example.food_recipe.main.AuthViewModel; // [추가]
 import com.example.food_recipe.model.Recipe;
 import java.util.List;
 import java.util.ArrayList;
 
 /**
- * [변경] MVP 아키텍처의 View 역할을 수행하도록 전체 로직을 구현합니다.
+ * [변경] 중앙 인증 관리(AuthViewModel) 시스템을 사용하도록 리팩토링합니다.
  */
 public class FavoritesFragment extends Fragment implements FavoritesContract.View {
 
@@ -32,6 +34,9 @@ public class FavoritesFragment extends Fragment implements FavoritesContract.Vie
     private RecipeAdapter adapter;
     private TextView emptyView;
     private View progressBar;
+
+    // [추가] 공유 ViewModel
+    private AuthViewModel authViewModel;
 
 
     @Override
@@ -61,8 +66,31 @@ public class FavoritesFragment extends Fragment implements FavoritesContract.Vie
 
         setupRecyclerView();
 
-        // [변경] View가 준비된 후 데이터를 로드하도록 요청합니다.
-        presenter.start();
+        // [추가] Activity 범위의 AuthViewModel 인스턴스를 가져옵니다.
+        authViewModel = new ViewModelProvider(requireActivity()).get(AuthViewModel.class);
+
+        // [추가] AuthViewModel의 사용자 상태 변화를 관찰합니다.
+        observeAuthState();
+        
+        // [삭제] View가 준비된 후 데이터를 로드하도록 요청합니다.
+        // presenter.start();
+    }
+    
+    /**
+     * [추가] AuthViewModel의 LiveData를 관찰하여 로그인 상태 변화에 따라 UI를 업데이트합니다.
+     */
+    private void observeAuthState() {
+        authViewModel.user.observe(getViewLifecycleOwner(), firebaseUser -> {
+            if (firebaseUser != null) {
+                // 사용자가 로그인 상태이면, 즐겨찾기 목록을 불러옵니다.
+                presenter.start();
+            } else {
+                // 사용자가 로그아웃 상태이면, 빈 화면을 표시하고 관련 UI를 처리합니다.
+                hideLoading();
+                showEmptyView();
+                adapter.setRecipes(new ArrayList<>()); // [추가] 어댑터의 데이터도 비워줍니다.
+            }
+        });
     }
 
     private void setupRecyclerView() {

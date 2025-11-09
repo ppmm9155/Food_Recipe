@@ -33,7 +33,10 @@ public interface RecipeDetailContract {
      * Presenter가 반드시 구현해야 하는 기능 목록을 정의합니다.
      */
     interface Presenter {
-        void loadRecipe(String rcpSno);
+        /**
+         * [변경] 로그인 상태를 함께 전달받아 즐겨찾기 확인 여부를 결정합니다.
+         */
+        void loadRecipe(String rcpSno, boolean isLoggedIn);
         void detachView();
 
         /**

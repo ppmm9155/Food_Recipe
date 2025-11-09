@@ -15,6 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
+import androidx.lifecycle.ViewModelProvider; // [추가]
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
@@ -23,14 +24,27 @@ import com.example.food_recipe.R;
 import com.example.food_recipe.login.LoginActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.firebase.auth.FirebaseAuth; // [추가]
+import com.google.firebase.auth.FirebaseUser; // [추가]
+
 
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * [변경] 중앙 인증 관리 로직을 추가합니다.
+ * 이제 이 Activity는 모든 하위 프래그먼트의 인증 상태를 책임지는 중앙 관제탑 역할을 합니다.
+ */
 public class MainActivity extends AppCompatActivity implements MainContract.View {
 
     private MainContract.Presenter presenter;
     private Menu optionsMenu;
+
+    // [추가] 중앙 인증 관리를 위한 멤버 변수 선언
+    private AuthViewModel authViewModel;
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener authStateListener;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,31 +72,41 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
         BottomNavigationView bottomNav = findViewById(R.id.main_bottom_nav);
         NavigationUI.setupWithNavController(bottomNav, navController);
 
-        // [변경] 기존의 addOnDestinationChangedListener를 확장하여 하단 탭 가시성 및 툴바 제목을 제어합니다.
+        // [추가] AuthViewModel 초기화
+        // ViewModelProvider를 통해 Activity 생명주기에 올바르게 연결된 ViewModel 인스턴스를 가져옵니다.
+        authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
+
+        // [추가] FirebaseAuth 인스턴스 초기화
+        mAuth = FirebaseAuth.getInstance();
+
+        // [추가] AuthStateListener 구현
+        // 로그인 상태가 변경될 때마다(로그인, 로그아웃, 토큰 갱신 등) 호출됩니다.
+        authStateListener = firebaseAuth -> {
+            FirebaseUser user = firebaseAuth.getCurrentUser();
+            // 공유 ViewModel에 현재 사용자 정보를 업데이트합니다.
+            // user가 null이면 로그아웃 상태, null이 아니면 로그인 상태임을 의미합니다.
+            authViewModel.setUser(user);
+        };
+
+
+        // [기존 코드 유지] 네비게이션 변경 리스너
         navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
-            // [추가] navgraph.xml에 정의된 label을 가져와 툴바의 제목으로 설정합니다.
             if (destination.getLabel() != null) {
                 getSupportActionBar().setTitle(destination.getLabel());
             }
 
-            // [추가] 하단 탭을 보여줄 최상위 레벨의 화면 ID들을 Set으로 정의합니다.
-            // Set을 사용하면 ID를 효율적으로 확인할 수 있습니다.
             Set<Integer> topLevelDestinations = new HashSet<>();
             topLevelDestinations.add(R.id.home_fragment);
             topLevelDestinations.add(R.id.nav_search);
             topLevelDestinations.add(R.id.nav_favorites);
             topLevelDestinations.add(R.id.nav_pantry);
 
-            // [추가] 현재 화면의 ID가 최상위 레벨 Set에 포함되어 있는지 확인합니다.
             if (topLevelDestinations.contains(destination.getId())) {
-                // 포함되어 있다면 하단 네비게이션 바를 보여줍니다.
                 bottomNav.setVisibility(View.VISIBLE);
             } else {
-                // 포함되어 있지 않다면 (예: 레시피 상세 화면) 하단 네비게이션 바를 숨깁니다.
                 bottomNav.setVisibility(View.GONE);
             }
 
-            // [기존 로직 유지] ID를 다시 home_fragment로 되돌려 navgraph.xml과 완벽하게 일치시킵니다.
             if (destination.getId() == R.id.home_fragment) {
                 int selectedItemId = bottomNav.getSelectedItemId();
                 if (selectedItemId != 0) {
@@ -92,10 +116,8 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
         });
     }
 
-    // [추가] 아이콘이 포함된 커스텀 토스트 메시지를 표시하는 함수입니다.
     private void showCustomToast(String message) {
         LayoutInflater inflater = getLayoutInflater();
-        // [수정] 두 번째 인자를 null로 변경하여 특정 부모 뷰를 찾지 않도록 합니다.
         View layout = inflater.inflate(R.layout.custom_toast, null);
 
         TextView text = layout.findViewById(R.id.toast_text);
@@ -112,7 +134,20 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
     protected void onStart() {
         super.onStart();
         presenter.start();
+        // [추가] Activity가 화면에 나타날 때 AuthStateListener를 등록합니다.
+        mAuth.addAuthStateListener(authStateListener);
     }
+
+    // [추가] onStop 추가
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // [추가] Activity가 화면에서 사라질 때 AuthStateListener를 등록 해제하여 메모리 누수를 방지합니다.
+        if (authStateListener != null) {
+            mAuth.removeAuthStateListener(authStateListener);
+        }
+    }
+
 
     @Override
     protected void onDestroy() {
@@ -139,7 +174,6 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
 
     @Override
     public void showLogoutMessage(String message) {
-        // [변경] 기본 토스트 대신 새로 만든 커스텀 토스트 함수를 사용합니다.
         showCustomToast(message);
     }
 

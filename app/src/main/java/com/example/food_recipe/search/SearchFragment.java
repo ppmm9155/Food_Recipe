@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.food_recipe.R;
 import com.example.food_recipe.adapter.RecipeAdapter;
+import com.example.food_recipe.main.AuthViewModel; // [추가]
 import com.example.food_recipe.model.Recipe;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
@@ -25,9 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * [변경] ViewModel과 함께 동작하도록 Fragment 로직을 수정합니다.
- * 이제 Fragment는 Presenter에게 직접 UI 업데이트를 요청받지 않고,
- * ViewModel의 상태 변화를 관찰하여 스스로 UI를 갱신합니다.
+ * [변경] 중앙 인증 관리(AuthViewModel) 시스템을 사용하도록 리팩토링합니다.
  */
 public class SearchFragment extends Fragment implements SearchContract.View, RecipeAdapter.OnItemClickListener {
 
@@ -40,7 +39,8 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
     private RecipeAdapter recipeAdapter;
     private SearchView searchView;
     private SearchContract.Presenter presenter;
-    private SearchViewModel viewModel; // [추가] ViewModel 참조
+    private SearchViewModel viewModel;
+    private AuthViewModel authViewModel; // [추가]
 
     public static final String REQUEST_KEY_PANTRY_IMPORT = "pantry_import_request";
     public static final String BUNDLE_KEY_SELECTED_INGREDIENTS = "selected_ingredients";
@@ -57,17 +57,17 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // [추가] ViewModel을 초기화합니다.
         viewModel = new ViewModelProvider(this).get(SearchViewModel.class);
+        // [추가] Activity 범위의 AuthViewModel 인스턴스를 가져옵니다.
+        authViewModel = new ViewModelProvider(requireActivity()).get(AuthViewModel.class);
 
-        // [변경] Presenter를 생성할 때 ViewModel을 전달합니다.
         presenter = new SearchPresenter(this, viewModel);
         
         setupViews(view);
         setupRecyclerView();
         setupListeners();
         setupFragmentResultListener();
-        observeViewModel(); // [추가] ViewModel 관찰 시작
+        observeViewModel();
 
         presenter.start();
     }
@@ -87,9 +87,6 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
         recyclerView.setAdapter(recipeAdapter);
     }
 
-    /**
-     * [추가] ViewModel의 LiveData를 관찰하고, 데이터 변경 시 UI를 업데이트하는 메소드입니다.
-     */
     private void observeViewModel() {
         viewModel.searchResult.observe(getViewLifecycleOwner(), recipes -> {
             updateRecipeListUI(recipes);
@@ -100,9 +97,6 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
         });
     }
     
-    /**
-     * [추가] 레시피 목록 LiveData 변경에 따라 UI를 갱신합니다.
-     */
     private void updateRecipeListUI(List<Recipe> recipes) {
         recipeAdapter.setRecipes(recipes);
         if (recipes == null || recipes.isEmpty()) {
@@ -115,9 +109,6 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
         }
     }
 
-    /**
-     * [추가] 검색어 칩 LiveData 변경에 따라 ChipGroup UI를 갱신합니다.
-     */
     private void updateChipsUI(List<String> chips) {
         searchChipGroup.removeAllViews();
         for (String chipText : chips) {
@@ -129,7 +120,17 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
     }
 
     private void setupListeners() {
-        searchBtnPantryImport.setOnClickListener(v -> presenter.onPantryImportButtonClicked());
+        // [변경] '냉장고 재료 가져오기' 버튼 클릭 시 로그인 상태를 먼저 확인합니다.
+        searchBtnPantryImport.setOnClickListener(v -> {
+            if (authViewModel.user.getValue() != null) {
+                // 로그인 상태일 경우, Presenter에 작업을 요청합니다.
+                presenter.onPantryImportButtonClicked();
+            } else {
+                // 로그아웃 상태일 경우, 사용자에게 안내 메시지를 표시합니다.
+                Toast.makeText(getContext(), "로그인이 필요한 기능입니다.", Toast.LENGTH_SHORT).show();
+            }
+        });
+
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -163,15 +164,14 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
         }
     }
     
-    // [변경] 아래 메소드들은 이제 Presenter가 직접 호출하지 않으므로, View 인터페이스에서만 구현합니다.
     @Override
     public void showRecipes(List<Recipe> recipes) {
-        // 이 메소드는 이제 observeViewModel의 updateRecipeListUI에 의해 처리됩니다.
+        // This method is now handled by updateRecipeListUI in observeViewModel.
     }
 
     @Override
     public void addChipToGroup(String text) {
-        // 이 메소드는 이제 observeViewModel의 updateChipsUI에 의해 처리됩니다.
+        // This method is now handled by updateChipsUI in observeViewModel.
     }
 
     @Override
@@ -184,10 +184,10 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
     }
 
     @Override
-    public void showLoadingIndicator() { /* TODO: 로딩 인디케이터 표시 구현 */ }
+    public void showLoadingIndicator() { /* TODO: Implement loading indicator */ }
 
     @Override
-    public void hideLoadingIndicator() { /* TODO: 로딩 인디케이터 숨기기 구현 */ }
+    public void hideLoadingIndicator() { /* TODO: Implement loading indicator */ }
 
     @Override
     public void clearSearchViewText() {
