@@ -1,48 +1,44 @@
 package com.example.food_recipe.recipedetail;
 
 import android.content.Context;
+import com.example.food_recipe.base.BasePresenter;
 import com.example.food_recipe.model.Recipe;
 import com.example.food_recipe.utils.RecentRecipeManager;
 
 /**
  * [변경] 중앙 인증 시스템에 반응하도록 로직을 수정합니다.
  */
-public class RecipeDetailPresenter implements RecipeDetailContract.Presenter {
+// [변경] BasePresenter를 상속받아 View 생명주기를 안전하게 관리
+public class RecipeDetailPresenter extends BasePresenter<RecipeDetailContract.View> implements RecipeDetailContract.Presenter {
 
-    private RecipeDetailContract.View view;
     private final RecipeDetailContract.Model model;
     private Recipe currentRecipe;
     private final Context context;
 
-    public RecipeDetailPresenter(RecipeDetailContract.View view, Context context) {
-        this.view = view;
+    // [변경] 생성자에서 View를 받지 않음
+    public RecipeDetailPresenter(Context context) {
         this.model = new RecipeDetailModel();
         this.context = context;
     }
 
-    /**
-     * [변경] 로그인 상태를 전달받아, 로그인된 경우에만 즐겨찾기 상태를 확인하도록 로직을 변경합니다.
-     */
     @Override
     public void loadRecipe(String rcpSno, boolean isLoggedIn) {
-        if (view != null) {
-            view.showLoading();
+        if (isViewAttached()) {
+            getView().showLoading();
         }
 
         model.getRecipeDetails(rcpSno, new RecipeDetailContract.Model.OnFinishedListener<Recipe>() {
             @Override
             public void onSuccess(Recipe recipe) {
                 currentRecipe = recipe;
-                if (view != null) {
-                    view.showRecipe(recipe);
+                if (isViewAttached()) {
+                    getView().showRecipe(recipe);
 
-                    // [추가] 로그인 상태일 때만 즐겨찾기 여부를 확인합니다.
                     if (isLoggedIn) {
                         checkBookmarkStatus(recipe.getId());
                     } else {
-                        // 로그아웃 상태이면, 즐겨찾기 안된 상태(빈 하트)로 UI를 설정하고 로딩을 숨깁니다.
-                        view.setBookmarkState(false);
-                        view.hideLoading();
+                        getView().setBookmarkState(false);
+                        getView().hideLoading();
                     }
 
                     RecentRecipeManager.addRecentRecipe(context, recipe.getId());
@@ -51,9 +47,9 @@ public class RecipeDetailPresenter implements RecipeDetailContract.Presenter {
 
             @Override
             public void onError(Exception e) {
-                if (view != null) {
-                    view.showError(e.getMessage());
-                    view.hideLoading();
+                if (isViewAttached()) {
+                    getView().showError(e.getMessage());
+                    getView().hideLoading();
                 }
             }
         });
@@ -63,17 +59,17 @@ public class RecipeDetailPresenter implements RecipeDetailContract.Presenter {
         model.checkBookmarkState(recipeId, new RecipeDetailContract.Model.OnFinishedListener<Boolean>() {
             @Override
             public void onSuccess(Boolean isBookmarked) {
-                if (view != null) {
-                    view.setBookmarkState(isBookmarked);
-                    view.hideLoading();
+                if (isViewAttached()) {
+                    getView().setBookmarkState(isBookmarked);
+                    getView().hideLoading();
                 }
             }
 
             @Override
             public void onError(Exception e) {
-                if (view != null) {
-                    view.showError("즐겨찾기 정보를 불러오는데 실패했습니다: " + e.getMessage());
-                    view.hideLoading();
+                if (isViewAttached()) {
+                    getView().showError("즐겨찾기 정보를 불러오는데 실패했습니다: " + e.getMessage());
+                    getView().hideLoading();
                 }
             }
         });
@@ -82,8 +78,8 @@ public class RecipeDetailPresenter implements RecipeDetailContract.Presenter {
     @Override
     public void onBookmarkClicked() {
         if (currentRecipe == null || currentRecipe.getId() == null) {
-            if(view != null) {
-                view.showError("레시피 정보가 아직 로드되지 않았거나, 문서 ID가 없습니다.");
+            if(isViewAttached()) {
+                getView().showError("레시피 정보가 아직 로드되지 않았거나, 문서 ID가 없습니다.");
             }
             return;
         }
@@ -91,27 +87,24 @@ public class RecipeDetailPresenter implements RecipeDetailContract.Presenter {
         model.toggleBookmark(currentRecipe.getId(), new RecipeDetailContract.Model.OnFinishedListener<Boolean>() {
             @Override
             public void onSuccess(Boolean isBookmarked) {
-                if (view != null) {
-                    view.setBookmarkState(isBookmarked);
+                if (isViewAttached()) {
+                    getView().setBookmarkState(isBookmarked);
                     if (isBookmarked) {
-                        view.showBookmarkResult("즐겨찾기에 추가되었습니다.");
+                        getView().showBookmarkResult("즐겨찾기에 추가되었습니다.");
                     } else {
-                        view.showBookmarkResult("즐겨찾기에서 해제되었습니다.");
+                        getView().showBookmarkResult("즐겨찾기에서 해제되었습니다.");
                     }
                 }
             }
 
             @Override
             public void onError(Exception e) {
-                if (view != null) {
-                    view.showError("작업에 실패했습니다: " + e.getMessage());
+                if (isViewAttached()) {
+                    getView().showError("작업에 실패했습니다: " + e.getMessage());
                 }
             }
         });
     }
 
-    @Override
-    public void detachView() {
-        this.view = null;
-    }
+    // [삭제] detachView는 BasePresenter에 이미 정의되어 있으므로 제거
 }

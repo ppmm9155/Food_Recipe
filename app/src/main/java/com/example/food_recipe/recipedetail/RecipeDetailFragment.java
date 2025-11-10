@@ -14,7 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider; // [추가]
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -23,7 +23,7 @@ import com.bumptech.glide.Glide;
 import com.example.food_recipe.R;
 import com.example.food_recipe.adapter.CookingStepAdapter;
 import com.example.food_recipe.adapter.IngredientAdapter;
-import com.example.food_recipe.main.AuthViewModel; // [추가]
+import com.example.food_recipe.main.AuthViewModel;
 import com.example.food_recipe.model.Ingredient;
 import com.example.food_recipe.model.Recipe;
 
@@ -37,7 +37,7 @@ public class RecipeDetailFragment extends Fragment implements RecipeDetailContra
 
     private RecipeDetailContract.Presenter presenter;
     private String rcpSno;
-    private AuthViewModel authViewModel; // [추가]
+    private AuthViewModel authViewModel;
 
     private NestedScrollView scrollView;
     private ProgressBar progressBar;
@@ -58,7 +58,8 @@ public class RecipeDetailFragment extends Fragment implements RecipeDetailContra
         if (getArguments() != null) {
             rcpSno = getArguments().getString("rcpSno");
         }
-        presenter = new RecipeDetailPresenter(this, requireContext());
+        // [변경] Presenter 생성 시 View를 넘기지 않음
+        presenter = new RecipeDetailPresenter(requireContext());
     }
 
     @Nullable
@@ -71,7 +72,9 @@ public class RecipeDetailFragment extends Fragment implements RecipeDetailContra
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // [추가] Activity 범위의 AuthViewModel 인스턴스를 가져옵니다.
+        // [추가] Presenter에 View를 연결
+        presenter.attachView(this);
+
         authViewModel = new ViewModelProvider(requireActivity()).get(AuthViewModel.class);
 
         scrollView = view.findViewById(R.id.fdetail_scrollview);
@@ -86,36 +89,30 @@ public class RecipeDetailFragment extends Fragment implements RecipeDetailContra
         rvCookingSteps = view.findViewById(R.id.fdetail_rv_cooking_steps);
 
         setupAdapters();
-        setupBookmarkClickListener(); // [변경] 클릭 리스너 설정 로직을 별도 메소드로 분리
-
-        // [변경] 로그인 상태가 확정된 후에 데이터를 로드하도록 로직 변경
+        setupBookmarkClickListener();
         observeAuthState();
     }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // [변경] Presenter와의 연결을 끊어 메모리 누수를 방지
+        presenter.detachView();
+    }
     
-    /**
-     * [추가] AuthViewModel의 LiveData를 관찰하여 로그인 상태 변화에 따라 데이터 로딩을 시작합니다.
-     */
     private void observeAuthState() {
         authViewModel.user.observe(getViewLifecycleOwner(), firebaseUser -> {
             if (rcpSno != null) {
-                // 로그인 상태가 확인되면(로그인/로그아웃 무관) Presenter에 레시피 로드를 요청합니다.
-                // Presenter는 이 로그인 상태를 기반으로 즐겨찾기 여부를 확인할지 결정합니다.
                 presenter.loadRecipe(rcpSno, firebaseUser != null);
             }
         });
     }
 
-    /**
-     * [추가] 즐겨찾기 버튼의 클릭 리스너를 설정합니다.
-     * 클릭 시점에 로그인 상태를 확인하여 분기 처리합니다.
-     */
     private void setupBookmarkClickListener() {
         ivBookmark.setOnClickListener(v -> {
             if (authViewModel.user.getValue() != null) {
-                // 로그인 상태일 경우, Presenter에 작업을 요청합니다.
                 presenter.onBookmarkClicked();
             } else {
-                // 로그아웃 상태일 경우, 사용자에게 안내 메시지를 표시합니다.
                 showBookmarkResult("로그인이 필요한 기능입니다.");
             }
         });
@@ -214,11 +211,5 @@ public class RecipeDetailFragment extends Fragment implements RecipeDetailContra
         if (getContext() != null) {
             Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
         }
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        presenter.detachView();
     }
 }

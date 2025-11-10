@@ -10,14 +10,13 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider; // [추가]
-import androidx.navigation.NavController;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.food_recipe.R;
 import com.example.food_recipe.adapter.RecipeAdapter;
-import com.example.food_recipe.main.AuthViewModel; // [추가]
+import com.example.food_recipe.main.AuthViewModel;
 import com.example.food_recipe.model.Recipe;
 import java.util.List;
 import java.util.ArrayList;
@@ -35,16 +34,13 @@ public class FavoritesFragment extends Fragment implements FavoritesContract.Vie
     private TextView emptyView;
     private View progressBar;
 
-    // [추가] 공유 ViewModel
     private AuthViewModel authViewModel;
-
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // [변경] Presenter는 Fragment의 생명주기 전체에 걸쳐 한 번만 생성됩니다.
-        // 초기 View 연결은 attachView를 통해 이루어지므로 생성자에서는 this를 넘기지 않습니다.
-        presenter = new FavoritesPresenter(this);
+        // [변경] Presenter 생성 시 View를 넘기지 않음
+        presenter = new FavoritesPresenter();
     }
 
     @Nullable
@@ -57,7 +53,7 @@ public class FavoritesFragment extends Fragment implements FavoritesContract.Vie
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         
-        // [변경] 화면(View)이 생성될 때마다 Presenter와 다시 연결합니다.
+        // [변경] Presenter에 View를 연결
         presenter.attachView(this);
         
         recyclerView = view.findViewById(R.id.rvFavorites);
@@ -66,29 +62,20 @@ public class FavoritesFragment extends Fragment implements FavoritesContract.Vie
 
         setupRecyclerView();
 
-        // [추가] Activity 범위의 AuthViewModel 인스턴스를 가져옵니다.
         authViewModel = new ViewModelProvider(requireActivity()).get(AuthViewModel.class);
-
-        // [추가] AuthViewModel의 사용자 상태 변화를 관찰합니다.
         observeAuthState();
-        
-        // [삭제] View가 준비된 후 데이터를 로드하도록 요청합니다.
-        // presenter.start();
     }
     
-    /**
-     * [추가] AuthViewModel의 LiveData를 관찰하여 로그인 상태 변화에 따라 UI를 업데이트합니다.
-     */
     private void observeAuthState() {
         authViewModel.user.observe(getViewLifecycleOwner(), firebaseUser -> {
             if (firebaseUser != null) {
-                // 사용자가 로그인 상태이면, 즐겨찾기 목록을 불러옵니다.
                 presenter.start();
             } else {
-                // 사용자가 로그아웃 상태이면, 빈 화면을 표시하고 관련 UI를 처리합니다.
                 hideLoading();
                 showEmptyView();
-                adapter.setRecipes(new ArrayList<>()); // [추가] 어댑터의 데이터도 비워줍니다.
+                if(adapter != null) {
+                    adapter.setRecipes(new ArrayList<>());
+                }
             }
         });
     }
@@ -146,13 +133,10 @@ public class FavoritesFragment extends Fragment implements FavoritesContract.Vie
         }
     }
 
-    /**
-     * [변경] 화면(View)이 파괴될 때 Presenter와의 연결을 끊습니다.
-     * Presenter 자체는 Fragment가 완전히 파괴될 때까지 살아있습니다.
-     */
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        // [변경] Presenter와의 연결을 끊어 메모리 누수를 방지
         presenter.detachView();
     }
 }

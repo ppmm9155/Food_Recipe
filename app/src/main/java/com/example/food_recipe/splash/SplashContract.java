@@ -1,31 +1,32 @@
 // 파일: app/src/main/java/com/example/food_recipe/splash/SplashContract.java
 package com.example.food_recipe.splash;
 
+import com.example.food_recipe.base.BaseContract;
+
 /**
  * MVP용 계약(Contract)
- * - View: 화면 이동/로딩 표시/로그 출력
- * - Presenter: 생명주기 연결 및 시작 로직
- * - Model: 실제 판단 로직(Firebase 세션/자동로그인/강제재로그인1회)
  */
+// [변경] BaseContract를 상속받도록 수정
 public interface SplashContract {
 
-    interface View {
-        void navigateToMain();     // 메인 화면으로 이동
-        void navigateToLogin();    // 로그인 화면으로 이동
-        void showLoading(boolean show); // 필요 시 로딩 표시(스플래시에선 로그 수준으로 처리 가능)
-        void log(String msg);      // 디버그 로그(개발 단계 시 가시성 확보)
+    // [변경] BaseContract.View를 상속받음
+    interface View extends BaseContract.View {
+        void navigateToMain();
+        void navigateToLogin();
+        void showLoading(boolean show);
+        void log(String msg);
     }
 
-    interface Presenter {
-        void attach(View view);    // View 연결
-        void start();              // 진입점(판단 시작)
-        void detach();             // View 해제
+    // [변경] BaseContract.Presenter를 상속받음
+    interface Presenter extends BaseContract.Presenter<View> {
+        void start();
+        // [삭제] attach, detach는 BaseContract.Presenter에 이미 정의되어 있으므로 제거
     }
 
     interface Model {
         interface Callback {
-            void onResult(boolean canGoMain); // true면 메인, false면 로그인
+            void onResult(boolean canGoMain);
         }
-        void canProceedToMain(Callback cb);   // 메인 진입 가능 여부 비동기 판정
+        void canProceedToMain(Callback cb);
     }
 }

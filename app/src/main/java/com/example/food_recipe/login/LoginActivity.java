@@ -110,7 +110,10 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         });
 
         // 3. 매니저(Presenter) 생성: 이 화면의 로직을 담당할 매니저를 만들고, 화면(this)과 연결합니다.
-        presenter = new LoginPresenter(this, new LoginModel());
+        // [변경] Presenter 생성 시 View를 넘기지 않음
+        presenter = new LoginPresenter(new LoginModel());
+        // [추가] Presenter에 View를 연결
+        presenter.attachView(this);
 
         // 4. 이벤트 리스너(감시자) 설정: 사용자가 버튼을 클릭하는지 감시하고, 클릭하면 매니저에게 알립니다.
         // "로그인 버튼이 클릭되면, 입력된 이메일/비번/자동로그인 체크상태를 매니저에게 전달해줘"
@@ -175,10 +178,8 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
      */
     @Override
     protected void onDestroy() {
-        // 매니저(Presenter)와의 연결을 끊어서 메모리 누수를 방지합니다.
-        if (presenter != null) {
-            presenter.detachView();
-        }
+        // [변경] 매니저(Presenter)와의 연결을 끊어서 메모리 누수를 방지
+        presenter.detachView();
         super.onDestroy();
     }
 

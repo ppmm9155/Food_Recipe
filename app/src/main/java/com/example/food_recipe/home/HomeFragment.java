@@ -10,13 +10,13 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider; // [추가]
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.food_recipe.R;
 import com.example.food_recipe.adapter.RecipeAdapter;
-import com.example.food_recipe.main.AuthViewModel; // [추가]
+import com.example.food_recipe.main.AuthViewModel;
 import com.example.food_recipe.model.Recipe;
 import java.util.List;
 
@@ -26,7 +26,7 @@ import java.util.List;
 public class HomeFragment extends Fragment implements HomeContract.View, RecipeAdapter.OnItemClickListener {
 
     private HomeContract.Presenter presenter;
-    private AuthViewModel authViewModel; // [추가]
+    private AuthViewModel authViewModel;
 
     private TextView titleTextView;
     private RecyclerView recommendedRecyclerView;
@@ -38,6 +38,13 @@ public class HomeFragment extends Fragment implements HomeContract.View, RecipeA
     private RecipeAdapter popularAdapter;
     private RecipeAdapter recentFavAdapter;
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        // [추가] Presenter를 onCreate에서 생성하여 Fragment 재생성 시에도 유지되도록 함
+        presenter = new HomePresenter(requireContext());
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -48,7 +55,9 @@ public class HomeFragment extends Fragment implements HomeContract.View, RecipeA
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // UI 컴포넌트 참조 초기화
+        // [추가] Presenter에 View를 연결
+        presenter.attachView(this);
+
         titleTextView = view.findViewById(R.id.fmain_home_title);
         recommendedRecyclerView = view.findViewById(R.id.fmain_rv_recommended);
         popularRecyclerView = view.findViewById(R.id.fmain_rv_popular);
@@ -57,15 +66,9 @@ public class HomeFragment extends Fragment implements HomeContract.View, RecipeA
 
         setupRecyclerViews();
 
-        presenter = new HomePresenter(this, requireContext());
-
-        // [추가] Activity 범위의 AuthViewModel 인스턴스를 가져옵니다.
+        // [삭제] Presenter 생성 로직을 onCreate로 이동
         authViewModel = new ViewModelProvider(requireActivity()).get(AuthViewModel.class);
-
-        // [추가] AuthViewModel의 사용자 상태 변화를 관찰합니다.
         observeAuthState();
-        
-        // [삭제] presenter.start();
     }
     
     /**
@@ -73,9 +76,6 @@ public class HomeFragment extends Fragment implements HomeContract.View, RecipeA
      */
     private void observeAuthState() {
         authViewModel.user.observe(getViewLifecycleOwner(), firebaseUser -> {
-            // Presenter에게 로그인 상태가 변경되었음을 알립니다.
-            // Presenter가 로그인된 사용자에 맞는 데이터를 로드하거나,
-            // 로그아웃 상태에 맞게 UI를 초기화하는 등의 작업을 처리합니다.
             presenter.onAuthStateChanged(firebaseUser != null);
         });
     }
@@ -151,6 +151,7 @@ public class HomeFragment extends Fragment implements HomeContract.View, RecipeA
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        // [변경] Presenter와의 연결을 끊어 메모리 누수를 방지. View가 재생성될 수 있으므로 onDestroyView에서 호출
         presenter.detachView();
     }
 }

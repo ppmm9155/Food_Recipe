@@ -1,44 +1,40 @@
 // FindPsPresenter.java
 package com.example.food_recipe.findps;
 
-public class FindPsPresenter implements FindPsContract.Presenter {
-    private final FindPsContract.View view;
+import com.example.food_recipe.base.BasePresenter;
+
+// [변경] BasePresenter를 상속받아 View 생명주기를 안전하게 관리
+public class FindPsPresenter extends BasePresenter<FindPsContract.View> implements FindPsContract.Presenter {
+    // [삭제] view 멤버 변수. BasePresenter가 관리하므로 제거.
     private final FindPsContract.Model model;
 
-    public FindPsPresenter(FindPsContract.View view, FindPsContract.Model model) {
-        this.view = view;
+    // [변경] 생성자에서 View를 받지 않음.
+    public FindPsPresenter(FindPsContract.Model model) {
         this.model = model;
     }
 
     @Override
     public void onVerifyEmailClicked(String email) {
+        if (!isViewAttached()) return;
         if (email == null || email.trim().isEmpty()) {
-            view.showEmailEmptyError();
+            getView().showEmailEmptyError();
             return;
         }
 
         model.sendPasswordResetEmail(email.trim(), new FindPsContract.Model.Callback() {
             @Override
             public void onSuccess() {
-                view.showResetEmailSentMessage();
+                if (!isViewAttached()) return;
+                getView().showResetEmailSentMessage();
             }
 
             @Override
             public void onFailure() {
-                view.showResetEmailFailedMessage();
+                if (!isViewAttached()) return;
+                getView().showResetEmailFailedMessage();
             }
-
-
         });
     }
 
-    @Override
-    public void detachView() {
-        android.util.Log.d("FindPsPresenter", "detachView() called, view 참조 해제 요청");
-        // 현재 view가 final이라 null 처리 불가 → 로그만 남김
-        // 나중에 view = null 처리하려면 final 제거해야 함
-        // 현재는 정리할 리소스 없음
-    }
-
-
+    // [삭제] detachView()는 BasePresenter에 구현되어 있으므로 제거
 }
