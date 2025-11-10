@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.google.gms.google.services)
+    // [추가] Secrets Gradle Plugin을 app 모듈에 적용합니다.
+    alias(libs.plugins.secrets.gradle.plugin)
 }
 
 android {
@@ -18,6 +20,12 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+    }
+
+    // [추가] buildFeatures 블록을 추가하여 BuildConfig 클래스 자동 생성을 활성화합니다.
+    // 이를 통해 local.properties에 저장된 비밀 키를 코드에서 안전하게 참조할 수 있습니다.
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {

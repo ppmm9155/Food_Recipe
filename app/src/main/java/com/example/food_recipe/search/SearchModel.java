@@ -4,10 +4,11 @@ import android.util.Log;
 import com.algolia.search.saas.Client;
 import com.algolia.search.saas.Index;
 import com.algolia.search.saas.Query;
+// [추가] BuildConfig 클래스를 임포트하여 API 키를 안전하게 참조합니다.
+import com.example.food_recipe.BuildConfig;
 import com.example.food_recipe.model.Recipe;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -23,7 +24,9 @@ public class SearchModel implements SearchContract.Model {
     private final FirebaseAuth mAuth;
 
     public SearchModel() {
-        Client client = new Client("6XOCPVQLP5", "ae27028a184d74d2fa885250257ce2dd");
+        // [변경] 하드코딩된 API 키를 BuildConfig에서 안전하게 불러오도록 수정합니다.
+        // 이 값들은 local.properties 파일에 저장되어 있으며, Git에는 포함되지 않습니다.
+        Client client = new Client(BuildConfig.ALGOLIA_APP_ID, BuildConfig.ALGOLIA_API_KEY);
         index = client.getIndex("recipes");
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
@@ -75,7 +78,7 @@ public class SearchModel implements SearchContract.Model {
                         JSONArray highlightedIngredients = highlightResult.getJSONArray("ingredients");
                         List<String> ingredientsList = new ArrayList<>();
                         for (int j = 0; j < highlightedIngredients.length(); j++) {
-                            // 각 배열 요소는 {"value": "하이라이팅된 텍스트"} 형태의 객체입니다.
+                            // 각 배열 요소는 {"value": "하이라이팅된 text"} 형태의 객체입니다.
                             ingredientsList.add(highlightedIngredients.getJSONObject(j).getString("value"));
                         }
                         ingredientsRaw = String.join(", ", ingredientsList);
