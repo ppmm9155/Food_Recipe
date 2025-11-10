@@ -2,6 +2,7 @@
 package com.example.food_recipe.login;
 
 import android.content.Context;
+import com.example.food_recipe.base.BaseContract; // [추가] BaseContract 임포트
 import com.google.firebase.auth.FirebaseUser;
 import java.util.List;
 
@@ -23,7 +24,8 @@ public interface LoginContract {
     // View: 화면 담당. Presenter가 시키는 대로 화면을 바꾸는 역할.
     // LoginActivity가 이 규칙을 따라서 구현해야 합니다.
     // ===================================================================
-    interface View {
+    // [변경] BaseContract.View를 상속받아 공통 View의 책임을 부여
+    interface View extends BaseContract.View {
         // --- Presenter가 View에게 내리는 UI 변경 지시들 ---
         void showEmailError(String msg);
         void showPasswordError(String msg);
@@ -52,7 +54,8 @@ public interface LoginContract {
     // 그 결과를 가공해서 다시 View에 업데이트하라고 지시합니다.
     // LoginPresenter가 이 규칙을 따라서 구현해야 합니다.
     // ===================================================================
-    interface Presenter {
+    // [변경] BaseContract.Presenter를 상속받아 공통 Presenter의 책임을 부여
+    interface Presenter extends BaseContract.Presenter<View> {
         // --- View가 Presenter에게 요청하는 작업들 ---
         void attemptLogin(String rawEmail, String password, boolean autoLoginChecked);
         void handleGoogleLoginResult(android.content.Intent data, boolean autoLoginChecked);
@@ -65,8 +68,7 @@ public interface LoginContract {
         boolean isAmbiguous(String code, Exception e);
         void refineAmbiguousWithFetch(String email);
 
-        // View가 파괴될 때 Presenter와의 연결을 끊어 메모리 누수를 방지합니다.
-        void detachView();
+        // [삭제] detachView()는 BaseContract.Presenter에 이미 정의되어 있으므로 제거
     }
 
     // ===================================================================

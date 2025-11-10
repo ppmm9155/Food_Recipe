@@ -1,45 +1,46 @@
 // FindIdPresenter.java
 package com.example.food_recipe.findid;
 
-public class FindIdPresenter implements FindIdContract.Presenter {
-    private final FindIdContract.View view;
+import com.example.food_recipe.base.BasePresenter;
+
+// [변경] BasePresenter를 상속받아 View 생명주기를 안전하게 관리
+public class FindIdPresenter extends BasePresenter<FindIdContract.View> implements FindIdContract.Presenter {
+    // [삭제] view 멤버 변수. BasePresenter가 관리하므로 제거.
     private final FindIdContract.Model model;
 
-    public FindIdPresenter(FindIdContract.View view, FindIdContract.Model model) {
-        this.view = view;
+    // [변경] 생성자에서 View를 받지 않음.
+    public FindIdPresenter(FindIdContract.Model model) {
         this.model = model;
     }
 
     @Override
     public void onVerifyEmailClicked(String email) {
+        if (!isViewAttached()) return;
         if (email.isEmpty()) {
-            view.showErrorMessage("이메일을 입력하세요.");
+            getView().showErrorMessage("이메일을 입력하세요.");
             return;
         }
 
         model.sendVerificationEmail(email, new FindIdContract.Model.Callback() {
             @Override
             public void onSuccess() {
-                view.showEmailSentMessage();
+                if (!isViewAttached()) return;
+                getView().showEmailSentMessage();
             }
 
             @Override
             public void onError(String error) {
-                view.showErrorMessage(error);
+                if (!isViewAttached()) return;
+                getView().showErrorMessage(error);
             }
         });
     }
 
     @Override
     public void onLoginClicked() {
-        view.showLoginRedirectMessage();
+        if (!isViewAttached()) return;
+        getView().showLoginRedirectMessage();
     }
 
-    @Override
-    public void detachView() {
-        android.util.Log.d("FindIdPresenter", "detachView() called, view 참조 해제 요청");
-        // 현재 view가 final이라 null 처리 불가 → 로그만 남김
-        // 나중에 view = null 처리하려면 final 제거해야 함
-        // 현재는 정리할 리소스 없음
-    }
+    // [삭제] detachView()는 BasePresenter에 구현되어 있으므로 제거
 }

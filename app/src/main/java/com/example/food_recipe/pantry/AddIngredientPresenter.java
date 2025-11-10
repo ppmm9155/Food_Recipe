@@ -1,63 +1,42 @@
 package com.example.food_recipe.pantry;
 
 import android.text.TextUtils;
+import com.example.food_recipe.base.BasePresenter;
 import com.example.food_recipe.model.PantryItem;
 import java.util.Calendar;
 import java.util.UUID;
 
 /**
  * 재료 추가 기능의 비즈니스 로직을 처리하는 Presenter 클래스입니다.
- * MVP 패턴의 Presenter 역할을 담당하며, View(AddIngredientBottomSheetFragment)로부터 사용자 입력을 받아
- * 데이터 유효성을 검사하고, Model(PantryRepository)에 데이터 저장을 요청합니다.
- * 모든 로직 처리 후에는 그 결과를 다시 View에 전달하여 UI를 업데이트하도록 합니다.
  */
-public class AddIngredientPresenter implements AddIngredientContract.Presenter {
-
-    /** Presenter가 제어할 View 인터페이스입니다. */
-    private final AddIngredientContract.View mView;
+// [변경] BasePresenter를 상속받고, 생성자 및 View 참조 방식을 수정
+public class AddIngredientPresenter extends BasePresenter<AddIngredientContract.View> implements AddIngredientContract.Presenter {
 
     /** 데이터 처리를 담당할 Model(Repository) 인터페이스입니다. */
     private final PantryRepository mPantryRepository;
 
     /**
-     * AddIngredientPresenter의 생성자입니다.
-     * 의존성 주입(Dependency Injection)을 통해 View와 Repository의 구현체를 받습니다.
-     *
-     * @param view Presenter와 상호작용할 View의 구현체
-     * @param pantryRepository 데이터 CRUD를 담당할 Repository의 구현체
+     * [변경] 생성자에서 View를 받지 않고 Repository만 주입받음
      */
-    public AddIngredientPresenter(AddIngredientContract.View view, PantryRepository pantryRepository) {
-        this.mView = view;
+    public AddIngredientPresenter(PantryRepository pantryRepository) {
         this.mPantryRepository = pantryRepository;
     }
 
-    /**
-     * View로부터 전달받은 재료 정보를 저장하는 핵심 로직을 수행합니다.
-     *
-     * @param name 재료 이름
-     * @param quantityStr 사용자가 입력한 수량 (문자열 형태)
-     * @param category 재료 카테고리
-     * @param unit 재료 단위
-     * @param storage 재료 보관 장소
-     * @param expirationDate 재료 유통기한
-     */
     @Override
     public void saveIngredient(String name, String quantityStr, String category, String unit, String storage, Calendar expirationDate) {
-        // [수정] 1. 입력 값 유효성 검사 순서를 바로잡았습니다.
-        // 이름과 수량이 비어있는지 먼저 확인하여, 앱 안정성을 확보합니다.
+        if (!isViewAttached()) return;
+
         if (TextUtils.isEmpty(name)) {
-            mView.showNameEmptyError(); // View에 이름 입력 오류 알림
+            getView().showNameEmptyError();
             return;
         }
         if (TextUtils.isEmpty(quantityStr)) {
-            mView.showQuantityEmptyError(); // View에 수량 입력 오류 알림
+            getView().showQuantityEmptyError();
             return;
         }
 
-        // 2. 데이터 가공 및 모델 객체 생성
-        // 유효성 검사가 끝난 후에만 Double.parseDouble을 호출하여 NumberFormatException을 방지합니다.
         double quantity = Double.parseDouble(quantityStr);
-        String id = UUID.randomUUID().toString(); // 새 재료를 위한 고유 ID 생성
+        String id = UUID.randomUUID().toString();
 
         PantryItem newItem = new PantryItem(
                 id,
@@ -66,15 +45,13 @@ public class AddIngredientPresenter implements AddIngredientContract.Presenter {
                 quantity,
                 unit,
                 storage,
-                expirationDate.getTime() // Calendar 객체를 Date 객체로 변환
+                expirationDate.getTime()
         );
 
-        // 3. Model(Repository)에 데이터 추가 요청
         mPantryRepository.addPantryItem(newItem);
 
-        // 4. 처리 결과를 View에 전달
-        mView.onSaveSuccess(name);      // View에 저장 성공 토스트 메시지 표시 요청
-        mView.sendSuccessResult();      // View에 부모 프래그먼트로 성공 결과 전달 요청
-        mView.closeBottomSheet();       // View에 BottomSheet 닫기 요청
+        getView().onSaveSuccess(name);
+        getView().sendSuccessResult();
+        getView().closeBottomSheet();
     }
 }

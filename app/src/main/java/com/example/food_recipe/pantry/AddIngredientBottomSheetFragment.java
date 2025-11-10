@@ -13,9 +13,9 @@ import android.widget.Spinner;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.ViewModelProvider; // [추가]
+import androidx.lifecycle.ViewModelProvider;
 import com.example.food_recipe.R;
-import com.example.food_recipe.main.AuthViewModel; // [추가]
+import com.example.food_recipe.main.AuthViewModel;
 import com.example.food_recipe.utils.StringUtils;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.chip.Chip;
@@ -29,9 +29,6 @@ import java.util.Locale;
 
 /**
  * 재료 추가 기능을 담당하는 BottomSheet 형태의 프래그먼트입니다.
- * 사용자는 이 화면에서 재료의 이름, 카테고리, 수량, 단위, 보관 장소, 유통기한을 입력할 수 있습니다.
- * MVP 패턴의 View 역할을 하며, 사용자의 입력을 Presenter에 전달하고 결과를 화면에 표시합니다.
- * [변경] 중앙 인증 관리(AuthViewModel) 시스템을 사용하도록 리팩토링합니다.
  */
 public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment implements AddIngredientContract.View {
 
@@ -48,8 +45,14 @@ public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment 
 
     private Calendar selectedExpirationDate;
     private AddIngredientContract.Presenter mPresenter;
-    // [추가] 공유 ViewModel
     private AuthViewModel authViewModel;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        // [추가] Presenter를 onCreate에서 생성
+        mPresenter = new AddIngredientPresenter(PantryRepository.getInstance());
+    }
 
     @Nullable
     @Override
@@ -61,13 +64,13 @@ public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // [추가] Activity 범위의 AuthViewModel 인스턴스를 가져옵니다.
+        // [추가] Presenter에 View를 연결
+        mPresenter.attachView(this);
+
         authViewModel = new ViewModelProvider(requireActivity()).get(AuthViewModel.class);
 
-        // Presenter를 초기화합니다.
-        mPresenter = new AddIngredientPresenter(this, PantryRepository.getInstance());
+        // [삭제] Presenter 생성 로직을 onCreate로 이동
 
-        // XML 레이아웃의 View들을 멤버 변수와 연결합니다.
         etName = view.findViewById(R.id.add_ingredient_et_name);
         chipGroupCategory = view.findViewById(R.id.add_ingredient_chip_group_category);
         etQuantity = view.findViewById(R.id.add_ingredient_et_quantity);
@@ -76,21 +79,17 @@ public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment 
         btnExpiration = view.findViewById(R.id.add_ingredient_btn_expiration);
         btnSave = view.findViewById(R.id.add_ingredient_btn_save);
 
-        // 초기 UI 설정을 수행하는 메서드들을 호출합니다.
         setupCategoryChips();
         setupUnitSpinner();
         setupExpirationDateButton();
 
-        // '저장' 버튼 클릭 리스너를 설정합니다.
         btnSave.setOnClickListener(v -> {
-            // [추가] 저장 버튼 클릭 시, 로그인 상태를 먼저 확인하는 방어 코드를 추가합니다.
             if (authViewModel.user.getValue() == null) {
                 Toast.makeText(getContext(), "로그인 후 다시 시도해주세요.", Toast.LENGTH_SHORT).show();
                 dismiss();
                 return;
             }
 
-            // [기존 로직 유지] 사용자가 입력한 재료 이름을 StringUtils를 사용해 정규화합니다.
             String name = StringUtils.normalizeIngredientName(etName.getText().toString());
             String quantityStr = etQuantity.getText().toString().trim();
             String unit = spinnerUnit.getSelectedItem().toString();
@@ -106,9 +105,13 @@ public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment 
         });
     }
 
-    /**
-     * [변경] 재료 카테고리 Chip 생성 시, 이모지를 포함한 텍스트로 설정합니다.
-     */
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // [추가] Presenter와의 연결을 끊어 메모리 누수를 방지
+        mPresenter.detachView();
+    }
+
     private void setupCategoryChips() {
         List<String> categories = Arrays.asList("채소 🥦", "과일 🍎", "육류 🥩", "수산물 🐟", "유제품 🥛", "기타 ✨");
         for (String category : categories) {
@@ -117,24 +120,18 @@ public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment 
             chip.setCheckable(true);
             chipGroupCategory.addView(chip);
         }
-        // 첫 번째 카테고리를 기본 선택 값으로 설정합니다.
         if (chipGroupCategory.getChildCount() > 0) {
             ((Chip) chipGroupCategory.getChildAt(0)).setChecked(true);
         }
     }
-    /**
-     * 재료의 단위를 선택할 수 있는 Spinner를 설정합니다.
-     */
+
     private void setupUnitSpinner() {
         String[] units = new String[]{"g", "kg", "개", "mL", "L", "조각"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, units);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerUnit.setAdapter(adapter);
     }
-    /**
-     * 유통기한 선택 버튼의 초기 값 설정 및 클릭 이벤트를 처리합니다.
-     * 클릭 시 DatePickerDialog를 표시합니다.
-     */
+
     private void setupExpirationDateButton() {
         selectedExpirationDate = Calendar.getInstance();
         updateExpirationDateButtonText();
@@ -154,16 +151,14 @@ public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment 
             datePickerDialog.show();
         });
     }
-    /**
-     * 선택된 유통기한 날짜를 버튼의 텍스트에 업데이트합니다.
-     */
+
     private void updateExpirationDateButtonText() {
         String dateFormat = "yyyy-MM-dd";
         SimpleDateFormat sdf = new SimpleDateFormat(dateFormat, Locale.getDefault());
         String formattedDate = sdf.format(selectedExpirationDate.getTime());
         btnExpiration.setText("유통기한: " + formattedDate);
     }
-    // ===== AddIngredientContract.View 구현부 =====
+
     @Override
     public void showNameEmptyError() {
         Toast.makeText(getContext(), "재료 이름을 입력해주세요.", Toast.LENGTH_SHORT).show();
@@ -183,15 +178,11 @@ public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment 
     public void closeBottomSheet() {
         dismiss();
     }
-    /**
-     * 재료 추가 성공 시, 부모 프래그먼트(PantryFragment)에 결과를 전달합니다.
-     * Fragment Result API를 사용하여 데이터가 추가되었음을 알립니다.
-     */
+
     @Override
     public void sendSuccessResult() {
         Bundle result = new Bundle();
         result.putBoolean(BUNDLE_KEY_INGREDIENT_ADDED, true);
-        // 부모 FragmentManager에 정의된 키(REQUEST_KEY)로 결과(result)를 설정합니다.
         getParentFragmentManager().setFragmentResult(REQUEST_KEY_INGREDIENT_ADDED, result);
     }
 }

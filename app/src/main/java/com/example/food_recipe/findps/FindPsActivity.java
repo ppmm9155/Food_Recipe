@@ -26,17 +26,13 @@ public class FindPsActivity extends AppCompatActivity implements FindPsContract.
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Phase 3: Edge-to-Edge 모드 활성화
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
         setContentView(R.layout.activity_find_password);
 
-        // Phase 3: 충돌 방지 센서 부착
         View contentView = findViewById(R.id.fs_findps);
         ViewCompat.setOnApplyWindowInsetsListener(contentView, (v, windowInsets) -> {
-            // 버그 수정: WindowInsetsCompat -> Insets 타입으로 변경
             Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-            // 시스템 바(상태표시줄, 네비게이션바) 영역만큼 패딩 적용
             v.setPadding(v.getPaddingLeft(), insets.top, v.getPaddingRight(), insets.bottom);
             return WindowInsetsCompat.CONSUMED;
         });
@@ -44,7 +40,10 @@ public class FindPsActivity extends AppCompatActivity implements FindPsContract.
         Fs_editTextEmail = findViewById(R.id.fs_editTextEmail);
         Fs_buttonVerify = findViewById(R.id.fs_buttonVerify);
 
-        presenter = new FindPsPresenter(this, new FindPsModel());
+        // [변경] Presenter 생성 시 View를 넘기지 않음
+        presenter = new FindPsPresenter(new FindPsModel());
+        // [추가] Presenter에 View를 연결
+        presenter.attachView(this);
 
         Fs_buttonVerify.setOnClickListener(v -> {
             String email = Fs_editTextEmail.getText().toString();
@@ -54,9 +53,8 @@ public class FindPsActivity extends AppCompatActivity implements FindPsContract.
 
     @Override
     protected void onDestroy() {
-        if (presenter != null) {
-            presenter.detachView();
-        }
+        // [변경] Presenter와의 연결을 끊어서 메모리 누수를 방지
+        presenter.detachView();
         super.onDestroy();
     }
 

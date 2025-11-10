@@ -17,7 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.food_recipe.R;
 import com.example.food_recipe.adapter.RecipeAdapter;
-import com.example.food_recipe.main.AuthViewModel; // [추가]
+import com.example.food_recipe.main.AuthViewModel;
 import com.example.food_recipe.model.Recipe;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
@@ -40,12 +40,21 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
     private SearchView searchView;
     private SearchContract.Presenter presenter;
     private SearchViewModel viewModel;
-    private AuthViewModel authViewModel; // [추가]
+    private AuthViewModel authViewModel;
 
     public static final String REQUEST_KEY_PANTRY_IMPORT = "pantry_import_request";
     public static final String BUNDLE_KEY_SELECTED_INGREDIENTS = "selected_ingredients";
     public static final String BUNDLE_KEY_PANTRY_ITEMS = "pantry_items";
     public static final String BUNDLE_KEY_CURRENT_CHIPS = "current_chips";
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        viewModel = new ViewModelProvider(this).get(SearchViewModel.class);
+        authViewModel = new ViewModelProvider(requireActivity()).get(AuthViewModel.class);
+        // [추가] Presenter를 onCreate에서 생성
+        presenter = new SearchPresenter(viewModel);
+    }
 
     @Nullable
     @Override
@@ -57,12 +66,9 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        viewModel = new ViewModelProvider(this).get(SearchViewModel.class);
-        // [추가] Activity 범위의 AuthViewModel 인스턴스를 가져옵니다.
-        authViewModel = new ViewModelProvider(requireActivity()).get(AuthViewModel.class);
+        // [추가] Presenter에 View를 연결
+        presenter.attachView(this);
 
-        presenter = new SearchPresenter(this, viewModel);
-        
         setupViews(view);
         setupRecyclerView();
         setupListeners();
@@ -70,6 +76,13 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
         observeViewModel();
 
         presenter.start();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // [추가] Presenter와의 연결을 끊어 메모리 누수를 방지
+        presenter.detachView();
     }
 
     private void setupViews(View view) {
@@ -120,13 +133,10 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
     }
 
     private void setupListeners() {
-        // [변경] '냉장고 재료 가져오기' 버튼 클릭 시 로그인 상태를 먼저 확인합니다.
         searchBtnPantryImport.setOnClickListener(v -> {
             if (authViewModel.user.getValue() != null) {
-                // 로그인 상태일 경우, Presenter에 작업을 요청합니다.
                 presenter.onPantryImportButtonClicked();
             } else {
-                // 로그아웃 상태일 경우, 사용자에게 안내 메시지를 표시합니다.
                 Toast.makeText(getContext(), "로그인이 필요한 기능입니다.", Toast.LENGTH_SHORT).show();
             }
         });
@@ -166,18 +176,20 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
     
     @Override
     public void showRecipes(List<Recipe> recipes) {
-        // This method is now handled by updateRecipeListUI in observeViewModel.
+        // Handled by ViewModel
     }
 
     @Override
     public void addChipToGroup(String text) {
-        // This method is now handled by updateChipsUI in observeViewModel.
+        // Handled by ViewModel
     }
 
     @Override
     public void showError(String message) {
-        Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
-        Log.e(TAG, "An error occurred: " + message);
+        if (getContext() != null) {
+            Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
+            Log.e(TAG, "An error occurred: " + message);
+        }
         recyclerView.setVisibility(View.GONE);
         emptyTextView.setVisibility(View.VISIBLE);
         emptyTextView.setText("오류가 발생했습니다: " + message);
