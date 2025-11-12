@@ -8,29 +8,23 @@ import com.google.firebase.auth.FirebaseUser;
 
 /**
  * [기존 주석 유지] MyPage의 비즈니스 로직을 처리하는 Presenter. BasePresenter를 상속받습니다.
+ * [변경] 로그아웃과 계정 탈퇴의 성공 콜백을 분리하여 처리합니다.
  */
 public class MyPagePresenter extends BasePresenter<MyPageContract.View> implements MyPageContract.Presenter, MyPageContract.Model.OnFinishedListener {
 
     private final FirebaseAuth firebaseAuth;
-    private final MyPageContract.Model model; // [변경] 생성자에서 초기화되도록 final로 변경
+    private final MyPageContract.Model model;
 
-    // [변경] Model에게 Context를 전달하기 위해 생성자를 수정합니다.
     public MyPagePresenter(Context context) {
         this.firebaseAuth = FirebaseAuth.getInstance();
-        this.model = new MyPageModel(context); // [변경] MyPageModel에 context 전달
+        this.model = new MyPageModel(context);
     }
 
-    /**
-     * [기존 주석 유지] View와 Presenter 연결 로직은 BasePresenter에 위임합니다.
-     */
     @Override
     public void attachView(MyPageContract.View view) {
         super.attachView(view);
     }
 
-    /**
-     * [기존 주석 유지] 현재 로그인된 사용자 정보를 가져와 View에 전달합니다.
-     */
     @Override
     public void loadUserData() {
         if (isViewAttached()) {
@@ -41,9 +35,6 @@ public class MyPagePresenter extends BasePresenter<MyPageContract.View> implemen
         }
     }
 
-    /**
-     * [기존 주석 유지] 메뉴 클릭 시의 동작을 정의합니다.
-     */
     @Override
     public void handleMenuClick(String menuTitle) {
         if (!isViewAttached()) return;
@@ -64,20 +55,13 @@ public class MyPagePresenter extends BasePresenter<MyPageContract.View> implemen
         }
     }
 
-    /**
-     * [변경] 실제 로그아웃 로직을 Model에 위임하도록 수정합니다.
-     */
     @Override
     public void logout() {
         if (isViewAttached()) {
-            // [변경] Model의 logout 메서드를 호출하고, Presenter 자신을 리스너로 전달합니다.
             model.logout(this);
         }
     }
 
-    /**
-     * [기존 주석 유지] 실제 계정 탈퇴 로직을 Model에 위임하도록 수정합니다.
-     */
     @Override
     public void deleteAccount() {
         if (isViewAttached()) {
@@ -86,13 +70,23 @@ public class MyPagePresenter extends BasePresenter<MyPageContract.View> implemen
     }
 
     /**
-     * [변경] 로그아웃과 계정 탈퇴 성공 시 Model로부터 호출됩니다.
+     * [추가] 로그아웃 성공 시 Model로부터 호출됩니다.
      */
     @Override
-    public void onSuccess() {
+    public void onLogoutSuccess() {
         if (isViewAttached()) {
-            // [변경] 어떤 작업이 성공했든, 최종적으로 로그인 화면으로 이동시킵니다.
-            getView().showToast("요청하신 작업이 완료되었습니다.");
+            getView().showToast("로그아웃 되었습니다.");
+            getView().navigateToLogin();
+        }
+    }
+
+    /**
+     * [추가] 계정 탈퇴 성공 시 Model로부터 호출됩니다.
+     */
+    @Override
+    public void onDeleteAccountSuccess() {
+        if (isViewAttached()) {
+            getView().showToast("계정이 삭제되었습니다.");
             getView().navigateToLogin();
         }
     }
