@@ -1,19 +1,27 @@
 package com.example.food_recipe.main;
 
+// [추가] 권한 요청 관련 클래스를 가져옵니다.
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
-import androidx.lifecycle.ViewModelProvider; 
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
@@ -22,8 +30,8 @@ import com.example.food_recipe.R;
 import com.example.food_recipe.login.LoginActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.appbar.MaterialToolbar;
-import com.google.firebase.auth.FirebaseAuth; 
-import com.google.firebase.auth.FirebaseUser; 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 
 import java.util.HashSet;
@@ -41,6 +49,19 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
     private AuthViewModel authViewModel;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener authStateListener;
+
+    // [추가] 알림 권한 요청을 처리하기 위한 ActivityResultLauncher를 등록합니다.
+    private final ActivityResultLauncher<String> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    // 사용자가 권한을 허용한 경우
+                    Log.d("Permission", "알림 권한이 허용되었습니다.");
+                } else {
+                    // 사용자가 권한을 거부한 경우
+                    Log.d("Permission", "알림 권한이 거부되었습니다.");
+                    // (선택사항) 사용자에게 왜 알림이 필요한지 설명하는 UI를 보여줄 수 있습니다.
+                }
+            });
 
 
     @Override
@@ -96,6 +117,27 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
                 bottomNav.setVisibility(View.GONE);
             }
         });
+
+        // [추가] 알림 권한 요청 로직을 호출합니다.
+        requestNotificationPermission();
+    }
+
+    /**
+     * [추가] Android 13 (API 33) 이상에서 POST_NOTIFICATIONS 권한을 요청합니다.
+     */
+    private void requestNotificationPermission() {
+        // 안드로이드 13 이상 버전에서만 권한 요청을 진행합니다.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // 이미 권한이 부여되었는지 확인합니다.
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
+                    PackageManager.PERMISSION_GRANTED) {
+                // 권한이 이미 있으면 아무것도 하지 않습니다.
+                Log.d("Permission", "알림 권한이 이미 부여되어 있습니다.");
+            } else {
+                // 권한이 없으면 사용자에게 권한을 요청합니다.
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+            }
+        }
     }
 
     private void showCustomToast(String message) {

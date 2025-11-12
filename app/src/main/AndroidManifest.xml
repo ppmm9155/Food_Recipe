@@ -4,6 +4,8 @@
 
     <!-- [추가] 햅틱 피드백(진동) 기능을 사용하기 위한 권한을 선언합니다. -->
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- [추가] Android 13 이상에서 알림을 보내기 위한 권한 -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <application
         android:name=".FoodRecipeApplication"
