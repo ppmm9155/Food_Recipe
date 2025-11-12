@@ -15,6 +15,7 @@
         - android:layout_alignParentBottom="true" 속성은 이 뷰를 부모의 맨 아래에 고정시킵니다.
         - 이렇게 하면 이 뷰의 공간이 다른 콘텐츠 영역과 겹치지 않고 명확하게 분리됩니다.
         [삭제] CoordinatorLayout 내부에서 사용되던 android:layout_gravity="bottom"은 삭제합니다.
+        [추가] app:labelVisibilityMode="labeled" 속성을 추가하여 아이템 개수와 상관없이 항상 모든 메뉴의 라벨(텍스트)을 표시하도록 강제합니다.
     -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/main_bottom_nav"
@@ -25,7 +26,8 @@
         app:itemIconTint="@color/bottom_nav_icon_tint_selector"
         app:itemTextColor="@color/white"
         app:menu="@menu/bottom_nav_menu"
-        app:itemActiveIndicatorStyle="@style/MyBottomNavActiveIndicatorStyle" />
+        app:itemActiveIndicatorStyle="@style/MyBottomNavActiveIndicatorStyle"
+        app:labelVisibilityMode="labeled" />
 
     <!--
         [변경] 기존의 CoordinatorLayout을 RelativeLayout의 자식으로 배치합니다.

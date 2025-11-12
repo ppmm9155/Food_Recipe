@@ -51,4 +51,23 @@
             app:argType="string" />
     </fragment>
 
+    <!-- [기존 주석 유지] 마이페이지 화면 목적지 -->
+    <fragment
+        android:id="@+id/nav_mypage"
+        android:name="com.example.food_recipe.mypage.MyPageFragment"
+        android:label="마이페이지"
+        tools:layout="@layout/fragment_my_page" >
+        <!-- [기존 주석 유지] 프로필 수정 화면으로 이동하는 Action -->
+        <action
+            android:id="@+id/action_myPageFragment_to_editProfileFragment"
+            app:destination="@id/edit_profile_fragment" />
+    </fragment>
+
+    <!-- [변경] 프로필 수정 화면 목적지의 Fragment 경로 수정 -->
+    <fragment
+        android:id="@+id/edit_profile_fragment"
+        android:name="com.example.food_recipe.editprofile.EditProfileFragment"
+        android:label="프로필 수정"
+        tools:layout="@layout/fragment_edit_profile" />
+
 </navigation>
