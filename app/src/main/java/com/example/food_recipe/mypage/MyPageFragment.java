@@ -40,7 +40,7 @@ public class MyPageFragment extends Fragment implements MyPageContract.View {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // [추가] FragmentResultListener 등록
+        // [기존 주석 유지] FragmentResultListener 등록
         setupFragmentResultListener();
     }
 
@@ -54,7 +54,7 @@ public class MyPageFragment extends Fragment implements MyPageContract.View {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        presenter = new MyPagePresenter();
+        presenter = new MyPagePresenter(getContext());
         presenter.attachView(this);
 
         ivUserProfile = view.findViewById(R.id.iv_user_profile);
@@ -84,15 +84,13 @@ public class MyPageFragment extends Fragment implements MyPageContract.View {
     }
 
     /**
-     * [추가] EditProfileFragment로부터 결과를 수신하기 위한 리스너를 설정합니다.
+     * [기존 주석 유지] EditProfileFragment로부터 결과를 수신하기 위한 리스너를 설정합니다.
      */
     private void setupFragmentResultListener() {
         getParentFragmentManager().setFragmentResultListener("editProfileResult", this, (requestKey, bundle) -> {
             String newUsername = bundle.getString("newUsername");
             if (newUsername != null) {
                 tvGreeting.setText(String.format("%s님, 안녕하세요!", newUsername));
-                // [추가] Presenter에도 변경사항을 알려 데이터 일관성을 맞출 수 있음 (선택사항)
-                // presenter.updateUsername(newUsername);
             }
         });
     }
@@ -138,11 +136,11 @@ public class MyPageFragment extends Fragment implements MyPageContract.View {
         Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
     }
 
+    // [변경] executeLogout() -> navigateToLogin()
+    // 이제 이 메서드는 Presenter의 지시에 따라 화면 전환만 책임집니다.
     @Override
-    public void executeLogout() {
+    public void navigateToLogin() {
         if (getActivity() == null) return;
-        
-        AutoLoginManager.logout(requireContext());
         
         Intent intent = new Intent(getActivity(), LoginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -158,7 +156,7 @@ public class MyPageFragment extends Fragment implements MyPageContract.View {
     }
 
     /**
-     * [추가] Presenter의 지시에 따라 프로필 수정 화면으로 이동합니다. (Contract 구현)
+     * [기존 주석 유지] Presenter의 지시에 따라 프로필 수정 화면으로 이동합니다. (Contract 구현)
      */
     @Override
     public void navigateToEditProfile() {

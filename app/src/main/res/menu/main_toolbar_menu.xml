@@ -1,14 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item
-        android:id="@+id/action_profile"
-        app:actionLayout="@layout/profile_icon_layout"
-        android:title="프로필"
-        app:showAsAction="always" />
-
-    <item
-        android:id="@+id/action_logout"
-        android:title="로그아웃"
-        app:showAsAction="never" /> <!-- 우측 점3개 overflow에 표시 -->
+    <!-- [삭제] 프로필 아이콘과 로그아웃 메뉴를 삭제합니다. -->
+    <!-- 모든 프로필 관련 기능은 이제 MyPageFragment에서 처리됩니다. -->
 </menu>
