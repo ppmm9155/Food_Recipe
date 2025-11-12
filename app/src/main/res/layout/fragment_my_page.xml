@@ -4,16 +4,55 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="16dp"
     tools:context=".mypage.MyPageFragment">
 
-    <!-- [추가] 마이페이지 화면임을 표시하는 임시 텍스트뷰입니다. -->
+    <!-- [추가] 사용자의 프로필 사진을 표시하는 이미지뷰 (원형) -->
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/iv_user_profile"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:scaleType="centerCrop"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+        tools:src="@tools:sample/avatars" />
+
+    <!-- [변경] 로그인된 사용자를 위한 환영 문구를 표시하는 텍스트뷰 -->
     <TextView
-        android:layout_width="wrap_content"
+        android:id="@+id/tv_greeting"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="마이페이지 화면"
+        android:layout_marginStart="16dp"
+        android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@id/iv_user_profile"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/iv_user_profile"
+        app:layout_constraintTop_toTopOf="@id/iv_user_profile"
+        tools:text="Doll Machine님, 안녕하세요!" />
+
+    <!-- [변경] 프로필 영역과 메뉴 목록을 구분하는 구분선 (제약조건 변경) -->
+    <View
+        android:id="@+id/divider"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="16dp"
+        android:background="?attr/colorOutline"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/iv_user_profile" />
+
+    <!-- [기존 코드 유지] 마이페이지의 메뉴 목록을 표시할 리사이클러뷰 -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/mypage_menu_recycler_view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/divider"
+        tools:listitem="@layout/list_item_mypage_menu" /> <!-- [기존 코드 유지] -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>
