@@ -1,5 +1,6 @@
 package com.example.food_recipe.home;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,7 +22,7 @@ import com.example.food_recipe.model.Recipe;
 import java.util.List;
 
 /**
- * [변경] 중앙 인증 관리(AuthViewModel) 시스템을 사용하도록 리팩토링합니다.
+ * [기존 주석 유지]
  */
 public class HomeFragment extends Fragment implements HomeContract.View, RecipeAdapter.OnItemClickListener {
 
@@ -41,8 +42,7 @@ public class HomeFragment extends Fragment implements HomeContract.View, RecipeA
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // [추가] Presenter를 onCreate에서 생성하여 Fragment 재생성 시에도 유지되도록 함
-        presenter = new HomePresenter(requireContext());
+        presenter = new HomePresenter();
     }
 
     @Nullable
@@ -54,8 +54,6 @@ public class HomeFragment extends Fragment implements HomeContract.View, RecipeA
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        // [추가] Presenter에 View를 연결
         presenter.attachView(this);
 
         titleTextView = view.findViewById(R.id.fmain_home_title);
@@ -66,14 +64,10 @@ public class HomeFragment extends Fragment implements HomeContract.View, RecipeA
 
         setupRecyclerViews();
 
-        // [삭제] Presenter 생성 로직을 onCreate로 이동
         authViewModel = new ViewModelProvider(requireActivity()).get(AuthViewModel.class);
         observeAuthState();
     }
-    
-    /**
-     * [추가] AuthViewModel의 LiveData를 관찰하여 로그인 상태 변화에 따라 UI를 업데이트합니다.
-     */
+
     private void observeAuthState() {
         authViewModel.user.observe(getViewLifecycleOwner(), firebaseUser -> {
             presenter.onAuthStateChanged(firebaseUser != null);
@@ -151,7 +145,14 @@ public class HomeFragment extends Fragment implements HomeContract.View, RecipeA
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        // [변경] Presenter와의 연결을 끊어 메모리 누수를 방지. View가 재생성될 수 있으므로 onDestroyView에서 호출
         presenter.detachView();
+    }
+    
+    /**
+     * [수정] 무한 재귀 호출을 방지하기 위해 super.getContext()를 사용합니다.
+     */
+    @Override
+    public Context getContext() {
+        return super.getContext();
     }
 }

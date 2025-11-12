@@ -1,6 +1,7 @@
 package com.example.food_recipe.findps;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -37,12 +38,11 @@ public class FindPsActivity extends AppCompatActivity implements FindPsContract.
             return WindowInsetsCompat.CONSUMED;
         });
 
+        // --- ID와 코드 일치 (기존 코드 유지) ---
         Fs_editTextEmail = findViewById(R.id.fs_editTextEmail);
         Fs_buttonVerify = findViewById(R.id.fs_buttonVerify);
 
-        // [변경] Presenter 생성 시 View를 넘기지 않음
         presenter = new FindPsPresenter(new FindPsModel());
-        // [추가] Presenter에 View를 연결
         presenter.attachView(this);
 
         Fs_buttonVerify.setOnClickListener(v -> {
@@ -53,10 +53,11 @@ public class FindPsActivity extends AppCompatActivity implements FindPsContract.
 
     @Override
     protected void onDestroy() {
-        // [변경] Presenter와의 연결을 끊어서 메모리 누수를 방지
         presenter.detachView();
         super.onDestroy();
     }
+    
+    // --- 기존 메소드들 모두 유지 ---
 
     @Override
     public void showEmailEmptyError() {
@@ -91,5 +92,13 @@ public class FindPsActivity extends AppCompatActivity implements FindPsContract.
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
         finish();
+    }
+
+    /**
+     * [추가] BaseContract.View 인터페이스의 요구사항을 구현합니다.
+     */
+    @Override
+    public Context getContext() {
+        return this;
     }
 }

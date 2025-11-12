@@ -1,20 +1,18 @@
 package com.example.food_recipe.main;
 
-import android.content.Context;
-import com.example.food_recipe.utils.AutoLoginManager; // AutoLoginManager 사용을 위해 import
-
-import java.lang.ref.WeakReference;
+import com.example.food_recipe.base.BasePresenter;
 
 /**
  * [기존 주석 유지] 메인 화면의 비즈니스 로직을 처리하는 Presenter 입니다.
  */
-public class MainPresenter implements MainContract.Presenter {
+// [수정] BasePresenter를 상속받아 View의 생명주기를 안전하고 일관되게 관리합니다.
+public class MainPresenter extends BasePresenter<MainContract.View> implements MainContract.Presenter {
 
-    private final MainContract.Model model;
-    private WeakReference<MainContract.View> viewRef;
+    private MainContract.Model model;
 
-    public MainPresenter(Context context) {
-        this.model = new MainModel(context.getApplicationContext());
+    // [수정] 생성자에서 Context 주입을 제거하여 메모리 누수 위험을 방지합니다.
+    public MainPresenter() {
+        // Model 초기화는 View가 연결되는 시점에 안전하게 처리됩니다.
     }
 
     /**
@@ -24,31 +22,34 @@ public class MainPresenter implements MainContract.Presenter {
         this.model = model;
     }
 
-    @Override public void attach(MainContract.View v) { viewRef = new WeakReference<>(v); }
-    @Override public void detach() { viewRef = null; }
+    /**
+     * [추가] View가 연결될 때 Model을 초기화합니다.
+     * ApplicationContext를 사용하므로 Activity의 생명주기에 영향을 받지 않습니다.
+     */
+    @Override
+    public void attachView(MainContract.View view) {
+        super.attachView(view);
+        if (model == null) {
+            // ApplicationContext를 사용하여 Model을 생성함으로써 메모리 누수를 방지합니다.
+            model = new MainModel(getView().getContext().getApplicationContext());
+        }
+    }
 
     @Override
     public void start() {
         model.checkLoginStatus(new MainContract.Model.LoginStatusCallback() {
             @Override
             public void onLoggedIn() {
-                // [삭제] 툴바 메뉴가 삭제됨에 따라 관련 코드를 삭제합니다.
+                // [기존 로직 유지] 비어 있음
             }
 
             @Override
             public void onLoggedOut() {
-                MainContract.View v = getView();
-                if (v != null) v.navigateToLogin();
+                // [수정] isViewAttached()를 사용하여 NullPointerException을 방지합니다.
+                if (isViewAttached()) {
+                    getView().navigateToLogin();
+                }
             }
         });
-    }
-
-    // [삭제] 툴바 로그아웃 기능이 MyPage로 이전됨에 따라 관련 메서드를 삭제합니다.
-
-    /**
-     * [기존 주석 유지] WeakReference로 감싸진 View 객체를 안전하게 가져오기 위한 도우미 메서드입니다.
-     */
-    private MainContract.View getView() {
-        return viewRef != null ? viewRef.get() : null;
     }
 }

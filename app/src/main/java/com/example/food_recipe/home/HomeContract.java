@@ -1,41 +1,44 @@
 package com.example.food_recipe.home;
 
 import androidx.annotation.Nullable;
+
 import com.example.food_recipe.base.BaseContract;
 import com.example.food_recipe.model.Recipe;
+
 import java.util.List;
 
 /**
- * [추가] 홈 화면의 View, Presenter, Model 사이의 통신 규칙을 정의하는 계약(Contract) 인터페이스입니다.
+ * [변경] HomeFragment/Presenter의 역할 변경에 따라 Contract를 최신화합니다.
+ * OnFinishedListener를 사용하여 콜백을 단순화합니다.
  */
-// [변경] BaseContract를 상속받도록 수정
 public interface HomeContract {
 
-    // [변경] BaseContract.View를 상속받음
+    // [수정] 모든 View의 기본 계약인 BaseContract.View를 상속받도록 수정합니다.
     interface View extends BaseContract.View {
         void showRecommendedRecipes(List<Recipe> recipes);
         void showPopularRecipes(List<Recipe> recipes);
         void showRecentAndFavorites(List<Recipe> recipes);
         void showEmptyRecentAndFavorites();
-        void setUserName(@Nullable String userName);
+        void setUserName(@Nullable String username);
         void showError(String message);
     }
 
-    // [변경] BaseContract.Presenter를 상속받음
+    // [수정] 모든 Presenter의 기본 계약인 BaseContract.Presenter를 상속받도록 수정합니다.
     interface Presenter extends BaseContract.Presenter<View> {
-        void start();
-        void onAuthStateChanged(boolean isLoggedIn);
-        // [삭제] detachView()는 BaseContract.Presenter에 이미 정의되어 있으므로 제거
+        void start(); // 기존의 start 메서드는 이제 사용되지 않을 수 있지만, 호환성을 위해 유지
+        void onAuthStateChanged(boolean isLoggedIn); // 로그인 상태 변경을 처리할 새 메서드
     }
 
     interface Model {
+        // [변경] 범용 콜백 리스너를 사용하여 코드를 단순화합니다.
         interface OnFinishedListener<T> {
             void onSuccess(T result);
             void onError(Exception e);
         }
+
         void getUserName(OnFinishedListener<String> callback);
-        void getRecommendedRecipes(OnFinishedListener<List<Recipe>> callback);
         void getPopularRecipes(OnFinishedListener<List<Recipe>> callback);
+        void getRecommendedRecipes(OnFinishedListener<List<Recipe>> callback);
         void getRecentAndFavoriteRecipes(OnFinishedListener<List<Recipe>> callback);
     }
 }

@@ -1,30 +1,45 @@
 package com.example.food_recipe.mypage;
 
-import android.content.Context;
-
 import com.example.food_recipe.base.BasePresenter;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 /**
- * [기존 주석 유지] MyPage의 비즈니스 로직을 처리하는 Presenter. BasePresenter를 상속받습니다.
- * [변경] 로그아웃과 계정 탈퇴의 성공 콜백을 분리하여 처리합니다.
+ * [기존 주석 유지]
  */
 public class MyPagePresenter extends BasePresenter<MyPageContract.View> implements MyPageContract.Presenter, MyPageContract.Model.OnFinishedListener {
 
-    private final FirebaseAuth firebaseAuth;
-    private final MyPageContract.Model model;
+    private FirebaseAuth firebaseAuth;
+    private MyPageContract.Model model;
 
-    public MyPagePresenter(Context context) {
-        this.firebaseAuth = FirebaseAuth.getInstance();
-        this.model = new MyPageModel(context);
+    /**
+     * [수정] 생성자에서 Context 주입을 제거하여 메모리 누수 위험을 방지합니다.
+     */
+    public MyPagePresenter() {
+        // FirebaseAuth와 Model 초기화는 View가 연결되는 시점에 안전하게 처리됩니다.
+    }
+    
+    /**
+     * [추가] 단위 테스트를 할 때 가짜(Mock) Model을 주입하기 위한 보조 생성자입니다.
+     */
+    public MyPagePresenter(MyPageContract.Model model, FirebaseAuth auth) {
+        this.model = model;
+        this.firebaseAuth = auth;
     }
 
+    /**
+     * [수정] View가 연결될 때 FirebaseAuth와 Model을 초기화합니다.
+     */
     @Override
     public void attachView(MyPageContract.View view) {
         super.attachView(view);
+        if (model == null) {
+            this.firebaseAuth = FirebaseAuth.getInstance();
+            this.model = new MyPageModel(getView().getContext());
+        }
     }
 
+    // --- 기존 로직 모두 그대로 유지 ---
     @Override
     public void loadUserData() {
         if (isViewAttached()) {
@@ -69,9 +84,6 @@ public class MyPagePresenter extends BasePresenter<MyPageContract.View> implemen
         }
     }
 
-    /**
-     * [추가] 로그아웃 성공 시 Model로부터 호출됩니다.
-     */
     @Override
     public void onLogoutSuccess() {
         if (isViewAttached()) {
@@ -80,9 +92,6 @@ public class MyPagePresenter extends BasePresenter<MyPageContract.View> implemen
         }
     }
 
-    /**
-     * [추가] 계정 탈퇴 성공 시 Model로부터 호출됩니다.
-     */
     @Override
     public void onDeleteAccountSuccess() {
         if (isViewAttached()) {
@@ -91,9 +100,6 @@ public class MyPagePresenter extends BasePresenter<MyPageContract.View> implemen
         }
     }
 
-    /**
-     * [기존 주석 유지] 작업 실패 시 Model로부터 호출됩니다.
-     */
     @Override
     public void onError(String message) {
         if (isViewAttached()) {

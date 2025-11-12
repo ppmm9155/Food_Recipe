@@ -17,7 +17,6 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.example.food_recipe.findid.FindIdActivity;
 import com.example.food_recipe.findps.FindPsActivity;
 import com.example.food_recipe.join.JoinActivity;
 

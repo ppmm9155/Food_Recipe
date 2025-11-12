@@ -44,22 +44,16 @@ import java.util.Set;
 public class MainActivity extends AppCompatActivity implements MainContract.View {
 
     private MainContract.Presenter presenter;
-    // [삭제] 툴바 메뉴 관련 코드를 모두 삭제합니다.
-
     private AuthViewModel authViewModel;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener authStateListener;
 
-    // [추가] 알림 권한 요청을 처리하기 위한 ActivityResultLauncher를 등록합니다.
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
-                    // 사용자가 권한을 허용한 경우
                     Log.d("Permission", "알림 권한이 허용되었습니다.");
                 } else {
-                    // 사용자가 권한을 거부한 경우
                     Log.d("Permission", "알림 권한이 거부되었습니다.");
-                    // (선택사항) 사용자에게 왜 알림이 필요한지 설명하는 UI를 보여줄 수 있습니다.
                 }
             });
 
@@ -76,8 +70,9 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
 
         setContentView(R.layout.activity_main);
 
-        presenter = new MainPresenter(this);
-        presenter.attach(this);
+        // [수정] 변경된 Presenter 생성 및 View 연결 방식을 적용합니다.
+        presenter = new MainPresenter();
+        presenter.attachView(this);
 
         MaterialToolbar toolbar = findViewById(R.id.main_toolbar);
         setSupportActionBar(toolbar);
@@ -118,40 +113,16 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
             }
         });
 
-        // [추가] 알림 권한 요청 로직을 호출합니다.
         requestNotificationPermission();
     }
 
-    /**
-     * [추가] Android 13 (API 33) 이상에서 POST_NOTIFICATIONS 권한을 요청합니다.
-     */
     private void requestNotificationPermission() {
-        // 안드로이드 13 이상 버전에서만 권한 요청을 진행합니다.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            // 이미 권한이 부여되었는지 확인합니다.
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
                     PackageManager.PERMISSION_GRANTED) {
-                // 권한이 이미 있으면 아무것도 하지 않습니다.
-                Log.d("Permission", "알림 권한이 이미 부여되어 있습니다.");
-            } else {
-                // 권한이 없으면 사용자에게 권한을 요청합니다.
                 requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
             }
         }
-    }
-
-    private void showCustomToast(String message) {
-        LayoutInflater inflater = getLayoutInflater();
-        View layout = inflater.inflate(R.layout.custom_toast, null);
-
-        TextView text = layout.findViewById(R.id.toast_text);
-        text.setText(message);
-
-        Toast toast = new Toast(getApplicationContext());
-        toast.setGravity(Gravity.BOTTOM, 0, 200);
-        toast.setDuration(Toast.LENGTH_SHORT);
-        toast.setView(layout);
-        toast.show();
     }
 
     @Override
@@ -172,11 +143,10 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
 
     @Override
     protected void onDestroy() {
-        if (presenter != null) presenter.detach();
+        // [수정] 변경된 BasePresenter의 detachView 메서드를 호출합니다.
+        if (presenter != null) presenter.detachView();
         super.onDestroy();
     }
-
-    // [삭제] 툴바 메뉴 관련 코드를 모두 삭제했으며, Contract 변경에 따라 불필요해진 메서드를 완전히 삭제합니다.
 
     @Override
     public void navigateToLogin() {

@@ -10,9 +10,16 @@ import com.example.food_recipe.base.BasePresenter;
 // [변경] BasePresenter를 상속받아 View 생명주기를 안전하게 관리
 public class SplashPresenter extends BasePresenter<SplashContract.View> implements SplashContract.Presenter {
 
-    private final SplashContract.Model model;
+    private SplashContract.Model model;
 
-    // [변경] 생성자에서 View를 받지 않음
+    // [수정] 생성자에서 Context 주입을 제거하여 메모리 누수 위험을 방지합니다.
+    public SplashPresenter() {
+        // Model 초기화는 View가 연결되는 시점에 안전하게 처리됩니다.
+    }
+    
+    /**
+     * [추가] 단위 테스트를 할 때 가짜(Mock) Model을 주입하기 위한 보조 생성자입니다.
+     */
     public SplashPresenter(SplashContract.Model model) {
         this.model = model;
     }
@@ -22,6 +29,9 @@ public class SplashPresenter extends BasePresenter<SplashContract.View> implemen
     @Override
     public void attachView(SplashContract.View view) {
         super.attachView(view);
+        if (model == null) {
+            model = new SplashModel(getView().getContext());
+        }
         if (isViewAttached()) {
             getView().log("Presenter attached");
         }
