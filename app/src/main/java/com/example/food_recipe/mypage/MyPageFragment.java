@@ -1,5 +1,6 @@
 package com.example.food_recipe.mypage;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -11,7 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.fragment.NavHostFragment; // [추가] NavController import
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -20,14 +21,13 @@ import com.example.food_recipe.R;
 import com.example.food_recipe.adapter.MyPageMenuAdapter;
 import com.example.food_recipe.findps.FindPsActivity;
 import com.example.food_recipe.login.LoginActivity;
-import com.example.food_recipe.utils.AutoLoginManager;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.auth.FirebaseUser;
 import java.util.Arrays;
 import java.util.List;
 
 /**
- * [기존 주석 유지] 마이페이지 화면을 표시하는 프래그먼트. MVP 패턴의 View 역할을 합니다.
+ * [기존 주석 유지]
  */
 public class MyPageFragment extends Fragment implements MyPageContract.View {
 
@@ -40,7 +40,6 @@ public class MyPageFragment extends Fragment implements MyPageContract.View {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // [기존 주석 유지] FragmentResultListener 등록
         setupFragmentResultListener();
     }
 
@@ -54,7 +53,7 @@ public class MyPageFragment extends Fragment implements MyPageContract.View {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        presenter = new MyPagePresenter(getContext());
+        presenter = new MyPagePresenter();
         presenter.attachView(this);
 
         ivUserProfile = view.findViewById(R.id.iv_user_profile);
@@ -83,9 +82,6 @@ public class MyPageFragment extends Fragment implements MyPageContract.View {
         });
     }
 
-    /**
-     * [기존 주석 유지] EditProfileFragment로부터 결과를 수신하기 위한 리스너를 설정합니다.
-     */
     private void setupFragmentResultListener() {
         getParentFragmentManager().setFragmentResultListener("editProfileResult", this, (requestKey, bundle) -> {
             String newUsername = bundle.getString("newUsername");
@@ -136,8 +132,6 @@ public class MyPageFragment extends Fragment implements MyPageContract.View {
         Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
     }
 
-    // [변경] executeLogout() -> navigateToLogin()
-    // 이제 이 메서드는 Presenter의 지시에 따라 화면 전환만 책임집니다.
     @Override
     public void navigateToLogin() {
         if (getActivity() == null) return;
@@ -155,11 +149,16 @@ public class MyPageFragment extends Fragment implements MyPageContract.View {
         }
     }
 
-    /**
-     * [기존 주석 유지] Presenter의 지시에 따라 프로필 수정 화면으로 이동합니다. (Contract 구현)
-     */
     @Override
     public void navigateToEditProfile() {
         NavHostFragment.findNavController(this).navigate(R.id.action_myPageFragment_to_editProfileFragment);
+    }
+    
+    /**
+     * [수정] 무한 재귀 호출을 방지하기 위해 super.getContext()를 사용합니다.
+     */
+    @Override
+    public Context getContext() {
+        return super.getContext();
     }
 }

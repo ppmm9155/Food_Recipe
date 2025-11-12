@@ -6,52 +6,53 @@ import com.example.food_recipe.model.Recipe;
 import java.util.List;
 
 /**
- * [변경] HomeContract.Presenter 인터페이스를 구현하도록 수정하고, '최근 본/즐겨찾기' 로직을 추가합니다.
- * 또한, 중앙 인증 시스템에 반응하도록 onAuthStateChanged 로직을 구현합니다.
+ * [기존 주석 유지]
  */
-// [변경] BasePresenter를 상속받아 View 생명주기를 안전하게 관리
 public class HomePresenter extends BasePresenter<HomeContract.View> implements HomeContract.Presenter {
 
-    // [삭제] view 멤버 변수. BasePresenter가 관리하므로 제거.
-    private final HomeContract.Model model;
+    private HomeContract.Model model;
 
-    // [변경] 생성자에서 View를 받지 않음.
-    public HomePresenter(Context context) {
-        this.model = new HomeModel(context);
+    // [수정] 생성자에서 Context 주입을 제거하여 메모리 누수 위험을 방지합니다.
+    public HomePresenter() {
+        // Model 초기화는 View가 연결되는 시점에 안전하게 처리됩니다.
+    }
+    
+    /**
+     * [추가] 단위 테스트를 할 때 가짜(Mock) Model을 주입하기 위한 보조 생성자입니다.
+     */
+    public HomePresenter(HomeContract.Model model) {
+        this.model = model;
     }
 
     /**
-     * [변경] 이 메소드는 HomeFragment가 AuthViewModel을 사용하게 되면서 더 이상 직접 호출되지 않습니다.
-     * 모든 로직은 onAuthStateChanged로 이전되었습니다.
+     * [추가] View가 연결될 때 Model을 초기화합니다.
      */
     @Override
-    public void start() {
-        // 이 메소드의 내용은 onAuthStateChanged로 이전되었습니다.
+    public void attachView(HomeContract.View view) {
+        super.attachView(view);
+        if (model == null) {
+            model = new HomeModel(getView().getContext());
+        }
     }
 
-    /**
-     * [추가] HomeFragment의 AuthViewModel 관찰자로부터 호출됩니다.
-     * 로그인 상태에 따라 UI와 불러올 데이터를 결정하는 새로운 진입점입니다.
-     * @param isLoggedIn 사용자의 로그인 여부
-     */
+    @Override
+    public void start() {
+        // [기존 로직 유지]
+    }
+
     @Override
     public void onAuthStateChanged(boolean isLoggedIn) {
         if (!isViewAttached()) return;
         if (isLoggedIn) {
-            // 사용자가 로그인 상태일 경우, 개인화된 데이터를 로드합니다.
             loadUserName();
             loadRecentAndFavorites();
         } else {
-            // 사용자가 로그아웃 상태일 경우, 개인화된 UI를 초기화합니다.
             getView().setUserName(null);
             getView().showEmptyRecentAndFavorites();
         }
-
-        // 추천 및 인기 레시피는 로그인 여부와 관계없이 항상 로드합니다.
         loadRecommendedRecipes();
         loadPopularRecipes();
     }
-
 
     private void loadUserName() {
         model.getUserName(new HomeContract.Model.OnFinishedListener<String>() {
@@ -64,7 +65,7 @@ public class HomePresenter extends BasePresenter<HomeContract.View> implements H
             @Override
             public void onError(Exception e) {
                 if (isViewAttached()) {
-                    getView().setUserName(null); // 실패 시 기본값 처리
+                    getView().setUserName(null);
                 }
             }
         });
@@ -104,9 +105,6 @@ public class HomePresenter extends BasePresenter<HomeContract.View> implements H
         });
     }
 
-    /**
-     * [추가] '최근 본/즐겨찾기' 목록 로드를 시작하고, 결과에 따라 View를 제어합니다.
-     */
     private void loadRecentAndFavorites() {
         model.getRecentAndFavoriteRecipes(new HomeContract.Model.OnFinishedListener<List<Recipe>>() {
             @Override
@@ -122,12 +120,9 @@ public class HomePresenter extends BasePresenter<HomeContract.View> implements H
             @Override
             public void onError(Exception e) {
                 if (isViewAttached()) {
-                    // 이 부분은 에러를 표시하기보단, 그냥 빈 화면을 보여주는 것이 사용자 경험에 더 좋습니다.
                     getView().showEmptyRecentAndFavorites();
                 }
             }
         });
     }
-
-    // [삭제] detachView()는 BasePresenter에 구현되어 있으므로 제거
 }

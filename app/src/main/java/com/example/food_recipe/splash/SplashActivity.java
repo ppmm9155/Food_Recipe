@@ -2,6 +2,7 @@
 package com.example.food_recipe.splash;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,7 +14,7 @@ import com.example.food_recipe.main.MainActivity;
 
 /**
  *  스플래시 화면 (View)
- * [변경] MVP 패턴을 적용하여 Presenter에게 모든 로직 처리를 위임합니다.
+ * [기존 주석 유지]
  */
 @SuppressLint("CustomSplashScreen")
 public class SplashActivity extends AppCompatActivity implements SplashContract.View {
@@ -26,23 +27,20 @@ public class SplashActivity extends AppCompatActivity implements SplashContract.
         SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
 
-        // [변경] Model과 Presenter를 생성하고 View를 연결합니다.
-        SplashContract.Model model = new SplashModel(this);
-        presenter = new SplashPresenter(model);
+        // [수정] 변경된 Presenter 생성 방식을 적용합니다. Context 주입이 필요 없습니다.
+        presenter = new SplashPresenter();
         presenter.attachView(this);
 
-        // [변경] Presenter에게 시작을 알립니다.
         presenter.start();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // [추가] Activity가 파괴될 때 Presenter와의 연결을 끊습니다.
         presenter.detachView();
     }
 
-    // ===== SplashContract.View 구현부 =====
+    // ===== SplashContract.View 구현부 (기존 코드 유지) =====
 
     @Override
     public void navigateToMain() {
@@ -60,12 +58,19 @@ public class SplashActivity extends AppCompatActivity implements SplashContract.
 
     @Override
     public void showLoading(boolean show) {
-        // 스플래시 화면 자체는 로딩 상태를 시각적으로 표현할 필요가 없으므로 로그만 남깁니다.
         log("showLoading: " + show);
     }
 
     @Override
     public void log(String msg) {
         Log.d(TAG, msg);
+    }
+
+    /**
+     * [추가] BaseContract.View 인터페이스의 요구사항을 구현합니다.
+     */
+    @Override
+    public Context getContext() {
+        return this;
     }
 }

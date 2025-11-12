@@ -1,31 +1,36 @@
 package com.example.food_recipe.recipedetail;
 
-import android.content.Context;
 import com.example.food_recipe.base.BasePresenter;
 import com.example.food_recipe.model.Recipe;
 import com.example.food_recipe.utils.RecentRecipeManager;
 
 /**
- * [변경] 중앙 인증 시스템에 반응하도록 로직을 수정합니다.
+ * [기존 주석 유지]
  */
-// [변경] BasePresenter를 상속받아 View 생명주기를 안전하게 관리
 public class RecipeDetailPresenter extends BasePresenter<RecipeDetailContract.View> implements RecipeDetailContract.Presenter {
 
-    private final RecipeDetailContract.Model model;
+    private RecipeDetailContract.Model model;
     private Recipe currentRecipe;
-    private final Context context;
+    // [수정] Context 멤버 변수를 제거하여 메모리 누수 위험을 방지합니다.
 
-    // [변경] 생성자에서 View를 받지 않음
-    public RecipeDetailPresenter(Context context) {
+    /**
+     * [수정] 생성자에서 Context 주입을 제거합니다.
+     */
+    public RecipeDetailPresenter() {
         this.model = new RecipeDetailModel();
-        this.context = context;
+    }
+    
+    /**
+     * [추가] 단위 테스트를 할 때 가짜(Mock) Model을 주입하기 위한 보조 생성자입니다.
+     */
+    public RecipeDetailPresenter(RecipeDetailContract.Model model) {
+        this.model = model;
     }
 
     @Override
     public void loadRecipe(String rcpSno, boolean isLoggedIn) {
-        if (isViewAttached()) {
-            getView().showLoading();
-        }
+        if (!isViewAttached()) return;
+        getView().showLoading();
 
         model.getRecipeDetails(rcpSno, new RecipeDetailContract.Model.OnFinishedListener<Recipe>() {
             @Override
@@ -41,7 +46,8 @@ public class RecipeDetailPresenter extends BasePresenter<RecipeDetailContract.Vi
                         getView().hideLoading();
                     }
 
-                    RecentRecipeManager.addRecentRecipe(context, recipe.getId());
+                    // [수정] View가 살아있을 때만 안전하게 Context를 가져와 사용합니다.
+                    RecentRecipeManager.addRecentRecipe(getView().getContext(), recipe.getId());
                 }
             }
 
@@ -105,6 +111,4 @@ public class RecipeDetailPresenter extends BasePresenter<RecipeDetailContract.Vi
             }
         });
     }
-
-    // [삭제] detachView는 BasePresenter에 이미 정의되어 있으므로 제거
 }
