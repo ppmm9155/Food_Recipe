@@ -43,24 +43,24 @@ public class MyPagePresenter extends BasePresenter<MyPageContract.View> implemen
     }
 
     /**
-     * [변경] 메뉴 아이템 클릭 이벤트를 처리합니다. '비밀번호 변경' 클릭 시 화면 전환을 지시합니다.
+     * [변경] '프로필 수정' 메뉴 클릭 시 화면 전환을 지시하도록 수정합니다.
      */
     @Override
     public void handleMenuClick(String menuTitle) {
         if (!isViewAttached()) return;
 
         switch (menuTitle) {
+            case "프로필 수정": // [변경] '프로필 수정' 케이스 처리
+                getView().navigateToEditProfile(); // [변경] View에 화면 전환 지시
+                break;
+            case "비밀번호 변경":
+                getView().navigateToFindPassword();
+                break;
             case "로그아웃":
                 getView().showLogoutDialog();
                 break;
             case "계정 탈퇴":
                 getView().showDeleteAccountDialog();
-                break;
-            case "비밀번호 변경": // [변경] '비밀번호 변경' 케이스 분리
-                getView().navigateToFindPassword(); // [변경] View에 화면 전환 지시
-                break;
-            case "프로필 수정":
-                getView().showToast("준비 중인 기능입니다.");
                 break;
         }
     }

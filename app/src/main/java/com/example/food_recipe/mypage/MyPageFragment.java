@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.fragment.NavHostFragment; // [추가] NavController import
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -35,6 +36,13 @@ public class MyPageFragment extends Fragment implements MyPageContract.View {
     private TextView tvGreeting;
     private RecyclerView mypageMenuRecyclerView;
     private final List<String> menuItems = Arrays.asList("프로필 수정", "비밀번호 변경", "로그아웃", "계정 탈퇴");
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        // [추가] FragmentResultListener 등록
+        setupFragmentResultListener();
+    }
 
     @Nullable
     @Override
@@ -72,6 +80,20 @@ public class MyPageFragment extends Fragment implements MyPageContract.View {
         adapter.setOnItemClickListener(position -> {
             String selectedMenu = menuItems.get(position);
             presenter.handleMenuClick(selectedMenu);
+        });
+    }
+
+    /**
+     * [추가] EditProfileFragment로부터 결과를 수신하기 위한 리스너를 설정합니다.
+     */
+    private void setupFragmentResultListener() {
+        getParentFragmentManager().setFragmentResultListener("editProfileResult", this, (requestKey, bundle) -> {
+            String newUsername = bundle.getString("newUsername");
+            if (newUsername != null) {
+                tvGreeting.setText(String.format("%s님, 안녕하세요!", newUsername));
+                // [추가] Presenter에도 변경사항을 알려 데이터 일관성을 맞출 수 있음 (선택사항)
+                // presenter.updateUsername(newUsername);
+            }
         });
     }
 
@@ -116,9 +138,6 @@ public class MyPageFragment extends Fragment implements MyPageContract.View {
         Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
     }
 
-    /**
-     * [기존 주석 유지] Presenter의 지시에 따라 모든 로그아웃 절차를 수행하고 로그인 화면으로 이동합니다. (Contract 구현)
-     */
     @Override
     public void executeLogout() {
         if (getActivity() == null) return;
@@ -130,14 +149,19 @@ public class MyPageFragment extends Fragment implements MyPageContract.View {
         startActivity(intent);
     }
 
-    /**
-     * [추가] Presenter의 지시에 따라 비밀번호 변경(찾기) 화면으로 이동합니다. (Contract 구현)
-     */
     @Override
     public void navigateToFindPassword() {
         if (getActivity() != null) {
             Intent intent = new Intent(getActivity(), FindPsActivity.class);
             startActivity(intent);
         }
+    }
+
+    /**
+     * [추가] Presenter의 지시에 따라 프로필 수정 화면으로 이동합니다. (Contract 구현)
+     */
+    @Override
+    public void navigateToEditProfile() {
+        NavHostFragment.findNavController(this).navigate(R.id.action_myPageFragment_to_editProfileFragment);
     }
 }

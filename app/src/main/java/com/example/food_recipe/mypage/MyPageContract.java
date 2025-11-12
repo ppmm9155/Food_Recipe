@@ -38,9 +38,14 @@ public interface MyPageContract {
         void executeLogout();
 
         /**
-         * [추가] 비밀번호 변경(찾기) 화면으로 이동합니다.
+         * [기존 주석 유지] 비밀번호 변경(찾기) 화면으로 이동합니다.
          */
         void navigateToFindPassword();
+
+        /**
+         * [추가] 프로필 수정 화면으로 이동합니다.
+         */
+        void navigateToEditProfile();
     }
 
     /**
