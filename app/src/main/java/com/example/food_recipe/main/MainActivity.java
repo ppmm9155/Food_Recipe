@@ -100,6 +100,8 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
             topLevelDestinations.add(R.id.nav_search);
             topLevelDestinations.add(R.id.nav_favorites);
             topLevelDestinations.add(R.id.nav_pantry);
+            // [추가] 마이페이지도 최상위 목적지에 포함합니다.
+            topLevelDestinations.add(R.id.nav_mypage);
 
             if (topLevelDestinations.contains(destination.getId())) {
                 bottomNav.setVisibility(View.VISIBLE);

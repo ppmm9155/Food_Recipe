@@ -51,4 +51,11 @@
             app:argType="string" />
     </fragment>
 
+    <!-- [추가] 마이페이지 화면 목적지 -->
+    <fragment
+        android:id="@+id/nav_mypage"
+        android:name="com.example.food_recipe.mypage.MyPageFragment"
+        android:label="마이페이지"
+        tools:layout="@layout/fragment_my_page" />
+
 </navigation>
