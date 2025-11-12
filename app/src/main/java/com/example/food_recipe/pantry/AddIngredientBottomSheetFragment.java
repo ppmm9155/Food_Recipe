@@ -1,6 +1,7 @@
 package com.example.food_recipe.pantry;
 
 import android.app.DatePickerDialog;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,12 +11,14 @@ import android.widget.Button;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
 import com.example.food_recipe.R;
 import com.example.food_recipe.main.AuthViewModel;
+import com.example.food_recipe.model.PantryItem;
 import com.example.food_recipe.utils.StringUtils;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.chip.Chip;
@@ -28,12 +31,14 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * 재료 추가 기능을 담당하는 BottomSheet 형태의 프래그먼트입니다.
+ * [기존 주석 유지] 재료 추가 기능을 담당하는 BottomSheet 형태의 프래그먼트입니다.
+ * [변경] 재료 편집 기능이 추가되어, '추가 모드'와 '편집 모드' 두 가지로 동작합니다.
  */
 public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment implements AddIngredientContract.View {
 
     public static final String REQUEST_KEY_INGREDIENT_ADDED = "request_key_ingredient_added";
     public static final String BUNDLE_KEY_INGREDIENT_ADDED = "bundle_key_ingredient_added";
+    public static final String ARG_PANTRY_ITEM = "pantry_item_to_edit";
 
     private TextInputEditText etName;
     private ChipGroup chipGroupCategory;
@@ -42,16 +47,30 @@ public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment 
     private RadioGroup radioGroupStorage;
     private Button btnExpiration;
     private Button btnSave;
+    private TextView tvTitle;
 
     private Calendar selectedExpirationDate;
     private AddIngredientContract.Presenter mPresenter;
     private AuthViewModel authViewModel;
 
+    private PantryItem itemToEdit;
+    private boolean isEditMode = false;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // [추가] Presenter를 onCreate에서 생성
         mPresenter = new AddIngredientPresenter(PantryRepository.getInstance());
+
+        if (getArguments() != null) {
+            // [기존 주석 유지] getSerializable의 불안전한 사용 경고를 해결하기 위해 버전별로 분기 처리합니다.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                itemToEdit = getArguments().getSerializable(ARG_PANTRY_ITEM, PantryItem.class);
+            } else {
+                // [기존 주석 유지] 구버전 API를 사용하되, 경고를 명시적으로 무시합니다.
+                itemToEdit = (PantryItem) getArguments().getSerializable(ARG_PANTRY_ITEM);
+            }
+            isEditMode = itemToEdit != null;
+        }
     }
 
     @Nullable
@@ -64,13 +83,10 @@ public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // [추가] Presenter에 View를 연결
         mPresenter.attachView(this);
-
         authViewModel = new ViewModelProvider(requireActivity()).get(AuthViewModel.class);
 
-        // [삭제] Presenter 생성 로직을 onCreate로 이동
-
+        tvTitle = view.findViewById(R.id.add_ingredient_title);
         etName = view.findViewById(R.id.add_ingredient_et_name);
         chipGroupCategory = view.findViewById(R.id.add_ingredient_chip_group_category);
         etQuantity = view.findViewById(R.id.add_ingredient_et_quantity);
@@ -83,6 +99,10 @@ public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment 
         setupUnitSpinner();
         setupExpirationDateButton();
 
+        if (isEditMode) {
+            populateUiWithData();
+        }
+
         btnSave.setOnClickListener(v -> {
             if (authViewModel.user.getValue() == null) {
                 Toast.makeText(getContext(), "로그인 후 다시 시도해주세요.", Toast.LENGTH_SHORT).show();
@@ -92,6 +112,13 @@ public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment 
 
             String name = StringUtils.normalizeIngredientName(etName.getText().toString());
             String quantityStr = etQuantity.getText().toString().trim();
+
+            // [추가] 수량이 비어있을 경우 NumberFormatException을 방지하기 위한 방어 코드
+            if (quantityStr.isEmpty()) {
+                showQuantityEmptyError();
+                return;
+            }
+
             String unit = spinnerUnit.getSelectedItem().toString();
 
             Chip selectedChip = getView().findViewById(chipGroupCategory.getCheckedChipId());
@@ -101,14 +128,73 @@ public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment 
             RadioButton selectedRadioButton = getView().findViewById(selectedStorageId);
             String storage = selectedRadioButton != null ? selectedRadioButton.getText().toString() : "냉장";
 
-            mPresenter.saveIngredient(name, quantityStr, category, unit, storage, selectedExpirationDate);
+            if (isEditMode) {
+                itemToEdit.setName(name);
+                itemToEdit.setQuantity(Double.parseDouble(quantityStr));
+                itemToEdit.setUnit(unit);
+                itemToEdit.setCategory(category);
+                itemToEdit.setStorage(storage);
+                if (selectedExpirationDate != null) {
+                    itemToEdit.setExpirationDate(selectedExpirationDate.getTime());
+                }
+                mPresenter.updateIngredient(itemToEdit);
+            } else {
+                mPresenter.saveIngredient(name, quantityStr, category, unit, storage, selectedExpirationDate);
+            }
         });
+    }
+
+    /**
+     * [기존 주석 유지] 편집 모드일 때, 전달받은 PantryItem 데이터로 UI 필드를 채우는 메서드입니다.
+     * [기존 주석 유지] SpinnerAdapter의 불안전한 캐스팅 경고를 무시하도록 어노테이션을 추가합니다.
+     */
+    @SuppressWarnings("unchecked")
+    private void populateUiWithData() {
+        tvTitle.setText("재료 편집");
+        btnSave.setText("수정");
+
+        etName.setText(itemToEdit.getName());
+        etQuantity.setText(String.valueOf(itemToEdit.getQuantity()));
+
+        for (int i = 0; i < chipGroupCategory.getChildCount(); i++) {
+            Chip chip = (Chip) chipGroupCategory.getChildAt(i);
+            if (chip.getText().toString().equals(itemToEdit.getCategory())) {
+                chip.setChecked(true);
+                break;
+            }
+        }
+
+        ArrayAdapter<String> adapter = (ArrayAdapter<String>) spinnerUnit.getAdapter();
+        for (int i = 0; i < adapter.getCount(); i++) {
+            if (adapter.getItem(i).equals(itemToEdit.getUnit())) {
+                spinnerUnit.setSelection(i);
+                break;
+            }
+        }
+
+        switch (itemToEdit.getStorage()) {
+            case "냉동":
+                radioGroupStorage.check(R.id.add_ingredient_radio_frozen);
+                break;
+            case "실온":
+                radioGroupStorage.check(R.id.add_ingredient_radio_room_temp);
+                break;
+            case "냉장":
+            default:
+                radioGroupStorage.check(R.id.add_ingredient_radio_refrigerated);
+                break;
+        }
+
+        if (itemToEdit.getExpirationDate() != null) {
+            selectedExpirationDate = Calendar.getInstance();
+            selectedExpirationDate.setTime(itemToEdit.getExpirationDate());
+            updateExpirationDateButtonText();
+        }
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        // [추가] Presenter와의 연결을 끊어 메모리 누수를 방지
         mPresenter.detachView();
     }
 
@@ -120,7 +206,7 @@ public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment 
             chip.setCheckable(true);
             chipGroupCategory.addView(chip);
         }
-        if (chipGroupCategory.getChildCount() > 0) {
+        if (!isEditMode && chipGroupCategory.getChildCount() > 0) {
             ((Chip) chipGroupCategory.getChildAt(0)).setChecked(true);
         }
     }
@@ -133,7 +219,9 @@ public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment 
     }
 
     private void setupExpirationDateButton() {
-        selectedExpirationDate = Calendar.getInstance();
+        if (selectedExpirationDate == null) {
+            selectedExpirationDate = Calendar.getInstance();
+        }
         updateExpirationDateButtonText();
 
         btnExpiration.setOnClickListener(v -> {
@@ -171,7 +259,8 @@ public class AddIngredientBottomSheetFragment extends BottomSheetDialogFragment 
 
     @Override
     public void onSaveSuccess(String ingredientName) {
-        Toast.makeText(getContext(), ingredientName + " 추가 완료!", Toast.LENGTH_SHORT).show();
+        String message = isEditMode ? ingredientName + " 수정 완료!" : ingredientName + " 추가 완료!";
+        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
     }
 
     @Override
