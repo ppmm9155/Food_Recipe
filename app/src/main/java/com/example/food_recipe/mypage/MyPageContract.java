@@ -12,39 +12,12 @@ public interface MyPageContract {
      * [기존 주석 유지] View가 구현해야 하는 메서드 목록. BaseContract.View를 상속받습니다.
      */
     interface View extends BaseContract.View {
-        /**
-         * [기존 주석 유지] 사용자 정보를 화면에 표시합니다.
-         */
         void showUserInfo(FirebaseUser user);
-
-        /**
-         * [기존 주석 유지] 로그아웃 확인 다이얼로그를 표시합니다.
-         */
         void showLogoutDialog();
-
-        /**
-         * [기존 주석 유지] 계정 탈퇴 확인 다이얼로그를 표시합니다.
-         */
         void showDeleteAccountDialog();
-
-        /**
-         * [기존 주석 유지] 간단한 안내 메시지를 Toast로 표시합니다.
-         */
         void showToast(String message);
-
-        /**
-         * [기존 주석 유지] AutoLoginManager를 포함한 모든 로그아웃 절차를 수행하고 로그인 화면으로 이동합니다.
-         */
         void executeLogout();
-
-        /**
-         * [기존 주석 유지] 비밀번호 변경(찾기) 화면으로 이동합니다.
-         */
         void navigateToFindPassword();
-
-        /**
-         * [추가] 프로필 수정 화면으로 이동합니다.
-         */
         void navigateToEditProfile();
     }
 
@@ -52,24 +25,34 @@ public interface MyPageContract {
      * [기존 주석 유지] Presenter가 구현해야 하는 메서드 목록. BaseContract.Presenter를 상속받습니다.
      */
     interface Presenter extends BaseContract.Presenter<View> {
-        /**
-         * [기존 주석 유지] 현재 로그인된 사용자 정보를 로드하도록 요청합니다.
-         */
         void loadUserData();
-
-        /**
-         * [기존 주석 유지] 메뉴 아이템 클릭 이벤트를 처리합니다.
-         */
         void handleMenuClick(String menuTitle);
-
-        /**
-         * [기존 주석 유지] 로그아웃을 실행합니다.
-         */
         void logout();
+        void deleteAccount();
+    }
+
+    /**
+     * [추가] Model이 구현해야 하는 메서드 목록.
+     */
+    interface Model {
+        /**
+         * [추가] 계정 탈퇴의 모든 과정을 처리하고, 완료 후 리스너를 통해 결과를 알립니다.
+         */
+        void deleteAccount(OnFinishedListener listener);
 
         /**
-         * [기존 주석 유지] 계정 탈퇴를 실행합니다.
+         * [추가] Model의 작업 완료 후 Presenter에게 결과를 전달하는 콜백 인터페이스.
          */
-        void deleteAccount();
+        interface OnFinishedListener {
+            /**
+             * [추가] 계정 탈퇴 성공 시 호출됩니다.
+             */
+            void onSuccess();
+
+            /**
+             * [추가] 계정 탈퇴 실패 시 호출됩니다.
+             */
+            void onError(String message);
+        }
     }
 }
