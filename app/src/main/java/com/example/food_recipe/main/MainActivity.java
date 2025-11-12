@@ -107,12 +107,8 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
                 bottomNav.setVisibility(View.GONE);
             }
 
-            if (destination.getId() == R.id.home_fragment) {
-                int selectedItemId = bottomNav.getSelectedItemId();
-                if (selectedItemId != 0) {
-                    bottomNav.getMenu().findItem(selectedItemId).setChecked(false);
-                }
-            }
+            // [삭제] '홈' 메뉴가 공식적으로 추가되었으므로, HomeFragment 진입 시 다른 메뉴의 선택 상태를 강제로 해제하는 코드를 삭제했습니다.
+            // 이 코드가 있으면 '홈' 버튼의 활성화 표시가 사라지는 문제가 발생하기 때문입니다.
         });
     }
 

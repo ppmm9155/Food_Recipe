@@ -13,6 +13,12 @@
         android:visible="false"
         android:enabled="false"/>
 
+    <!-- [추가] 홈 화면으로 이동하는 네비게이션 아이템 -->
+    <item
+        android:id="@+id/home_fragment"
+        android:icon="@drawable/outline_home_24"
+        android:title="홈"/>
+
     <item
         android:id="@+id/nav_pantry"
         android:icon="@drawable/outline_chef_hat_24"
