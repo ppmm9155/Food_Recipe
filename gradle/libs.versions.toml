@@ -22,6 +22,7 @@ material = "1.13.0"
 navigationFragment = "2.9.5"
 openKoreanText = "2.3.1"
 playServicesAuth = "21.4.0"
+workRuntimeKtx = "2.9.0"
 
 [libraries]
 # [추가] Secrets Gradle Plugin의 라이브러리 정보를 정의합니다.
@@ -46,6 +47,7 @@ navigation-fragment = { module = "androidx.navigation:navigation-fragment", vers
 navigation-ui = { module = "androidx.navigation:navigation-ui", version.ref = "navigationFragment" }
 open-korean-text = { module = "org.openkoreantext:open-korean-text", version.ref = "openKoreanText" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
+work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workRuntimeKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

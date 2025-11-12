@@ -83,4 +83,8 @@ dependencies {
 
     // [추가] Open Korean Text(Okt) 라이브러리 의존성을 추가합니다. 한국어 형태소 분석을 위해 사용합니다.
     implementation(libs.open.korean.text)
+
+    // [추가] WorkManager 라이브러리 (신뢰성 있는 백그라운드 작업을 위해 필요)
+    val work_version = "2.9.0"
+    implementation(libs.work.runtime.ktx)
 }
