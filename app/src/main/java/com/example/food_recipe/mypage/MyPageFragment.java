@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.food_recipe.R;
 import com.example.food_recipe.adapter.MyPageMenuAdapter;
+import com.example.food_recipe.findps.FindPsActivity;
 import com.example.food_recipe.login.LoginActivity;
 import com.example.food_recipe.utils.AutoLoginManager;
 import com.google.android.material.imageview.ShapeableImageView;
@@ -116,18 +117,27 @@ public class MyPageFragment extends Fragment implements MyPageContract.View {
     }
 
     /**
-     * [추가] Presenter의 지시에 따라 모든 로그아웃 절차를 수행하고 로그인 화면으로 이동합니다. (Contract 구현)
+     * [기존 주석 유지] Presenter의 지시에 따라 모든 로그아웃 절차를 수행하고 로그인 화면으로 이동합니다. (Contract 구현)
      */
     @Override
     public void executeLogout() {
         if (getActivity() == null) return;
-
-        // [추가] AutoLoginManager를 통해 자동 로그인 상태 해제 등 모든 로그아웃 처리
+        
         AutoLoginManager.logout(requireContext());
-
-        // [추가] 로그인 화면으로 이동하고, 뒤로가기 방지
+        
         Intent intent = new Intent(getActivity(), LoginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
+    }
+
+    /**
+     * [추가] Presenter의 지시에 따라 비밀번호 변경(찾기) 화면으로 이동합니다. (Contract 구현)
+     */
+    @Override
+    public void navigateToFindPassword() {
+        if (getActivity() != null) {
+            Intent intent = new Intent(getActivity(), FindPsActivity.class);
+            startActivity(intent);
+        }
     }
 }
