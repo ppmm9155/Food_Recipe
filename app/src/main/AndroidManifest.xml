@@ -56,13 +56,6 @@
             android:windowSoftInputMode="adjustResize|stateHidden" />
 
         <activity
-            android:name=".findid.FindIdActivity"
-            android:exported="true"
-            android:theme="@style/Theme.App.Base"
-            android:screenOrientation="fullSensor"
-            android:windowSoftInputMode="adjustResize|stateHidden" />
-
-        <activity
             android:name=".findps.FindPsActivity"
             android:exported="true"
             android:theme="@style/Theme.App.Base"
