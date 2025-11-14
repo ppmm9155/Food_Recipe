@@ -72,7 +72,8 @@ dependencies {
     implementation(libs.coordinatorlayout)
 
     implementation("com.github.bumptech.glide:glide:5.0.5")
-    implementation("com.algolia:algoliasearch-android:3.+")
+    // [안정성 수정] 동적 버전을 마지막 안정 버전으로 고정하여 빌드의 예측 가능성을 확보합니다.
+    implementation("com.algolia:algoliasearch-android:3.27.0")
 
     val lifecycle_version = "2.8.4"
     implementation("androidx.lifecycle:lifecycle-viewmodel:$lifecycle_version")
