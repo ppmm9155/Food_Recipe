@@ -85,6 +85,5 @@ dependencies {
     implementation(libs.open.korean.text)
 
     // [추가] WorkManager 라이브러리 (신뢰성 있는 백그라운드 작업을 위해 필요)
-    val work_version = "2.9.0"
     implementation(libs.work.runtime.ktx)
 }
