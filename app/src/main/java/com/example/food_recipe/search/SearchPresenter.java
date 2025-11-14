@@ -10,10 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-/**
- * [변경] ViewModel과 함께 동작하도록 Presenter 로직을 수정합니다.
- */
-// [변경] BasePresenter를 상속받아 View 생명주기를 안전하게 관리
 public class SearchPresenter extends BasePresenter<SearchContract.View> implements SearchContract.Presenter {
 
     private final SearchContract.Model model;
@@ -23,7 +19,6 @@ public class SearchPresenter extends BasePresenter<SearchContract.View> implemen
     private Runnable searchRunnable;
     private static final long SEARCH_DELAY_MS = 300;
 
-    // [변경] 생성자에서 View를 받지 않음
     public SearchPresenter(SearchViewModel viewModel) {
         this.model = new SearchModel();
         this.viewModel = viewModel;
@@ -102,7 +97,12 @@ public class SearchPresenter extends BasePresenter<SearchContract.View> implemen
             public void onSuccess(List<String> items) {
                 if (!isViewAttached()) return;
                 getView().hideLoadingIndicator();
-                getView().showPantryImportBottomSheet(new ArrayList<>(items), new ArrayList<>(viewModel.searchChips.getValue()));
+
+                if (items == null || items.isEmpty()) {
+                    getView().showPantryEmptyActionSnackbar();
+                } else {
+                    getView().showPantryImportBottomSheet(new ArrayList<>(items), new ArrayList<>(viewModel.searchChips.getValue()));
+                }
             }
             @Override
             public void onError(String message) {

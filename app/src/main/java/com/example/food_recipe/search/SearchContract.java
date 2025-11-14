@@ -5,7 +5,6 @@ import com.example.food_recipe.model.Recipe;
 import java.util.ArrayList;
 import java.util.List;
 
-// [변경] BaseContract를 상속받도록 수정
 public interface SearchContract {
 
     interface Model {
@@ -24,7 +23,6 @@ public interface SearchContract {
         void fetchPantryItems(OnPantryItemsFetchedListener listener);
     }
 
-    // [변경] BaseContract.View를 상속받음
     interface View extends BaseContract.View {
         void showRecipes(List<Recipe> recipes);
         void showError(String message);
@@ -33,9 +31,13 @@ public interface SearchContract {
         void addChipToGroup(String text);
         void clearSearchViewText();
         void showPantryImportBottomSheet(ArrayList<String> pantryItems, ArrayList<String> currentChips);
+
+        /**
+         * [수정] 냉장고가 비어있을 때, '추가하기' 액션 버튼이 포함된 스낵바를 표시하라는 지시입니다.
+         */
+        void showPantryEmptyActionSnackbar();
     }
 
-    // [변경] BaseContract.Presenter를 상속받음
     interface Presenter extends BaseContract.Presenter<View> {
         void start();
         void search(String query);

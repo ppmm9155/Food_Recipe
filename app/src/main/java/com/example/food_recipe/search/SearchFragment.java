@@ -19,15 +19,14 @@ import com.example.food_recipe.R;
 import com.example.food_recipe.adapter.RecipeAdapter;
 import com.example.food_recipe.main.AuthViewModel;
 import com.example.food_recipe.model.Recipe;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.snackbar.Snackbar;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * [변경] 중앙 인증 관리(AuthViewModel) 시스템을 사용하도록 리팩토링합니다.
- */
 public class SearchFragment extends Fragment implements SearchContract.View, RecipeAdapter.OnItemClickListener {
 
     private static final String TAG = "SearchFragment";
@@ -52,7 +51,6 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
         super.onCreate(savedInstanceState);
         viewModel = new ViewModelProvider(this).get(SearchViewModel.class);
         authViewModel = new ViewModelProvider(requireActivity()).get(AuthViewModel.class);
-        // [추가] Presenter를 onCreate에서 생성
         presenter = new SearchPresenter(viewModel);
     }
 
@@ -66,7 +64,6 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // [추가] Presenter에 View를 연결
         presenter.attachView(this);
 
         setupViews(view);
@@ -81,7 +78,6 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        // [추가] Presenter와의 연결을 끊어 메모리 누수를 방지
         presenter.detachView();
     }
 
@@ -214,5 +210,20 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
         args.putStringArrayList(BUNDLE_KEY_CURRENT_CHIPS, currentChips);
         bottomSheet.setArguments(args);
         bottomSheet.show(getParentFragmentManager(), bottomSheet.getTag());
+    }
+
+    @Override
+    public void showPantryEmptyActionSnackbar() {
+        if (getView() == null) return;
+        Snackbar.make(getView(), "냉장고에 재료가 없습니다.", Snackbar.LENGTH_LONG)
+                .setAction("추가하기", v -> {
+                    if (getActivity() != null) {
+                        BottomNavigationView bottomNav = getActivity().findViewById(R.id.main_bottom_nav);
+                        if (bottomNav != null) {
+                            bottomNav.setSelectedItemId(R.id.nav_pantry);
+                        }
+                    }
+                })
+                .show();
     }
 }
