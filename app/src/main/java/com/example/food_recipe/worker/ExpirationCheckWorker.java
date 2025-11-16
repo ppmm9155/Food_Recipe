@@ -9,6 +9,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.util.Log;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
@@ -52,42 +54,63 @@ public class ExpirationCheckWorker extends Worker {
     @Override
     public Result doWork() {
         Log.d(TAG, "WorkManager 작업 실행: 유통기한 확인 로직을 시작합니다.");
+
+        // [추가] Worker 입력 데이터에서 사용자 UID를 가져옵니다.
+        String uid = getInputData().getString("uid");
+
+        // [추가] UID가 없으면 작업을 중단합니다.
+        if (uid == null || uid.isEmpty()) {
+            Log.e(TAG, "사용자 UID가 없어 작업을 중단합니다. 로그인 상태를 확인해주세요.");
+            return Result.failure();
+        }
+        Log.d(TAG, "사용자 UID(" + uid + ")에 대한 작업을 시작합니다.");
+
         createNotificationChannel();
 
         try {
-            QuerySnapshot querySnapshot = Tasks.await(repository.getExpiringIngredientsQuery().get());
+            // [수정] Repository를 호출할 때 UID를 전달합니다.
+            QuerySnapshot querySnapshot = Tasks.await(repository.getExpiringIngredientsQuery(uid).get());
 
             if (querySnapshot.isEmpty()) {
                 Log.d(TAG, "알림을 보낼 재료가 없습니다.");
                 return Result.success();
             }
 
-            Log.d(TAG, "알림 보낼 재료 " + querySnapshot.size() + "개 발견.");
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
             for (DocumentSnapshot document : querySnapshot.getDocuments()) {
                 String ingredientName = document.getString("ingredientName");
-                // [추가] 유통기한 날짜를 Timestamp 형태로 가져옵니다.
                 Timestamp expirationTimestamp = document.getTimestamp("expirationDate");
+                String status = document.getString("notificationStatus");
 
                 if (ingredientName == null || ingredientName.isEmpty() || expirationTimestamp == null) {
-                    Log.w(TAG, "재료 이름 또는 유통기한 정보가 없어 알림을 건너뜁니다: " + document.getId());
+                    Log.w(TAG, "확인 실패: 문서 " + document.getId() + "의 재료 이름 또는 유통기한 정보가 없습니다.");
                     continue;
                 }
 
-                // [추가] D-day 계산 및 알림 메시지 생성 로직
-                long daysRemaining = getDaysRemaining(expirationTimestamp.toDate());
-                String notificationText;
-                if (daysRemaining <= 0) {
-                    notificationText = ingredientName + "의 유통기한이 오늘 만료됩니다!";
+                Date expirationDate = expirationTimestamp.toDate();
+                long daysRemaining = getDaysRemaining(expirationDate);
+
+                Log.d(TAG, "확인 중: " + ingredientName + " (유통기한: " + sdf.format(expirationDate) + ", D-" + daysRemaining + ")");
+
+                if ("PENDING".equals(status)) {
+                    if (daysRemaining >= 0 && daysRemaining <= 3) {
+                        String notificationText;
+                        if (daysRemaining == 0) {
+                            notificationText = ingredientName + "의 유통기한이 오늘 만료됩니다!";
+                        } else {
+                            notificationText = ingredientName + "의 유통기한이 " + daysRemaining + "일 남았습니다.";
+                        }
+                        Log.i(TAG, "알림 발송: " + ingredientName + " (" + notificationText + ")");
+                        sendNotification(notificationText);
+                        Tasks.await(repository.updateNotificationStatus(document.getId()));
+                        Log.d(TAG, "상태 변경: " + ingredientName + " -> SENT");
+                    } else {
+                        Log.d(TAG, "알림 제외: " + ingredientName + " (사유: 유통기한이 " + daysRemaining + "일 남아 알람 대상이 아님)");
+                    }
                 } else {
-                    notificationText = ingredientName + "의 유통기한이 " + daysRemaining + "일 남았습니다.";
+                    Log.d(TAG, "알림 제외: " + ingredientName + " (사유: 이미 알람을 보냄)");
                 }
-
-                Log.d(TAG, notificationText + " 알림을 보냅니다.");
-                sendNotification(notificationText);
-
-                Tasks.await(repository.updateNotificationStatus(document.getId()));
-                Log.d(TAG, document.getId() + "의 상태를 SENT로 변경했습니다.");
             }
 
             return Result.success();
@@ -98,7 +121,6 @@ public class ExpirationCheckWorker extends Worker {
         }
     }
 
-    // [추가] D-day 계산을 위한 헬퍼 메서드
     private long getDaysRemaining(Date expirationDate) {
         Calendar today = Calendar.getInstance();
         today.set(Calendar.HOUR_OF_DAY, 0);
@@ -126,7 +148,7 @@ public class ExpirationCheckWorker extends Worker {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.icon)
                 .setContentTitle("유통기한 임박 알림")
-                .setContentText(notificationText) // [수정] 동적으로 생성된 메시지를 사용합니다.
+                .setContentText(notificationText)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent);

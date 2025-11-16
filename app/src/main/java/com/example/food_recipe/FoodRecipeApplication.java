@@ -4,14 +4,16 @@ import android.app.Application;
 
 // [추가] 비동기 작업 및 Okt 라이브러리 import
 import org.openkoreantext.processor.OpenKoreanTextProcessorJava;
+
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 
 // [추가] WorkManager 관련 클래스를 가져옵니다.
+import androidx.work.Data;
 import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 import com.example.food_recipe.worker.ExpirationCheckWorker;
-import java.util.concurrent.TimeUnit;
 
 /**
  * [추가] 앱의 전역적인 상태와 리소스를 관리하는 커스텀 Application 클래스입니다.
@@ -24,8 +26,6 @@ public class FoodRecipeApplication extends Application {
         super.onCreate();
         // [추가] 앱 시작 시 백그라운드에서 Okt 라이브러리를 미리 초기화합니다.
         initializeOkt();
-        // [추가] 유통기한 확인을 위한 주기적인 백그라운드 작업을 스케줄링합니다.
-        scheduleExpirationCheck();
     }
 
     /**
@@ -41,21 +41,32 @@ public class FoodRecipeApplication extends Application {
     }
 
     /**
-     * [복원] 유통기한 확인을 위한 백그라운드 작업을 주기적으로 스케줄링합니다.
-     * 이 작업은 약 24시간마다 한 번씩 실행되도록 예약됩니다.
+     * [수정] 유통기한 확인 작업을 스케줄링할 때 사용자 UID를 입력 데이터로 받습니다.
+     * @param uid 작업을 예약할 사용자의 ID
      */
-    private void scheduleExpirationCheck() {
-        // 하루에 한 번 실행되는 주기적인 작업 요청을 생성합니다.
+    public void scheduleExpirationCheck(String uid) {
+        // [추가] Worker에 전달할 데이터(uid)를 생성합니다.
+        Data inputData = new Data.Builder()
+                .putString("uid", uid)
+                .build();
+
+        // [수정] 유통기한 확인 주기를 24시간으로 설정하고, 최신 WorkManager API를 사용합니다.
         PeriodicWorkRequest expirationCheckWorkRequest =
-                new PeriodicWorkRequest.Builder(ExpirationCheckWorker.class, 1, TimeUnit.DAYS)
+                new PeriodicWorkRequest.Builder(ExpirationCheckWorker.class, Duration.ofHours(24))
+                        .setInputData(inputData) // [추가] Worker에 입력 데이터를 설정합니다.
                         .build();
 
-        // WorkManager 인스턴스를 가져와서 고유한 이름으로 작업을 예약합니다.
-        // ExistingPeriodicWorkPolicy.KEEP 정책은 동일한 이름의 작업이 이미 예약되어 있으면,
-        // 기존 작업을 유지하고 새로운 요청을 무시하여 중복 예약을 방지합니다.
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
                 "expirationCheckWork",
-                ExistingPeriodicWorkPolicy.KEEP,
+                ExistingPeriodicWorkPolicy.REPLACE, // [수정] 항상 최신 사용자 정보로 작업을 갱신하도록 정책을 되돌립니다.
                 expirationCheckWorkRequest);
+    }
+
+    /**
+     * [추가] 예약된 유통기한 확인 작업을 취소합니다.
+     * 사용자가 알림 권한을 명시적으로 거부했을 때 호출됩니다.
+     */
+    public void cancelExpirationCheck() {
+        WorkManager.getInstance(this).cancelUniqueWork("expirationCheckWork");
     }
 }

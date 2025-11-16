@@ -8,7 +8,8 @@ import java.util.Date;
 import java.util.Calendar;
 
 /**
- * [추가] 유통기한 관련 데이터를 Firestore와 통신하는 역할을 담당하는 클래스입니다.
+ * [수정] 유통기한 관련 데이터를 Firestore와 통신하는 역할을 담당하는 클래스입니다.
+ * 이제 모든 쿼리에 사용자 UID를 포함하여, 특정 사용자의 데이터만 가져오도록 수정합니다.
  */
 public class ExpirationRepository {
 
@@ -20,27 +21,36 @@ public class ExpirationRepository {
     }
 
     /**
-     * [추가] 유통기한이 3일 이내로 임박했고, 아직 알림이 발송되지 않은 재료 목록을 가져오는 쿼리를 반환합니다.
+     * [수정] 특정 사용자의 유통기한 임박 재료 목록을 가져오는 쿼리를 반환합니다.
+     * @param uid 조회할 사용자의 ID
      * @return Firestore 쿼리 객체
      */
-    public Query getExpiringIngredientsQuery() {
-        // 1. 현재 시간으로부터 3일 후의 시간을 계산합니다.
+    public Query getExpiringIngredientsQuery(String uid) {
+        // 1. "3일 뒤" 날짜의 '하루의 끝' 시간을 계산합니다.
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.DAY_OF_YEAR, 3);
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
+        calendar.set(Calendar.MINUTE, 59);
+        calendar.set(Calendar.SECOND, 59);
+        calendar.set(Calendar.MILLISECOND, 999);
         Date threeDaysFromNow = calendar.getTime();
-        Timestamp threeDaysFromNowTimestamp = new Timestamp(threeDaysFromNow);
+        Timestamp endOfThreeDaysFromNowTimestamp = new Timestamp(threeDaysFromNow);
 
-        // 2. 현재 시간도 계산합니다. (유통기한이 이미 지난 것도 포함하기 위함)
-        Date now = Calendar.getInstance().getTime();
-        Timestamp nowTimestamp = new Timestamp(now);
+        // 2. '오늘 날짜의 시작(0시 0분)' 시간을 계산합니다.
+        Calendar todayStart = Calendar.getInstance();
+        todayStart.set(Calendar.HOUR_OF_DAY, 0);
+        todayStart.set(Calendar.MINUTE, 0);
+        todayStart.set(Calendar.SECOND, 0);
+        todayStart.set(Calendar.MILLISECOND, 0);
+        Timestamp startOfTodayTimestamp = new Timestamp(todayStart.getTime());
 
-        // 3. 쿼리를 생성합니다.
-        // - 'expirationDate'가 "현재 시간"보다 크거나 같고 "3일 후"보다 작거나 같은,
-        // - 'notificationStatus'가 "PENDING"인 문서를 찾습니다.
+        // 3. [수정] 쿼리 필터의 순서를 변경하여 Firestore가 더 명확하게 이해하도록 합니다.
+        // (동일 조건 필터를 먼저 적용하고, 범위 필터를 나중에 적용)
         return db.collection(COLLECTION_NAME)
-                .whereGreaterThanOrEqualTo("expirationDate", nowTimestamp)
-                .whereLessThanOrEqualTo("expirationDate", threeDaysFromNowTimestamp)
-                .whereEqualTo("notificationStatus", "PENDING");
+                .whereEqualTo("uid", uid)
+                .whereEqualTo("notificationStatus", "PENDING")
+                .whereGreaterThanOrEqualTo("expirationDate", startOfTodayTimestamp)
+                .whereLessThanOrEqualTo("expirationDate", endOfThreeDaysFromNowTimestamp);
     }
 
     /**

@@ -1,6 +1,5 @@
 package com.example.food_recipe.main;
 
-// [추가] 권한 요청 관련 클래스를 가져옵니다.
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
@@ -26,6 +25,7 @@ import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
 
+import com.example.food_recipe.FoodRecipeApplication;
 import com.example.food_recipe.R;
 import com.example.food_recipe.login.LoginActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -33,14 +33,9 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * [변경] 중앙 인증 관리 로직을 추가합니다.
- * 이제 이 Activity는 모든 하위 프래그먼트의 인증 상태를 책임지는 중앙 관제탑 역할을 합니다.
- */
 public class MainActivity extends AppCompatActivity implements MainContract.View {
 
     private MainContract.Presenter presenter;
@@ -51,12 +46,14 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
-                    Log.d("Permission", "알림 권한이 허용되었습니다.");
+                    Log.d("ExpirationCheckWorker", "알림 권한이 허용되었습니다. 작업을 예약합니다.");
+                    scheduleWorkWithUid();
                 } else {
-                    Log.d("Permission", "알림 권한이 거부되었습니다.");
+                    Log.d("ExpirationCheckWorker", "알림 권한이 거부되었습니다. 작업을 취소합니다.");
+                    FoodRecipeApplication application = (FoodRecipeApplication) getApplication();
+                    application.cancelExpirationCheck();
                 }
             });
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,7 +67,6 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
 
         setContentView(R.layout.activity_main);
 
-        // [수정] 변경된 Presenter 생성 및 View 연결 방식을 적용합니다.
         presenter = new MainPresenter();
         presenter.attachView(this);
 
@@ -92,6 +88,10 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
         authStateListener = firebaseAuth -> {
             FirebaseUser user = firebaseAuth.getCurrentUser();
             authViewModel.setUser(user);
+            // [추가] 로그인 상태가 변경될 때마다 알림 권한 및 작업 예약을 다시 확인합니다.
+            if (user != null) {
+                handleNotificationPermission();
+            }
         };
 
         navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
@@ -112,16 +112,35 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
                 bottomNav.setVisibility(View.GONE);
             }
         });
-
-        requestNotificationPermission();
     }
 
-    private void requestNotificationPermission() {
+    private void handleNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
                     PackageManager.PERMISSION_GRANTED) {
+                Log.d("ExpirationCheckWorker", "알림 권한이 이미 허용되어 있습니다. 작업을 예약합니다.");
+                scheduleWorkWithUid();
+            } else {
                 requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
             }
+        } else {
+            Log.d("ExpirationCheckWorker", "하위 버전 OS이므로 알림 권한 없이 작업을 예약합니다.");
+            scheduleWorkWithUid();
+        }
+    }
+
+    /**
+     * [추가] 현재 사용자의 UID를 가져와 WorkManager 작업을 예약하는 헬퍼 메서드입니다.
+     */
+    private void scheduleWorkWithUid() {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            String uid = currentUser.getUid();
+            FoodRecipeApplication application = (FoodRecipeApplication) getApplication();
+            application.scheduleExpirationCheck(uid);
+            Log.d("ExpirationCheckWorker", "사용자(" + uid + ")에 대한 작업이 예약되었습니다.");
+        } else {
+            Log.w("ExpirationCheckWorker", "로그인한 사용자가 없어 작업을 예약할 수 없습니다.");
         }
     }
 
@@ -140,10 +159,8 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
         }
     }
 
-
     @Override
     protected void onDestroy() {
-        // [수정] 변경된 BasePresenter의 detachView 메서드를 호출합니다.
         if (presenter != null) presenter.detachView();
         super.onDestroy();
     }
