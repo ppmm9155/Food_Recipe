@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.IdRes; // [추가] @IdRes 어노테이션을 위해
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -42,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
     private AuthViewModel authViewModel;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener authStateListener;
+    private BottomNavigationView bottomNav; // [추가] 다른 메서드에서 접근할 수 있도록 멤버 변수로 변경
 
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
@@ -78,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
 
         NavController navController = navHostFragment.getNavController();
 
-        BottomNavigationView bottomNav = findViewById(R.id.main_bottom_nav);
+        bottomNav = findViewById(R.id.main_bottom_nav); // [수정] 멤버 변수에 할당
         NavigationUI.setupWithNavController(bottomNav, navController);
 
         authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
@@ -112,6 +114,16 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
                 bottomNav.setVisibility(View.GONE);
             }
         });
+    }
+
+    /**
+     * [추가] HomeFragment와 같은 자식 Fragment가 호출할 수 있는 탭 전환 메서드
+     * @param tabId 이동할 탭의 메뉴 아이템 ID (e.g., R.id.nav_favorites)
+     */
+    public void navigateToTab(@IdRes int tabId) {
+        if (bottomNav != null) {
+            bottomNav.setSelectedItemId(tabId);
+        }
     }
 
     private void handleNotificationPermission() {

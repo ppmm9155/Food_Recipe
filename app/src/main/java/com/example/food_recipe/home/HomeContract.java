@@ -21,12 +21,14 @@ public interface HomeContract {
         void showEmptyRecentAndFavorites();
         void setUserName(@Nullable String username);
         void showError(String message);
+        void navigateToFavoritesTab(); // [추가] 즐겨찾기 탭으로 이동
     }
 
     // [수정] 모든 Presenter의 기본 계약인 BaseContract.Presenter를 상속받도록 수정합니다.
     interface Presenter extends BaseContract.Presenter<View> {
         void start(); // 기존의 start 메서드는 이제 사용되지 않을 수 있지만, 호환성을 위해 유지
         void onAuthStateChanged(boolean isLoggedIn); // 로그인 상태 변경을 처리할 새 메서드
+        void onMoreFavoritesClicked(); // [추가] '더보기' 버튼 클릭 이벤트 처리
     }
 
     interface Model {

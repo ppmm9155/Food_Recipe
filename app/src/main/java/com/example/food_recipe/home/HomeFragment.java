@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.food_recipe.R;
 import com.example.food_recipe.adapter.RecipeAdapter;
 import com.example.food_recipe.main.AuthViewModel;
+import com.example.food_recipe.main.MainActivity;
 import com.example.food_recipe.model.Recipe;
 import java.util.List;
 
@@ -35,6 +36,7 @@ public class HomeFragment extends Fragment implements HomeContract.View, RecipeA
     private RecyclerView popularRecyclerView;
     private RecyclerView recentFavRecyclerView;
     private LinearLayout recentFavEmptyView;
+    private TextView moreFavoritesButton;
 
     private RecipeAdapter recommendedAdapter;
     private RecipeAdapter popularAdapter;
@@ -62,17 +64,28 @@ public class HomeFragment extends Fragment implements HomeContract.View, RecipeA
         popularRecyclerView = view.findViewById(R.id.fmain_rv_popular);
         recentFavRecyclerView = view.findViewById(R.id.fmain_rv_recentfav_preview);
         recentFavEmptyView = view.findViewById(R.id.fmain_empty_recentfav);
+        moreFavoritesButton = view.findViewById(R.id.fmain_btn_more_fav);
 
         setupRecyclerViews();
-
-        // [추가] '인기 레시피 보러가기' 버튼 클릭 시 검색 화면으로 이동
-        Button goExploreButton = view.findViewById(R.id.fmain_btn_go_explore);
-        goExploreButton.setOnClickListener(v -> {
-            NavHostFragment.findNavController(this).navigate(R.id.nav_search);
-        });
+        setupClickListeners();
 
         authViewModel = new ViewModelProvider(requireActivity()).get(AuthViewModel.class);
         observeAuthState();
+    }
+
+    private void setupClickListeners() {
+        // [수정] '인기 레시피 보러가기' 버튼 클릭 시, NavController를 직접 호출하는 대신
+        // MainActivity의 navigateToTab 메서드를 호출하여 탭과 화면을 함께 전환합니다.
+        Button goExploreButton = requireView().findViewById(R.id.fmain_btn_go_explore);
+        goExploreButton.setOnClickListener(v -> {
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).navigateToTab(R.id.nav_search);
+            }
+        });
+
+        moreFavoritesButton.setOnClickListener(v -> {
+            presenter.onMoreFavoritesClicked();
+        });
     }
 
     private void observeAuthState() {
@@ -114,7 +127,7 @@ public class HomeFragment extends Fragment implements HomeContract.View, RecipeA
     public void showRecommendedRecipes(List<Recipe> recipes) {
         recommendedAdapter.setRecipes(recipes);
     }
-    
+
     @Override
     public void showPopularRecipes(List<Recipe> recipes) {
         popularAdapter.setRecipes(recipes);
@@ -125,12 +138,14 @@ public class HomeFragment extends Fragment implements HomeContract.View, RecipeA
         recentFavAdapter.setRecipes(recipes);
         recentFavRecyclerView.setVisibility(View.VISIBLE);
         recentFavEmptyView.setVisibility(View.GONE);
+        moreFavoritesButton.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void showEmptyRecentAndFavorites() {
         recentFavRecyclerView.setVisibility(View.GONE);
         recentFavEmptyView.setVisibility(View.VISIBLE);
+        moreFavoritesButton.setVisibility(View.GONE);
     }
 
     @Override
@@ -148,16 +163,20 @@ public class HomeFragment extends Fragment implements HomeContract.View, RecipeA
             Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
         }
     }
-    
+
+    @Override
+    public void navigateToFavoritesTab() {
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).navigateToTab(R.id.nav_favorites);
+        }
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         presenter.detachView();
     }
-    
-    /**
-     * [수정] 무한 재귀 호출을 방지하기 위해 super.getContext()를 사용합니다.
-     */
+
     @Override
     public Context getContext() {
         return super.getContext();

@@ -16,7 +16,7 @@ public class HomePresenter extends BasePresenter<HomeContract.View> implements H
     public HomePresenter() {
         // Model 초기화는 View가 연결되는 시점에 안전하게 처리됩니다.
     }
-    
+
     /**
      * [추가] 단위 테스트를 할 때 가짜(Mock) Model을 주입하기 위한 보조 생성자입니다.
      */
@@ -38,6 +38,17 @@ public class HomePresenter extends BasePresenter<HomeContract.View> implements H
     @Override
     public void start() {
         // [기존 로직 유지]
+    }
+
+    /**
+     * [추가] '더보기' 버튼 클릭 시 호출됩니다.
+     * View에 즐겨찾기 탭으로 이동하라는 명령을 전달합니다.
+     */
+    @Override
+    public void onMoreFavoritesClicked() {
+        if (isViewAttached()) {
+            getView().navigateToFavoritesTab();
+        }
     }
 
     @Override
