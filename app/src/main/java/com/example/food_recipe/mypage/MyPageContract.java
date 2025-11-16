@@ -20,6 +20,7 @@ public interface MyPageContract {
         void navigateToLogin();
         void navigateToFindPassword();
         void navigateToEditProfile();
+        void googleSignOut(); // [추가] 구글 로그아웃 수행
     }
 
     /**
@@ -36,6 +37,7 @@ public interface MyPageContract {
      * [기존 주석 유지] Model이 구현해야 하는 메서드 목록.
      */
     interface Model {
+        boolean isGoogleUser(); // [추가] 구글 사용자인지 확인
         void logout(OnFinishedListener listener);
         void deleteAccount(OnFinishedListener listener);
 

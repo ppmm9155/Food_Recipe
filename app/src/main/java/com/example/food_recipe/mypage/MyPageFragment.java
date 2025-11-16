@@ -21,6 +21,10 @@ import com.example.food_recipe.R;
 import com.example.food_recipe.adapter.MyPageMenuAdapter;
 import com.example.food_recipe.findps.FindPsActivity;
 import com.example.food_recipe.login.LoginActivity;
+// [추가] 구글 로그아웃을 위한 import
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.auth.FirebaseUser;
 import java.util.Arrays;
@@ -36,11 +40,19 @@ public class MyPageFragment extends Fragment implements MyPageContract.View {
     private TextView tvGreeting;
     private RecyclerView mypageMenuRecyclerView;
     private final List<String> menuItems = Arrays.asList("프로필 수정", "비밀번호 변경", "로그아웃", "계정 탈퇴");
+    private GoogleSignInClient googleSignInClient; // [추가] 구글 로그인 클라이언트 멤버 변수
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setupFragmentResultListener();
+
+        // [추가] GoogleSignInClient 초기화
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
+        googleSignInClient = GoogleSignIn.getClient(requireActivity(), gso);
     }
 
     @Nullable
@@ -154,6 +166,18 @@ public class MyPageFragment extends Fragment implements MyPageContract.View {
         NavHostFragment.findNavController(this).navigate(R.id.action_myPageFragment_to_editProfileFragment);
     }
     
+    /**
+     * [추가] Presenter의 요청에 따라 기기에 저장된 구글 계정 세션을 로그아웃하고 로그인 화면으로 이동합니다.
+     */
+    @Override
+    public void googleSignOut() {
+        googleSignInClient.signOut().addOnCompleteListener(task -> {
+            // 구글 계정 로그아웃의 성공/실패 여부와 관계없이
+            // 최종 목적지인 로그인 화면으로 사용자를 보냅니다.
+            navigateToLogin();
+        });
+    }
+
     /**
      * [수정] 무한 재귀 호출을 방지하기 위해 super.getContext()를 사용합니다.
      */

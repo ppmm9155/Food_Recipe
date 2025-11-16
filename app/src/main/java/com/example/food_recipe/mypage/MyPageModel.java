@@ -12,6 +12,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserInfo;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -35,32 +36,42 @@ public class MyPageModel implements MyPageContract.Model {
         this.appContext = context.getApplicationContext();
     }
 
+    /**
+     * [수정] 현재 로그인한 사용자가 구글 계정인지 확인합니다.
+     * FirebaseUser 객체 대신, SharedPreferences에 저장된 로그인 제공자 정보를 확인합니다.
+     * 이 방법은 Firebase 계정이 삭제된 후에도 로그인 방식을 확인할 수 있어 더 안정적입니다.
+     */
+    @Override
+    public boolean isGoogleUser() {
+        return AutoLoginManager.PROVIDER_GOOGLE.equals(AutoLoginManager.getCurrentLoginProvider(appContext));
+    }
+
     @Override
     public void logout(@NonNull OnFinishedListener listener) {
         try {
-            String loginProvider = AutoLoginManager.getCurrentLoginProvider(appContext);
+            boolean isGoogle = isGoogleUser();
+            // AutoLoginManager.logout()은 Firebase 세션 종료, 자동로그인 해제 등을 처리합니다.
             AutoLoginManager.logout(appContext);
 
-            if (AutoLoginManager.PROVIDER_GOOGLE.equals(loginProvider)) {
+            if (isGoogle) {
+                // 기기에 캐시된 구글 계정 정보까지 완전히 로그아웃시킵니다.
                 GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                         .requestIdToken(appContext.getString(R.string.default_web_client_id))
                         .requestEmail()
                         .build();
                 GoogleSignInClient googleSignInClient = GoogleSignIn.getClient(appContext, gso);
                 googleSignInClient.signOut().addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        listener.onLogoutSuccess(); // [변경] 로그아웃 성공 콜백 호출
-                    } else {
-                        listener.onError("구글 계정 로그아웃에 실패했습니다.");
-                    }
+                    // 구글 로그아웃의 성공/실패 여부와 관계없이, 앱의 로그아웃 절차는 성공한 것으로 간주합니다.
+                    listener.onLogoutSuccess();
                 });
             } else {
-                listener.onLogoutSuccess(); // [변경] 로그아웃 성공 콜백 호출
+                listener.onLogoutSuccess(); // 구글 유저가 아니면 바로 성공 콜백
             }
         } catch (Exception e) {
             listener.onError("로그아웃 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
+
 
     @Override
     public void deleteAccount(@NonNull OnFinishedListener listener) {
