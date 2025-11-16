@@ -4,7 +4,6 @@ import android.util.Log;
 import com.algolia.search.saas.Client;
 import com.algolia.search.saas.Index;
 import com.algolia.search.saas.Query;
-// [추가] BuildConfig 클래스를 임포트하여 API 키를 안전하게 참조합니다.
 import com.example.food_recipe.BuildConfig;
 import com.example.food_recipe.model.Recipe;
 import com.google.firebase.auth.FirebaseAuth;
@@ -24,8 +23,6 @@ public class SearchModel implements SearchContract.Model {
     private final FirebaseAuth mAuth;
 
     public SearchModel() {
-        // [변경] 하드코딩된 API 키를 BuildConfig에서 안전하게 불러오도록 수정합니다.
-        // 이 값들은 local.properties 파일에 저장되어 있으며, Git에는 포함되지 않습니다.
         Client client = new Client(BuildConfig.ALGOLIA_APP_ID, BuildConfig.ALGOLIA_API_KEY);
         index = client.getIndex("recipes");
         db = FirebaseFirestore.getInstance();
@@ -34,14 +31,12 @@ public class SearchModel implements SearchContract.Model {
 
     @Override
     public void searchRecipes(String query, OnRecipesFetchedListener listener) {
-        // [추가] 검색 결과 하이라이팅을 위한 쿼리 옵션을 설정합니다.
         Query algoliaQuery = new Query(query)
                 .setAttributesToHighlight("title", "ingredients")
                 .setHighlightPreTag("<b>")
                 .setHighlightPostTag("</b>");
 
         index.searchAsync(algoliaQuery, (json, e) -> {
-            // [추가] Algolia 응답과 에러를 직접 확인하기 위한 디버깅 로그
             Log.d("AlgoliaSearch", "Query: " + query);
             if (e != null) {
                 Log.e("AlgoliaSearch", "Error: ", e);
@@ -61,11 +56,9 @@ public class SearchModel implements SearchContract.Model {
                     JSONObject hit = hits.getJSONObject(i);
                     Recipe recipe = new Recipe();
 
-                    // [변경] highlightResult가 null일 수 있으므로 optJSONObject로 안전하게 접근합니다.
                     JSONObject highlightResult = hit.optJSONObject("_highlightResult");
 
                     String title;
-                    // [변경] 하이라이팅 결과가 있을 때만 해당 값을 사용하고, 없으면 원본을 사용합니다.
                     if (highlightResult != null && highlightResult.has("title")) {
                         title = highlightResult.getJSONObject("title").getString("value");
                     } else {
@@ -73,17 +66,14 @@ public class SearchModel implements SearchContract.Model {
                     }
 
                     String ingredientsRaw;
-                    // [변경] 하이라이팅된 재료가 배열(JSONArray)일 것을 가정하고 파싱 로직을 전면 수정합니다.
                     if (highlightResult != null && highlightResult.has("ingredients")) {
                         JSONArray highlightedIngredients = highlightResult.getJSONArray("ingredients");
                         List<String> ingredientsList = new ArrayList<>();
                         for (int j = 0; j < highlightedIngredients.length(); j++) {
-                            // 각 배열 요소는 {"value": "하이라이팅된 text"} 형태의 객체입니다.
                             ingredientsList.add(highlightedIngredients.getJSONObject(j).getString("value"));
                         }
                         ingredientsRaw = String.join(", ", ingredientsList);
                     } else {
-                        // 하이라이팅 결과가 없을 경우, 기존처럼 원본 데이터에서 재료 정보를 가져옵니다.
                         JSONArray ingredientsArray = hit.optJSONArray("ingredients");
                         if (ingredientsArray != null && ingredientsArray.length() > 0) {
                             List<String> ingredientsList = new ArrayList<>();
@@ -111,10 +101,6 @@ public class SearchModel implements SearchContract.Model {
         });
     }
 
-    /**
-     * [최종 수정] users 문서의 myIngredients 배열 필드에서 재료 이름을 직접 파싱합니다.
-     * @param listener 데이터 조회 완료 후 결과를 전달받을 콜백 객체.
-     */
     @Override
     public void fetchPantryItems(OnPantryItemsFetchedListener listener) {
         FirebaseUser currentUser = mAuth.getCurrentUser();
@@ -122,7 +108,6 @@ public class SearchModel implements SearchContract.Model {
             listener.onError("로그인이 필요합니다.");
             return;
         }
-
         String uid = currentUser.getUid();
         db.collection("users").document(uid)
                 .get()
@@ -141,11 +126,23 @@ public class SearchModel implements SearchContract.Model {
                             if (item instanceof Map) {
                                 Map<String, Object> ingredientMap = (Map<String, Object>) item;
                                 if (ingredientMap.containsKey("name")) {
-                                    items.add(String.valueOf(ingredientMap.get("name")));
+                                    Object nameObj = ingredientMap.get("name");
+                                    if (nameObj != null) {
+                                        items.add(nameObj.toString());
+                                    }
                                 }
+                            } else if (item instanceof String) {
+                                items.add((String) item);
+                            } else if (item != null) {
+                                Log.w("SearchModel", "Unexpected data type in myIngredients: " + item.getClass().getName());
                             }
                         }
                     }
+
+                    if (items.isEmpty() && myIngredientsObj != null) {
+                        Log.w("SearchModel", "myIngredients field exists but failed to parse any items. Data: " + myIngredientsObj.toString());
+                    }
+                    
                     listener.onSuccess(items);
                 })
                 .addOnFailureListener(e -> listener.onError(e.getMessage()));

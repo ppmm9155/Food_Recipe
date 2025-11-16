@@ -60,13 +60,15 @@ public class PantryAdapter extends RecyclerView.Adapter<PantryAdapter.PantryView
 
     /**
      * [기존 주석 유지] ViewHolder가 화면에 표시될 데이터를 바인딩할 때 호출됩니다.
-     * [변경] 아이템 데이터 바인딩과 더불어, 아이템 뷰에 대한 클릭 리스너를 설정하는 로직이 추가되었습니다.
+     * [변경] 수량 표시 로직이 `formatQuantityString` 메소드를 사용하도록 변경되었습니다.
      */
     @Override
     public void onBindViewHolder(@NonNull PantryViewHolder holder, int position) {
         PantryItem item = pantryItems.get(position);
         holder.tvName.setText(item.getName());
-        holder.tvQuantity.setText(String.format(Locale.getDefault(), "%.1f %s", item.getQuantity(), item.getUnit()));
+
+        // [변경] formatQuantityString 헬퍼 메소드를 사용하여 수량 텍스트를 설정합니다.
+        holder.tvQuantity.setText(String.format(Locale.getDefault(), "%s %s", formatQuantityString(item.getQuantity()), item.getUnit()));
 
         updateExpirationDateView(holder.tvExpiration, item.getExpirationDate());
 
@@ -81,13 +83,27 @@ public class PantryAdapter extends RecyclerView.Adapter<PantryAdapter.PantryView
         }
         holder.tvStorage.setText(item.getStorage());
 
-        // [추가] 아이템 뷰에 클릭 리스너를 설정합니다.
+        // [기존 주석 유지] 아이템 뷰에 클릭 리스너를 설정합니다.
         // 리스너가 설정되어 있을 경우, 클릭된 아이템 정보를 콜백 메서드로 전달합니다.
         holder.itemView.setOnClickListener(v -> {
             if (onItemClickListener != null) {
                 onItemClickListener.onItemClick(item);
             }
         });
+    }
+
+    /**
+     * [추가] 수량(double)을 소수점 유무에 따라 적절한 문자열로 포맷하는 헬퍼 메소드입니다.
+     * 값이 5.0이면 "5"로, 5.5이면 "5.5"로 변환합니다.
+     * @param quantity 포맷할 수량 값
+     * @return 포맷된 문자열
+     */
+    private String formatQuantityString(double quantity) {
+        if (quantity == (long) quantity) {
+            return String.format(Locale.getDefault(), "%d", (long) quantity);
+        } else {
+            return String.format(Locale.getDefault(), "%.1f", quantity);
+        }
     }
 
     /**

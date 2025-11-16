@@ -139,7 +139,7 @@ public class PantryFragment extends Fragment implements PantryContract.View, Pan
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         mAdapter = new PantryAdapter();
-        mAdapter.setOnItemClickListener(this); // [추가] 어댑터에 클릭 리스너를 설정합니다.
+        mAdapter.setOnItemClickListener(this);
         recyclerView.setAdapter(mAdapter);
 
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(
@@ -153,6 +153,10 @@ public class PantryFragment extends Fragment implements PantryContract.View, Pan
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
                 int position = viewHolder.getAdapterPosition();
+                // [추가] 안정성 강화: 스와이프된 아이템의 위치가 유효한지 확인합니다.
+                if (position == RecyclerView.NO_POSITION) {
+                    return; // 위치가 유효하지 않으면 아무 작업도 하지 않고 종료합니다.
+                }
                 PantryItem itemToDelete = mAdapter.getItemAt(position);
                 mAdapter.removeItem(position);
                 Snackbar snackbar = Snackbar.make(requireView(), "재료를 삭제했습니다.", Snackbar.LENGTH_LONG);
@@ -173,7 +177,46 @@ public class PantryFragment extends Fragment implements PantryContract.View, Pan
 
             @Override
             public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
-                // ... (기존 onChildDraw 로직과 동일)
+                // [추가] 스와이프 시각 효과(빨간 배경, 아이콘)를 그리는 로직을 복원합니다.
+                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+                    View itemView = viewHolder.itemView;
+                    Paint paint = new Paint();
+                    float swipeAmount = Math.abs(dX) / (float) itemView.getWidth();
+                    int alpha = Math.min(255, (int) (swipeAmount * 2 * 255));
+                    paint.setColor(Color.RED);
+                    paint.setAlpha(alpha);
+                    if (dX > 0) {
+                        c.drawRect((float) itemView.getLeft(), (float) itemView.getTop(), dX, (float) itemView.getBottom(), paint);
+                    } else {
+                        c.drawRect((float) itemView.getRight() + dX, (float) itemView.getTop(), (float) itemView.getRight(), (float) itemView.getBottom(), paint);
+                    }
+                    if (getContext() != null) {
+                        Drawable icon = ContextCompat.getDrawable(getContext(), R.drawable.outline_delete_24);
+                        if (icon != null) {
+                            icon.setTint(Color.WHITE);
+                            int iconMargin = (itemView.getHeight() - icon.getIntrinsicHeight()) / 2;
+                            int iconTop = itemView.getTop() + (itemView.getHeight() - icon.getIntrinsicHeight()) / 2;
+                            int iconBottom = iconTop + icon.getIntrinsicHeight();
+                            int iconLeft, iconRight;
+                            if (dX > 0) {
+                                iconLeft = itemView.getLeft() + iconMargin;
+                                iconRight = itemView.getLeft() + iconMargin + icon.getIntrinsicWidth();
+                            } else {
+                                iconLeft = itemView.getRight() - iconMargin - icon.getIntrinsicWidth();
+                                iconRight = itemView.getRight() - iconMargin;
+                            }
+                            icon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
+                            icon.draw(c);
+                        }
+                    }
+                    if (swipeAmount >= 0.5f && !isVibrationTriggered) {
+                        triggerVibration();
+                        isVibrationTriggered = true;
+                    }
+                    if (swipeAmount == 0f) {
+                        isVibrationTriggered = false;
+                    }
+                }
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
             }
         });
@@ -181,7 +224,16 @@ public class PantryFragment extends Fragment implements PantryContract.View, Pan
     }
 
     private void triggerVibration() {
-        // ... (기존 triggerVibration 로직과 동일)
+        // [추가] 스와이프 시 진동을 발생시키는 로직을 복원합니다.
+        if (getContext() == null) return;
+        Vibrator vibrator = (Vibrator) getContext().getSystemService(Context.VIBRATOR_SERVICE);
+        if (vibrator != null && vibrator.hasVibrator()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE));
+            } else {
+                vibrator.vibrate(50);
+            }
+        }
     }
 
     @Override
@@ -220,22 +272,12 @@ public class PantryFragment extends Fragment implements PantryContract.View, Pan
         }
     }
 
-    /**
-     * [추가] PantryAdapter.OnItemClickListener 인터페이스의 구현 메서드입니다.
-     * RecyclerView의 재료 아이템이 클릭되었을 때 호출됩니다.
-     * @param pantryItem 사용자가 클릭한 재료 아이템의 데이터 객체
-     */
     @Override
     public void onItemClick(PantryItem pantryItem) {
-        // [추가] '편집 모드'로 동작하도록, 클릭된 재료 정보를 담아 바텀 시트를 띄웁니다.
         AddIngredientBottomSheetFragment bottomSheet = new AddIngredientBottomSheetFragment();
-
-        // [추가] 클릭된 PantryItem 객체를 전달하기 위해 Bundle을 생성합니다.
         Bundle args = new Bundle();
-        args.putSerializable("pantry_item_to_edit", pantryItem); // 직렬화된 객체 저장
+        args.putSerializable("pantry_item_to_edit", pantryItem);
         bottomSheet.setArguments(args);
-
-        // [추가] 바텀 시트를 화면에 표시합니다.
         bottomSheet.show(getParentFragmentManager(), bottomSheet.getTag());
     }
 }
