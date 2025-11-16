@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -63,6 +64,12 @@ public class HomeFragment extends Fragment implements HomeContract.View, RecipeA
         recentFavEmptyView = view.findViewById(R.id.fmain_empty_recentfav);
 
         setupRecyclerViews();
+
+        // [추가] '인기 레시피 보러가기' 버튼 클릭 시 검색 화면으로 이동
+        Button goExploreButton = view.findViewById(R.id.fmain_btn_go_explore);
+        goExploreButton.setOnClickListener(v -> {
+            NavHostFragment.findNavController(this).navigate(R.id.nav_search);
+        });
 
         authViewModel = new ViewModelProvider(requireActivity()).get(AuthViewModel.class);
         observeAuthState();
