@@ -69,15 +69,35 @@ public class HomeModel implements HomeContract.Model {
     @Override
     public void getRecommendedRecipes(OnFinishedListener<List<Recipe>> callback) {
         db.collection("recipes")
-            .limit(50)
+            .limit(100) // [수정] 후보군을 50개에서 100개로 늘림
             .get()
             .addOnSuccessListener(queryDocumentSnapshots -> {
-                List<Recipe> recipes = new ArrayList<>();
+                
+                // [추가] 유효한 레시피(재료 정보가 있는)만 담을 리스트 생성
+                List<Recipe> validRecipes = new ArrayList<>();
+                
                 for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                     recipes.add(Recipe.fromDocumentSnapshot(document));
+                     Recipe recipe = Recipe.fromDocumentSnapshot(document);
+                     
+                     // [추가] 재료 정보가 있는지 확인 (List 또는 String 형태 모두)
+                     List<String> ingredients = recipe.getIngredients();
+                     String ingredientsRaw = document.getString("ingredients_raw");
+
+                     boolean hasIngredientsList = (ingredients != null && !ingredients.isEmpty());
+                     boolean hasIngredientsRaw = (ingredientsRaw != null && !ingredientsRaw.isEmpty() && !"null".equalsIgnoreCase(ingredientsRaw));
+
+                     // [추가] 재료 목록이나 원본 재료 문자열 둘 중 하나라도 정보가 있으면 유효한 레시피로 판단
+                     if (hasIngredientsList || hasIngredientsRaw) {
+                         validRecipes.add(recipe);
+                     }
                 }
-                Collections.shuffle(recipes);
-                List<Recipe> recommendedRecipes = new ArrayList<>(recipes.subList(0, Math.min(10, recipes.size())));
+                
+                // [수정] 유효한 레시피 리스트를 섞음
+                Collections.shuffle(validRecipes);
+                
+                // [수정] 유효한 레시피 중에서 최대 10개를 뽑아 최종 목록으로 만듬
+                List<Recipe> recommendedRecipes = new ArrayList<>(validRecipes.subList(0, Math.min(10, validRecipes.size())));
+                
                 callback.onSuccess(recommendedRecipes);
             })
             .addOnFailureListener(callback::onError);
