@@ -26,8 +26,12 @@ public class SearchPresenter extends BasePresenter<SearchContract.View> implemen
 
     @Override
     public void start() {
+        // [수정] ViewModel에 데이터가 없을 때만 초기 검색을 수행하도록 변경.
+        // 로딩 UI 표시/숨김 로직을 `search()` 메서드와 일치시키기 위해
+        // 직접 `search()`를 호출하도록 구조를 변경.
         if (viewModel.searchResult.getValue() == null) {
-            performSearch();
+            String initialQuery = String.join(" ", viewModel.searchChips.getValue());
+            search(initialQuery);
         }
     }
 

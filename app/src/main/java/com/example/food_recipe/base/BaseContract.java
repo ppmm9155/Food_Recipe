@@ -17,6 +17,20 @@ public interface BaseContract {
          * @return Context 인턴스
          */
         Context getContext();
+
+        /**
+         * [수정] default 메서드로 변경하여, 이 기능을 사용하지 않는 다른 View에서
+         * 불필요하게 구현해야 하는 문제를 해결합니다.
+         * 이 기능이 필요한 View는 이 메서드를 재정의(@Override)하여 사용합니다.
+         */
+        default void showLoading() {}
+
+        /**
+         * [수정] default 메서드로 변경하여, 이 기능을 사용하지 않는 다른 View에서
+         * 불필요하게 구현해야 하는 문제를 해결합니다.
+         * 이 기능이 필요한 View는 이 메서드를 재정의(@Override)하여 사용합니다.
+         */
+        default void hideLoading() {}
     }
 
     /**

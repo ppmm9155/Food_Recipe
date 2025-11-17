@@ -7,10 +7,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
@@ -37,6 +39,10 @@ public class HomeFragment extends Fragment implements HomeContract.View, RecipeA
     private RecyclerView recentFavRecyclerView;
     private LinearLayout recentFavEmptyView;
     private TextView moreFavoritesButton;
+    // [추가] 로딩 인디케이터와 컨텐츠 뷰
+    private ProgressBar progressBar;
+    private NestedScrollView contentScrollView;
+
 
     private RecipeAdapter recommendedAdapter;
     private RecipeAdapter popularAdapter;
@@ -65,6 +71,10 @@ public class HomeFragment extends Fragment implements HomeContract.View, RecipeA
         recentFavRecyclerView = view.findViewById(R.id.fmain_rv_recentfav_preview);
         recentFavEmptyView = view.findViewById(R.id.fmain_empty_recentfav);
         moreFavoritesButton = view.findViewById(R.id.fmain_btn_more_fav);
+
+        // [추가] 로딩 UI 관련 뷰 초기화
+        progressBar = view.findViewById(R.id.fmain_progressBar);
+        contentScrollView = view.findViewById(R.id.fmain_content_scroll_view);
 
         setupRecyclerViews();
         setupClickListeners();
@@ -169,6 +179,20 @@ public class HomeFragment extends Fragment implements HomeContract.View, RecipeA
         if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).navigateToTab(R.id.nav_favorites);
         }
+    }
+
+    // [추가] BaseContract.View 인터페이스의 로딩 메서드 구현
+    @Override
+    public void showLoading() {
+        progressBar.setVisibility(View.VISIBLE);
+        contentScrollView.setVisibility(View.GONE);
+    }
+
+    // [추가] BaseContract.View 인터페이스의 로딩 메서드 구현
+    @Override
+    public void hideLoading() {
+        progressBar.setVisibility(View.GONE);
+        contentScrollView.setVisibility(View.VISIBLE);
     }
 
     @Override

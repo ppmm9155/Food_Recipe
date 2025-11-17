@@ -5,6 +5,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -35,6 +36,8 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
     private MaterialButton searchBtnPantryImport;
     private RecyclerView recyclerView;
     private TextView emptyTextView;
+    // [추가] 로딩 인디케이터
+    private ProgressBar progressBar;
     private RecipeAdapter recipeAdapter;
     private SearchView searchView;
     private SearchContract.Presenter presenter;
@@ -87,6 +90,8 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
         searchView = view.findViewById(R.id.search_view);
         searchChipGroup = view.findViewById(R.id.search_chip_group);
         searchBtnPantryImport = view.findViewById(R.id.search_btn_pantry_import);
+        // [추가] ProgressBar 초기화
+        progressBar = view.findViewById(R.id.search_progress_bar);
     }
 
     private void setupRecyclerView() {
@@ -191,11 +196,25 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
         emptyTextView.setText("오류가 발생했습니다: " + message);
     }
 
+    /**
+     * [수정] 검색 시작 시 로딩 인디케이터를 보여줍니다.
+     */
     @Override
-    public void showLoadingIndicator() { /* TODO: Implement loading indicator */ }
+    public void showLoadingIndicator() {
+        progressBar.setVisibility(View.VISIBLE);
+        recyclerView.setVisibility(View.GONE);
+        emptyTextView.setVisibility(View.GONE);
+    }
 
+    /**
+     * [수정] 검색 완료 시 로딩 인디케이터를 숨깁니다.
+     */
     @Override
-    public void hideLoadingIndicator() { /* TODO: Implement loading indicator */ }
+    public void hideLoadingIndicator() {
+        progressBar.setVisibility(View.GONE);
+        // [주석] RecyclerView와 EmptyTextView의 가시성은
+        // 데이터 수신 후 updateRecipeListUI에서 처리하므로 여기서는 ProgressBar만 숨깁니다.
+    }
 
     @Override
     public void clearSearchViewText() {
