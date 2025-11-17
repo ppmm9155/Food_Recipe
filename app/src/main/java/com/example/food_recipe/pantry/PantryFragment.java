@@ -242,9 +242,16 @@ public class PantryFragment extends Fragment implements PantryContract.View, Pan
         mPresenter.detachView();
     }
 
+    /**
+     * [수정] 데이터 로딩 시작 시 호출됩니다.
+     * ProgressBar를 보여주는 동시에, 콘텐츠 영역(RecyclerView와 EmptyView)을 모두 숨겨
+     * 데이터 로딩 중 불필요한 UI가 깜빡이는 현상을 방지합니다.
+     */
     @Override
     public void showLoading() {
         progressBar.setVisibility(View.VISIBLE);
+        recyclerView.setVisibility(View.GONE);
+        emptyView.setVisibility(View.GONE);
     }
 
     @Override
