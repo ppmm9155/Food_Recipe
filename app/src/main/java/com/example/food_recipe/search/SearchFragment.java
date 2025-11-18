@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
@@ -46,6 +47,8 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
     private SearchViewModel viewModel;
     private AuthViewModel authViewModel;
 
+    private Snackbar pantryEmptySnackbar;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,6 +73,7 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
         setupRecyclerView();
         setupListeners();
         setupFragmentResultListener();
+        setupOnBackPressed();
         observeViewModel();
 
         presenter.start();
@@ -77,6 +81,10 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
 
     @Override
     public void onDestroyView() {
+        if (pantryEmptySnackbar != null && pantryEmptySnackbar.isShown()) {
+            pantryEmptySnackbar.dismiss();
+        }
+        pantryEmptySnackbar = null;
         super.onDestroyView();
         presenter.detachView();
     }
@@ -152,6 +160,20 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
         });
     }
 
+    private void setupOnBackPressed() {
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (pantryEmptySnackbar != null && pantryEmptySnackbar.isShown()) {
+                    pantryEmptySnackbar.dismiss();
+                } else {
+                    setEnabled(false);
+                    requireActivity().getOnBackPressedDispatcher().onBackPressed();
+                }
+            }
+        });
+    }
+
     @Override
     public void onItemClick(Recipe recipe) {
         if (recipe != null && recipe.getRcpSno() != null && !recipe.getRcpSno().isEmpty()) {
@@ -222,7 +244,6 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
 
     @Override
     public void showEmptyView(String message) {
-        // [수정] 이제 이 메소드는 오직 '검색 결과 없음'과 같은 일반적인 빈 화면만 처리합니다.
         recyclerView.setVisibility(View.GONE);
         emptyTextView.setVisibility(View.VISIBLE);
         emptyTextView.setText(message);
@@ -237,8 +258,14 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
 
     @Override
     public void showEmptyPantrySnackbar() {
-        // [추가] 새로운 설계에 따라, '냉장고 비어있음' 스낵바를 띄우는 책임을 이 메소드가 전담합니다.
-        Snackbar.make(coordinatorLayout, "냉장고에 재료가 없습니다.", Snackbar.LENGTH_LONG)
+        if (pantryEmptySnackbar != null && pantryEmptySnackbar.isShown()) {
+            return;
+        }
+
+        // [수정] 스낵바가 뜬 후, 배경이 흰 화면으로 남는 문제를 해결하기 위해 Presenter에 신호를 다시 보냅니다.
+        presenter.onPantrySelectionCancelled();
+
+        pantryEmptySnackbar = Snackbar.make(coordinatorLayout, "냉장고에 재료가 없습니다.", Snackbar.LENGTH_INDEFINITE)
             .setAction("추가하기", v -> {
                 try {
                     BottomNavigationView bottomNav = requireActivity().findViewById(R.id.main_bottom_nav);
@@ -246,9 +273,15 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
                 } catch (Exception e) {
                     Toast.makeText(getContext(), "화면을 전환할 수 없습니다.", Toast.LENGTH_SHORT).show();
                 }
-            }).show();
+            })
+            .addCallback(new Snackbar.Callback() {
+                @Override
+                public void onDismissed(Snackbar transientBottomBar, int event) {
+                    super.onDismissed(transientBottomBar, event);
+                    pantryEmptySnackbar = null;
+                }
+            });
 
-        // [중요] 스낵바를 보여준 후, 뒤의 화면은 초기 추천 레시피 상태로 돌려놓습니다.
-        presenter.onPantrySelectionCancelled();
+        pantryEmptySnackbar.show();
     }
 }
