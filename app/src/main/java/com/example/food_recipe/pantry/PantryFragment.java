@@ -17,8 +17,10 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -33,10 +35,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import java.util.List;
 
-/**
- * [기존 주석 유지] 중앙 인증 관리(AuthViewModel) 시스템을 사용하도록 리팩토링합니다.
- * [변경] 재료 아이템 클릭을 처리하기 위해 PantryAdapter.OnItemClickListener를 구현합니다.
- */
 public class PantryFragment extends Fragment implements PantryContract.View, PantryAdapter.OnItemClickListener {
 
     private static final String PREFS_NAME = "PantryPrefs";
@@ -46,11 +44,15 @@ public class PantryFragment extends Fragment implements PantryContract.View, Pan
     private LinearLayout emptyView;
     private FloatingActionButton fabAdd;
     private ProgressBar progressBar;
+    private CoordinatorLayout coordinatorLayout; // [추가] 스낵바의 Anchor
 
     private PantryContract.Presenter mPresenter;
     private PantryAdapter mAdapter;
     private AuthViewModel authViewModel;
     private boolean isVibrationTriggered = false;
+
+    // [추가] 뒤로가기 제어를 위한 스낵바 참조
+    private Snackbar deleteSnackbar;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -70,6 +72,7 @@ public class PantryFragment extends Fragment implements PantryContract.View, Pan
 
         mPresenter.attachView(this);
 
+        coordinatorLayout = view.findViewById(R.id.pantry_coordinator_layout); // [추가] CoordinatorLayout 참조
         recyclerView = view.findViewById(R.id.pantry_recyclerView);
         emptyView = view.findViewById(R.id.pantry_empty_view_container);
         fabAdd = view.findViewById(R.id.pantry_fab_add);
@@ -78,6 +81,7 @@ public class PantryFragment extends Fragment implements PantryContract.View, Pan
         authViewModel = new ViewModelProvider(requireActivity()).get(AuthViewModel.class);
 
         setupRecyclerView();
+        setupOnBackPressed(); // [추가] 뒤로가기 콜백 설정
 
         fabAdd.setOnClickListener(v -> {
             AddIngredientBottomSheetFragment bottomSheet = new AddIngredientBottomSheetFragment();
@@ -87,6 +91,20 @@ public class PantryFragment extends Fragment implements PantryContract.View, Pan
         setupFragmentResultListener();
         observeAuthState();
         showSwipeToDeleteHelpDialog();
+    }
+
+    private void setupOnBackPressed() {
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (deleteSnackbar != null && deleteSnackbar.isShown()) {
+                    deleteSnackbar.dismiss();
+                } else {
+                    setEnabled(false);
+                    requireActivity().getOnBackPressedDispatcher().onBackPressed();
+                }
+            }
+        });
     }
 
     private void observeAuthState() {
@@ -153,31 +171,32 @@ public class PantryFragment extends Fragment implements PantryContract.View, Pan
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
                 int position = viewHolder.getAdapterPosition();
-                // [추가] 안정성 강화: 스와이프된 아이템의 위치가 유효한지 확인합니다.
                 if (position == RecyclerView.NO_POSITION) {
-                    return; // 위치가 유효하지 않으면 아무 작업도 하지 않고 종료합니다.
+                    return;
                 }
                 PantryItem itemToDelete = mAdapter.getItemAt(position);
                 mAdapter.removeItem(position);
-                Snackbar snackbar = Snackbar.make(requireView(), "재료를 삭제했습니다.", Snackbar.LENGTH_LONG);
-                snackbar.setAction("실행 취소", v -> {
+
+                // [수정] 스낵바를 참조하고, 올바른 View에 붙도록 수정합니다.
+                deleteSnackbar = Snackbar.make(coordinatorLayout, "재료를 삭제했습니다.", Snackbar.LENGTH_LONG);
+                deleteSnackbar.setAction("실행 취소", v -> {
                     mAdapter.restoreItem(itemToDelete, position);
                 });
-                snackbar.addCallback(new Snackbar.Callback() {
+                deleteSnackbar.addCallback(new Snackbar.Callback() {
                     @Override
                     public void onDismissed(Snackbar transientBottomBar, int event) {
                         super.onDismissed(transientBottomBar, event);
                         if (event != DISMISS_EVENT_ACTION) {
                             mPresenter.deletePantryItem(itemToDelete);
                         }
+                        deleteSnackbar = null; // [추가] 스낵바가 사라지면 참조를 해제합니다.
                     }
                 });
-                snackbar.show();
+                deleteSnackbar.show();
             }
 
             @Override
             public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
-                // [추가] 스와이프 시각 효과(빨간 배경, 아이콘)를 그리는 로직을 복원합니다.
                 if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
                     View itemView = viewHolder.itemView;
                     Paint paint = new Paint();
@@ -224,7 +243,6 @@ public class PantryFragment extends Fragment implements PantryContract.View, Pan
     }
 
     private void triggerVibration() {
-        // [추가] 스와이프 시 진동을 발생시키는 로직을 복원합니다.
         if (getContext() == null) return;
         Vibrator vibrator = (Vibrator) getContext().getSystemService(Context.VIBRATOR_SERVICE);
         if (vibrator != null && vibrator.hasVibrator()) {
@@ -238,15 +256,15 @@ public class PantryFragment extends Fragment implements PantryContract.View, Pan
 
     @Override
     public void onDestroyView() {
+        // [추가] 화면이 사라질 때 스낵바 참조를 안전하게 정리합니다.
+        if (deleteSnackbar != null && deleteSnackbar.isShown()) {
+            deleteSnackbar.dismiss();
+        }
+        deleteSnackbar = null;
         super.onDestroyView();
         mPresenter.detachView();
     }
 
-    /**
-     * [수정] 데이터 로딩 시작 시 호출됩니다.
-     * ProgressBar를 보여주는 동시에, 콘텐츠 영역(RecyclerView와 EmptyView)을 모두 숨겨
-     * 데이터 로딩 중 불필요한 UI가 깜빡이는 현상을 방지합니다.
-     */
     @Override
     public void showLoading() {
         progressBar.setVisibility(View.VISIBLE);
