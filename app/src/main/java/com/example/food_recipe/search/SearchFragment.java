@@ -11,6 +11,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
@@ -25,6 +26,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.snackbar.Snackbar;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,22 +34,17 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
 
     private static final String TAG = "SearchFragment";
 
+    private CoordinatorLayout coordinatorLayout;
     private ChipGroup searchChipGroup;
     private MaterialButton searchBtnPantryImport;
     private RecyclerView recyclerView;
     private TextView emptyTextView;
-    // [추가] 로딩 인디케이터
     private ProgressBar progressBar;
     private RecipeAdapter recipeAdapter;
     private SearchView searchView;
     private SearchContract.Presenter presenter;
     private SearchViewModel viewModel;
     private AuthViewModel authViewModel;
-
-    public static final String REQUEST_KEY_PANTRY_IMPORT = "pantry_import_request";
-    public static final String BUNDLE_KEY_SELECTED_INGREDIENTS = "selected_ingredients";
-    public static final String BUNDLE_KEY_PANTRY_ITEMS = "pantry_items";
-    public static final String BUNDLE_KEY_CURRENT_CHIPS = "current_chips";
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -85,12 +82,12 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
     }
 
     private void setupViews(View view) {
+        coordinatorLayout = view.findViewById(R.id.search_coordinator_layout);
         recyclerView = view.findViewById(R.id.recycler_view_recipes);
         emptyTextView = view.findViewById(R.id.text_view_empty);
         searchView = view.findViewById(R.id.search_view);
         searchChipGroup = view.findViewById(R.id.search_chip_group);
         searchBtnPantryImport = view.findViewById(R.id.search_btn_pantry_import);
-        // [추가] ProgressBar 초기화
         progressBar = view.findViewById(R.id.search_progress_bar);
     }
 
@@ -103,24 +100,16 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
 
     private void observeViewModel() {
         viewModel.searchResult.observe(getViewLifecycleOwner(), recipes -> {
-            updateRecipeListUI(recipes);
+            recipeAdapter.setRecipes(recipes);
+            if (recipes != null && !recipes.isEmpty()) {
+                recyclerView.setVisibility(View.VISIBLE);
+                emptyTextView.setVisibility(View.GONE);
+            }
         });
 
         viewModel.searchChips.observe(getViewLifecycleOwner(), chips -> {
             updateChipsUI(chips);
         });
-    }
-    
-    private void updateRecipeListUI(List<Recipe> recipes) {
-        recipeAdapter.setRecipes(recipes);
-        if (recipes == null || recipes.isEmpty()) {
-            recyclerView.setVisibility(View.GONE);
-            emptyTextView.setVisibility(View.VISIBLE);
-            emptyTextView.setText("해당하는 레시피가 없습니다.");
-        } else {
-            recyclerView.setVisibility(View.VISIBLE);
-            emptyTextView.setVisibility(View.GONE);
-        }
     }
 
     private void updateChipsUI(List<String> chips) {
@@ -155,8 +144,8 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
     }
 
     private void setupFragmentResultListener() {
-        getParentFragmentManager().setFragmentResultListener(REQUEST_KEY_PANTRY_IMPORT, this, (requestKey, result) -> {
-            ArrayList<String> selectedIngredients = result.getStringArrayList(BUNDLE_KEY_SELECTED_INGREDIENTS);
+        getParentFragmentManager().setFragmentResultListener(PantryImportBottomSheetFragment.REQUEST_KEY, this, (requestKey, result) -> {
+            ArrayList<String> selectedIngredients = result.getStringArrayList(PantryImportBottomSheetFragment.BUNDLE_KEY_SELECTED_INGREDIENTS);
             if (selectedIngredients != null) {
                 presenter.onPantryIngredientsSelected(selectedIngredients);
             }
@@ -174,16 +163,12 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
             Toast.makeText(getContext(), "레시피 정보가 없어 이동할 수 없습니다.", Toast.LENGTH_SHORT).show();
         }
     }
-    
-    @Override
-    public void showRecipes(List<Recipe> recipes) {
-        // Handled by ViewModel
-    }
 
     @Override
-    public void addChipToGroup(String text) {
-        // Handled by ViewModel
-    }
+    public void showRecipes(List<Recipe> recipes) { }
+
+    @Override
+    public void addChipToGroup(String text) { }
 
     @Override
     public void showError(String message) {
@@ -196,9 +181,6 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
         emptyTextView.setText("오류가 발생했습니다: " + message);
     }
 
-    /**
-     * [수정] 검색 시작 시 로딩 인디케이터를 보여줍니다.
-     */
     @Override
     public void showLoadingIndicator() {
         progressBar.setVisibility(View.VISIBLE);
@@ -206,14 +188,9 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
         emptyTextView.setVisibility(View.GONE);
     }
 
-    /**
-     * [수정] 검색 완료 시 로딩 인디케이터를 숨깁니다.
-     */
     @Override
     public void hideLoadingIndicator() {
         progressBar.setVisibility(View.GONE);
-        // [주석] RecyclerView와 EmptyTextView의 가시성은
-        // 데이터 수신 후 updateRecipeListUI에서 처리하므로 여기서는 ProgressBar만 숨깁니다.
     }
 
     @Override
@@ -225,24 +202,53 @@ public class SearchFragment extends Fragment implements SearchContract.View, Rec
     public void showPantryImportBottomSheet(ArrayList<String> pantryItems, ArrayList<String> currentChips) {
         PantryImportBottomSheetFragment bottomSheet = new PantryImportBottomSheetFragment();
         Bundle args = new Bundle();
-        args.putStringArrayList(BUNDLE_KEY_PANTRY_ITEMS, pantryItems);
-        args.putStringArrayList(BUNDLE_KEY_CURRENT_CHIPS, currentChips);
+        args.putStringArrayList(PantryImportBottomSheetFragment.BUNDLE_KEY_PANTRY_ITEMS, pantryItems);
+        args.putStringArrayList(PantryImportBottomSheetFragment.BUNDLE_KEY_CURRENT_CHIPS, currentChips);
         bottomSheet.setArguments(args);
         bottomSheet.show(getParentFragmentManager(), bottomSheet.getTag());
+
+        bottomSheet.getLifecycle().addObserver(new androidx.lifecycle.LifecycleEventObserver() {
+            @Override
+            public void onStateChanged(@NonNull androidx.lifecycle.LifecycleOwner source, @NonNull androidx.lifecycle.Lifecycle.Event event) {
+                if (event == androidx.lifecycle.Lifecycle.Event.ON_DESTROY) {
+                    if (!bottomSheet.isConfirmed()) {
+                        presenter.onPantrySelectionCancelled();
+                    }
+                    bottomSheet.getLifecycle().removeObserver(this);
+                }
+            }
+        });
     }
 
     @Override
-    public void showPantryEmptyActionSnackbar() {
-        if (getView() == null) return;
-        Snackbar.make(getView(), "냉장고에 재료가 없습니다.", Snackbar.LENGTH_LONG)
-                .setAction("추가하기", v -> {
-                    if (getActivity() != null) {
-                        BottomNavigationView bottomNav = getActivity().findViewById(R.id.main_bottom_nav);
-                        if (bottomNav != null) {
-                            bottomNav.setSelectedItemId(R.id.nav_pantry);
-                        }
-                    }
-                })
-                .show();
+    public void showEmptyView(String message) {
+        // [수정] 이제 이 메소드는 오직 '검색 결과 없음'과 같은 일반적인 빈 화면만 처리합니다.
+        recyclerView.setVisibility(View.GONE);
+        emptyTextView.setVisibility(View.VISIBLE);
+        emptyTextView.setText(message);
+    }
+
+    @Override
+    public void showInitialView() {
+        recyclerView.setVisibility(View.GONE);
+        emptyTextView.setVisibility(View.VISIBLE);
+        emptyTextView.setText("레시피를 검색하거나\n냉장고 재료를 불러와보세요.");
+    }
+
+    @Override
+    public void showEmptyPantrySnackbar() {
+        // [추가] 새로운 설계에 따라, '냉장고 비어있음' 스낵바를 띄우는 책임을 이 메소드가 전담합니다.
+        Snackbar.make(coordinatorLayout, "냉장고에 재료가 없습니다.", Snackbar.LENGTH_LONG)
+            .setAction("추가하기", v -> {
+                try {
+                    BottomNavigationView bottomNav = requireActivity().findViewById(R.id.main_bottom_nav);
+                    bottomNav.setSelectedItemId(R.id.nav_pantry);
+                } catch (Exception e) {
+                    Toast.makeText(getContext(), "화면을 전환할 수 없습니다.", Toast.LENGTH_SHORT).show();
+                }
+            }).show();
+
+        // [중요] 스낵바를 보여준 후, 뒤의 화면은 초기 추천 레시피 상태로 돌려놓습니다.
+        presenter.onPantrySelectionCancelled();
     }
 }

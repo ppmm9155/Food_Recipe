@@ -26,25 +26,55 @@ public class SearchPresenter extends BasePresenter<SearchContract.View> implemen
 
     @Override
     public void start() {
-        // [수정] ViewModel에 데이터가 없을 때만 초기 검색을 수행하도록 변경.
-        // 로딩 UI 표시/숨김 로직을 `search()` 메서드와 일치시키기 위해
-        // 직접 `search()`를 호출하도록 구조를 변경.
-        if (viewModel.searchResult.getValue() == null) {
-            String initialQuery = String.join(" ", viewModel.searchChips.getValue());
-            search(initialQuery);
+        if (viewModel.searchResult.getValue() == null || viewModel.searchResult.getValue().isEmpty()) {
+            loadInitialRecipes();
         }
+    }
+
+    private void loadInitialRecipes() {
+        if (!isViewAttached()) return;
+        getView().showLoadingIndicator();
+        model.fetchInitialRecipes(new SearchContract.Model.OnRecipesFetchedListener() {
+            @Override
+            public void onSuccess(List<Recipe> recipes) {
+                if (!isViewAttached()) return;
+                getView().hideLoadingIndicator();
+                if (recipes == null || recipes.isEmpty()) {
+                    getView().showInitialView();
+                } else {
+                    viewModel.setSearchResult(recipes);
+                }
+            }
+
+            @Override
+            public void onError(String message) {
+                if (!isViewAttached()) return;
+                getView().hideLoadingIndicator();
+                getView().showError(message);
+            }
+        });
     }
 
     @Override
     public void search(String query) {
         if (!isViewAttached()) return;
+
+        if (query == null || query.trim().isEmpty()) {
+            loadInitialRecipes();
+            return;
+        }
+
         getView().showLoadingIndicator();
         model.searchRecipes(query, new SearchContract.Model.OnRecipesFetchedListener() {
             @Override
             public void onSuccess(List<Recipe> recipes) {
                 if (!isViewAttached()) return;
                 getView().hideLoadingIndicator();
-                viewModel.setSearchResult(recipes);
+                if (recipes == null || recipes.isEmpty()) {
+                    getView().showEmptyView("검색 결과가 없습니다.");
+                } else {
+                    viewModel.setSearchResult(recipes);
+                }
             }
             @Override
             public void onError(String message) {
@@ -103,7 +133,8 @@ public class SearchPresenter extends BasePresenter<SearchContract.View> implemen
                 getView().hideLoadingIndicator();
 
                 if (items == null || items.isEmpty()) {
-                    getView().showPantryEmptyActionSnackbar();
+                    // [수정] 모호한 문자열 메시지를 보내는 대신, 명확한 메소드를 직접 호출합니다.
+                    getView().showEmptyPantrySnackbar();
                 } else {
                     getView().showPantryImportBottomSheet(new ArrayList<>(items), new ArrayList<>(viewModel.searchChips.getValue()));
                 }
@@ -140,6 +171,18 @@ public class SearchPresenter extends BasePresenter<SearchContract.View> implemen
         if (currentChips.remove(chipText)) {
             viewModel.setSearchChips(currentChips);
             triggerDebouncedSearch();
+        }
+    }
+
+    @Override
+    public void onPantrySelectionCancelled() {
+        if (!isViewAttached()) return;
+        List<Recipe> currentRecipes = viewModel.searchResult.getValue();
+
+        if (currentRecipes == null || currentRecipes.isEmpty()) {
+            loadInitialRecipes();
+        } else {
+            viewModel.setSearchResult(currentRecipes);
         }
     }
 

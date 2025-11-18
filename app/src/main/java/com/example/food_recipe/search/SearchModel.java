@@ -29,8 +29,58 @@ public class SearchModel implements SearchContract.Model {
         mAuth = FirebaseAuth.getInstance();
     }
 
+    // [추가] Algolia 검색 결과를 Recipe 객체 리스트로 파싱하는 공통 로직을 별도 메소드로 분리합니다.
+    private List<Recipe> parseRecipes(JSONObject json) throws JSONException {
+        List<Recipe> recipes = new ArrayList<>();
+        JSONArray hits = json.getJSONArray("hits");
+        for (int i = 0; i < hits.length(); i++) {
+            JSONObject hit = hits.getJSONObject(i);
+            Recipe recipe = new Recipe();
+
+            JSONObject highlightResult = hit.optJSONObject("_highlightResult");
+
+            String title;
+            if (highlightResult != null && highlightResult.has("title")) {
+                title = highlightResult.getJSONObject("title").getString("value");
+            } else {
+                title = hit.optString("title", "제목 없음");
+            }
+
+            String ingredientsRaw;
+            if (highlightResult != null && highlightResult.has("ingredients")) {
+                JSONArray highlightedIngredients = highlightResult.getJSONArray("ingredients");
+                List<String> ingredientsList = new ArrayList<>();
+                for (int j = 0; j < highlightedIngredients.length(); j++) {
+                    ingredientsList.add(highlightedIngredients.getJSONObject(j).getString("value"));
+                }
+                ingredientsRaw = String.join(", ", ingredientsList);
+            } else {
+                JSONArray ingredientsArray = hit.optJSONArray("ingredients");
+                if (ingredientsArray != null && ingredientsArray.length() > 0) {
+                    List<String> ingredientsList = new ArrayList<>();
+                    for (int j = 0; j < ingredientsArray.length(); j++) {
+                        ingredientsList.add(ingredientsArray.getString(j));
+                    }
+                    ingredientsRaw = String.join(", ", ingredientsList);
+                } else {
+                    ingredientsRaw = "재료 정보 없음";
+                }
+            }
+
+            recipe.setRcpSno(hit.getString("objectID"));
+            recipe.setTitle(title);
+            recipe.setImageUrl(hit.optString("imageUrl", ""));
+            recipe.setCookingTime(hit.optString("cooking_time", "정보 없음"));
+            recipe.setIngredientsRaw(ingredientsRaw);
+
+            recipes.add(recipe);
+        }
+        return recipes;
+    }
+
     @Override
     public void searchRecipes(String query, OnRecipesFetchedListener listener) {
+        // [변경] 검색 쿼리를 생성하는 부분을 유지합니다.
         Query algoliaQuery = new Query(query)
                 .setAttributesToHighlight("title", "ingredients")
                 .setHighlightPreTag("<b>")
@@ -50,50 +100,8 @@ public class SearchModel implements SearchContract.Model {
                 return;
             }
             try {
-                List<Recipe> recipes = new ArrayList<>();
-                JSONArray hits = json.getJSONArray("hits");
-                for (int i = 0; i < hits.length(); i++) {
-                    JSONObject hit = hits.getJSONObject(i);
-                    Recipe recipe = new Recipe();
-
-                    JSONObject highlightResult = hit.optJSONObject("_highlightResult");
-
-                    String title;
-                    if (highlightResult != null && highlightResult.has("title")) {
-                        title = highlightResult.getJSONObject("title").getString("value");
-                    } else {
-                        title = hit.optString("title", "제목 없음");
-                    }
-
-                    String ingredientsRaw;
-                    if (highlightResult != null && highlightResult.has("ingredients")) {
-                        JSONArray highlightedIngredients = highlightResult.getJSONArray("ingredients");
-                        List<String> ingredientsList = new ArrayList<>();
-                        for (int j = 0; j < highlightedIngredients.length(); j++) {
-                            ingredientsList.add(highlightedIngredients.getJSONObject(j).getString("value"));
-                        }
-                        ingredientsRaw = String.join(", ", ingredientsList);
-                    } else {
-                        JSONArray ingredientsArray = hit.optJSONArray("ingredients");
-                        if (ingredientsArray != null && ingredientsArray.length() > 0) {
-                            List<String> ingredientsList = new ArrayList<>();
-                            for (int j = 0; j < ingredientsArray.length(); j++) {
-                                ingredientsList.add(ingredientsArray.getString(j));
-                            }
-                            ingredientsRaw = String.join(", ", ingredientsList);
-                        } else {
-                            ingredientsRaw = "재료 정보 없음";
-                        }
-                    }
-
-                    recipe.setRcpSno(hit.getString("objectID"));
-                    recipe.setTitle(title);
-                    recipe.setImageUrl(hit.optString("imageUrl", ""));
-                    recipe.setCookingTime(hit.optString("cooking_time", "정보 없음"));
-                    recipe.setIngredientsRaw(ingredientsRaw);
-
-                    recipes.add(recipe);
-                }
+                // [변경] 공통 파싱 메소드를 호출하여 중복을 제거합니다.
+                List<Recipe> recipes = parseRecipes(json);
                 listener.onSuccess(recipes);
             } catch (JSONException jsonException) {
                 listener.onError("검색 결과를 파싱하는데 실패했습니다: " + jsonException.getMessage());
@@ -130,7 +138,7 @@ public class SearchModel implements SearchContract.Model {
                                     if (nameObj != null) {
                                         items.add(nameObj.toString());
                                     }
-                                }
+                                 }
                             } else if (item instanceof String) {
                                 items.add((String) item);
                             } else if (item != null) {
@@ -150,6 +158,29 @@ public class SearchModel implements SearchContract.Model {
 
     @Override
     public void fetchInitialRecipes(OnRecipesFetchedListener listener) {
-        listener.onSuccess(new ArrayList<>());
+        // [수정] 검색어가 없는 빈 Query 객체를 생성합니다. Algolia는 검색어가 없으면 설정된 랭킹 순으로 결과를 반환합니다.
+        Query algoliaQuery = new Query("");
+
+        index.searchAsync(algoliaQuery, (json, e) -> {
+            Log.d("AlgoliaSearch", "Initial fetch");
+            if (e != null) {
+                Log.e("AlgoliaSearch", "Error: ", e);
+            }
+            if (json != null) {
+                Log.d("AlgoliaSearch", "Result: " + json.toString());
+            }
+
+            if (e != null) {
+                listener.onError(e.getMessage());
+                return;
+            }
+            try {
+                // [수정] 일반 검색과 동일하게 공통 파싱 메소드를 호출하여 결과를 처리합니다.
+                List<Recipe> recipes = parseRecipes(json);
+                listener.onSuccess(recipes);
+            } catch (JSONException jsonException) {
+                listener.onError("초기 레시피를 파싱하는데 실패했습니다: " + jsonException.getMessage());
+            }
+        });
     }
 }
