@@ -44,15 +44,16 @@ public class PantryFragment extends Fragment implements PantryContract.View, Pan
     private LinearLayout emptyView;
     private FloatingActionButton fabAdd;
     private ProgressBar progressBar;
-    private CoordinatorLayout coordinatorLayout; // [추가] 스낵바의 Anchor
+    private CoordinatorLayout coordinatorLayout; // 스낵바의 Anchor
 
     private PantryContract.Presenter mPresenter;
     private PantryAdapter mAdapter;
     private AuthViewModel authViewModel;
     private boolean isVibrationTriggered = false;
 
-    // [추가] 뒤로가기 제어를 위한 스낵바 참조
+    // [수정] 스낵바 관련 상태를 한번에 관리합니다.
     private Snackbar deleteSnackbar;
+    private boolean isSwipeActionActive = false; // 스와이프 잠금 상태 플래그
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -72,7 +73,7 @@ public class PantryFragment extends Fragment implements PantryContract.View, Pan
 
         mPresenter.attachView(this);
 
-        coordinatorLayout = view.findViewById(R.id.pantry_coordinator_layout); // [추가] CoordinatorLayout 참조
+        coordinatorLayout = view.findViewById(R.id.pantry_coordinator_layout);
         recyclerView = view.findViewById(R.id.pantry_recyclerView);
         emptyView = view.findViewById(R.id.pantry_empty_view_container);
         fabAdd = view.findViewById(R.id.pantry_fab_add);
@@ -81,7 +82,7 @@ public class PantryFragment extends Fragment implements PantryContract.View, Pan
         authViewModel = new ViewModelProvider(requireActivity()).get(AuthViewModel.class);
 
         setupRecyclerView();
-        setupOnBackPressed(); // [추가] 뒤로가기 콜백 설정
+        setupOnBackPressed();
 
         fabAdd.setOnClickListener(v -> {
             AddIngredientBottomSheetFragment bottomSheet = new AddIngredientBottomSheetFragment();
@@ -164,6 +165,14 @@ public class PantryFragment extends Fragment implements PantryContract.View, Pan
                 0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
 
             @Override
+            public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+                if (isSwipeActionActive) {
+                    return makeMovementFlags(0, 0);
+                }
+                return super.getMovementFlags(recyclerView, viewHolder);
+            }
+
+            @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
                 return false;
             }
@@ -177,7 +186,8 @@ public class PantryFragment extends Fragment implements PantryContract.View, Pan
                 PantryItem itemToDelete = mAdapter.getItemAt(position);
                 mAdapter.removeItem(position);
 
-                // [수정] 스낵바를 참조하고, 올바른 View에 붙도록 수정합니다.
+                isSwipeActionActive = true;
+
                 deleteSnackbar = Snackbar.make(coordinatorLayout, "재료를 삭제했습니다.", Snackbar.LENGTH_LONG);
                 deleteSnackbar.setAction("실행 취소", v -> {
                     mAdapter.restoreItem(itemToDelete, position);
@@ -189,7 +199,8 @@ public class PantryFragment extends Fragment implements PantryContract.View, Pan
                         if (event != DISMISS_EVENT_ACTION) {
                             mPresenter.deletePantryItem(itemToDelete);
                         }
-                        deleteSnackbar = null; // [추가] 스낵바가 사라지면 참조를 해제합니다.
+                        deleteSnackbar = null;
+                        isSwipeActionActive = false;
                     }
                 });
                 deleteSnackbar.show();
@@ -197,6 +208,7 @@ public class PantryFragment extends Fragment implements PantryContract.View, Pan
 
             @Override
             public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                // [복원] 스와이프 시각 효과(빨간 배경, 아이콘)를 그리는 로직
                 if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
                     View itemView = viewHolder.itemView;
                     Paint paint = new Paint();
@@ -243,6 +255,7 @@ public class PantryFragment extends Fragment implements PantryContract.View, Pan
     }
 
     private void triggerVibration() {
+        // [복원] 스와이프 시 진동을 발생시키는 로직
         if (getContext() == null) return;
         Vibrator vibrator = (Vibrator) getContext().getSystemService(Context.VIBRATOR_SERVICE);
         if (vibrator != null && vibrator.hasVibrator()) {
@@ -256,11 +269,11 @@ public class PantryFragment extends Fragment implements PantryContract.View, Pan
 
     @Override
     public void onDestroyView() {
-        // [추가] 화면이 사라질 때 스낵바 참조를 안전하게 정리합니다.
         if (deleteSnackbar != null && deleteSnackbar.isShown()) {
             deleteSnackbar.dismiss();
         }
         deleteSnackbar = null;
+        isSwipeActionActive = false;
         super.onDestroyView();
         mPresenter.detachView();
     }
