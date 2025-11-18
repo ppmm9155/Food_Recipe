@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import com.example.food_recipe.base.BasePresenter; // [추가] BasePresenter 임포트
 import com.example.food_recipe.utils.AutoLoginManager;
 import com.example.food_recipe.utils.ValidationUtils;
+import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes;
 import com.google.firebase.auth.*;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -167,7 +168,14 @@ public class LoginPresenter extends BasePresenter<LoginContract.View> implements
             });
         } catch (ApiException e) {
             if (isViewAttached()) {
-                getView().toast("Google Sign-In 실패: " + e.getStatusCode());
+                // [수정] 사용자가 로그인을 취소한 경우와 실제 오류를 구분하여 처리합니다.
+                if (e.getStatusCode() == GoogleSignInStatusCodes.SIGN_IN_CANCELLED) {
+                    // 사용자가 자발적으로 취소한 경우
+                    getView().toast("로그인이 취소되었습니다.");
+                } else {
+                    // 네트워크 오류 등 실제 실패인 경우
+                    getView().toast("Google Sign-In 실패: " + e.getStatusCode());
+                }
             }
         }
     }
