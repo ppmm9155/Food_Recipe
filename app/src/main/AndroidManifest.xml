@@ -55,7 +55,7 @@
             android:exported="true"
             android:theme="@style/Theme.App.Base"
             android:screenOrientation="unspecified"
-            android:windowSoftInputMode="adjustResize|stateHidden" />
+            android:windowSoftInputMode="adjustPan|stateHidden" />
 
         <activity
             android:name=".findps.FindPsActivity"
