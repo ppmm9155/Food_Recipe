@@ -39,9 +39,9 @@
                 android:id="@+id/fmain_home_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="오늘 뭐 먹을까?"
+                android:text="오늘 뭐 먹을까요?"
                 android:textStyle="bold"
-                android:textSize="24sp"
+                android:textSize="23sp"
                 android:textColor="?attr/colorOnBackground"
                 android:layout_marginBottom="20dp"/>
 

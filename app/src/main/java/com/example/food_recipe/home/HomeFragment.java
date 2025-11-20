@@ -161,9 +161,9 @@ public class HomeFragment extends Fragment implements HomeContract.View, RecipeA
     @Override
     public void setUserName(@Nullable String username) {
         if (username != null && !username.isEmpty()) {
-            titleTextView.setText(username + "님, 오늘 뭐 먹을까?");
+            titleTextView.setText(username + "님, 오늘 뭐 먹을까요?");
         } else {
-            titleTextView.setText("오늘 뭐 먹을까?");
+            titleTextView.setText("오늘 뭐 먹을까요?");
         }
     }
 
