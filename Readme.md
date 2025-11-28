@@ -1,4 +1,3 @@
-
 <div align=center style="margin-bottom:30px">
   <img src="documents/Applogo.png">
 </div>
@@ -9,6 +8,14 @@
 
 > 냉장고 속 잠자고 있는 재료들을 깨워줄 똑똑한 식재료 관리 및 레시피 추천 앱입니다.
 > Firebase와 Algolia를 연동하여 실시간 데이터 동기화와 강력한 검색 기능을 구현한 안드로이드 네이티브 앱입니다.
+
+<br>
+
+## 캡스톤 디자인 전시회
+
+<div align=center>
+  <img src="assets/images/showcase/booth_display.jpg" width="600">
+</div>
 
 <br>
 
@@ -28,7 +35,7 @@
 
 ## 📌 프로젝트 정보
 
-* **프로젝트:** 졸업작품
+* **프로젝트:** 졸업작품 및 캡스톤 디자인
 * **주제:** 식재료 관리 및 레시피 추천 안드로이드 앱
 * **개발자:** [박기준](https://github.com/ppmm9155), [하종수](https://github.com/sanddunn)
 * **개발 기간:** 2025.09. ~ 2025.11.
@@ -54,6 +61,39 @@
 ![Algolia](https://img.shields.io/badge/Algolia-003DFF?style=for-the-badge&logo=algolia&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+
+<br>
+
+## ⚙️ 설치 방법
+
+1.  **Firebase 프로젝트 설정**
+    *   Firebase Console에서 새 프로젝트를 생성하고 Android 앱을 등록합니다.
+    *   **(필수)** 프로젝트 설정에서 `google-services.json` 파일을 다운로드하여 `app/` 디렉토리에 추가해야 합니다. 이 파일은 앱이 Firebase 서비스에 연결하는 데 필요합니다.
+    *   Authentication (이메일/비밀번호, Google 로그인), Firestore, Functions를 활성화합니다.
+
+2.  **Algolia 계정 설정**
+    *   Algolia에서 새 애플리케이션을 생성합니다.
+    *   **(필수)** API Keys 메뉴에서 **Application ID**와 **Admin API Key**를 확인해야 합니다.
+    *   `functions/src/index.ts` 파일 상단의 설정 변수에 위에서 확인한 값을 입력합니다.
+
+3.  **Android 앱 빌드**
+    *   Android Studio에서 프로젝트를 엽니다.
+    *   Gradle 동기화 후 앱을 빌드합니다.
+
+<br>
+
+## 🚀 시작 가이드
+
+1.  **Firebase Functions 배포**
+    *   `functions` 디렉토리에서 `npm install`을 실행하여 모든 종속성을 설치합니다.
+    *   `firebase deploy --only functions` 명령어로 함수를 배포합니다.
+
+2.  **데이터 파이프라인 실행 (최초 1회)**
+    *   `data_pipeline` 디렉토리의 Python 스크립트를 실행하여 레시피 데이터를 Firestore와 Algolia에 색인합니다.
+
+3.  **앱 실행**
+    *   Android Studio에서 앱을 실행하여 회원가입 후 기능을 테스트합니다.
 
 <br>
 
