@@ -38,7 +38,7 @@
 * **프로젝트:** 졸업작품 및 캡스톤 디자인
 * **주제:** 식재료 관리 및 레시피 추천 안드로이드 앱
 * **개발자:** [박기준](https://github.com/ppmm9155), [하종수](https://github.com/sanddunn)
-* **개발 기간:** 2025.09. ~ 2025.11.
+* **개발 기간:** 2025.03. ~ 2025.06., 2025.08. ~ 2025.11.
 * **주요 목표:**
     1.  Firebase (Auth, Firestore, Functions)와 Algolia 검색 엔진을 연동한 네이티브 안드로이드 앱 개발.
     2.  MVP (Model-View-Presenter) 아키텍처 패턴을 적용하여 비즈니스 로직과 UI 분리.
@@ -72,10 +72,14 @@
     *   **(필수)** 프로젝트 설정에서 `google-services.json` 파일을 다운로드하여 `app/` 디렉토리에 추가해야 합니다. 이 파일은 앱이 Firebase 서비스에 연결하는 데 필요합니다.
     *   Authentication (이메일/비밀번호, Google 로그인), Firestore, Functions를 활성화합니다.
 
-2.  **Algolia 계정 설정**
+2.  **Algolia API 키 설정**
     *   Algolia에서 새 애플리케이션을 생성합니다.
-    *   **(필수)** API Keys 메뉴에서 **Application ID**와 **Admin API Key**를 확인해야 합니다.
-    *   `functions/src/index.ts` 파일 상단의 설정 변수에 위에서 확인한 값을 입력합니다.
+    *   **(필수)** 프로젝트 루트의 `local.properties` 파일에 아래 내용을 추가하고, 자신의 Algolia 키로 교체해야 합니다.
+        ```properties
+        ALGOLIA_APP_ID="YOUR_ALGOLIA_APP_ID"
+        ALGOLIA_API_KEY="YOUR_ALGOLIA_SEARCH_API_KEY"
+        ```
+    *   `ALGOLIA_API_KEY`에는 Algolia 대시보드의 API Keys 메뉴에서 **Search-Only API Key**를 사용하세요.
 
 3.  **Android 앱 빌드**
     *   Android Studio에서 프로젝트를 엽니다.
@@ -87,7 +91,7 @@
 
 1.  **Firebase Functions 배포**
     *   `functions` 디렉토리에서 `npm install`을 실행하여 모든 종속성을 설치합니다.
-    *   `firebase deploy --only functions` 명령어로 함수를 배포합니다.
+    *   `firebase deploy --only functions` 명령어로 함수를 배포합니다. (배포 전 `functions/src/index.ts`에 Algolia **Admin API Key**를 설정해야 합니다.)
 
 2.  **데이터 파이프라인 실행 (최초 1회)**
     *   `data_pipeline` 디렉토리의 Python 스크립트를 실행하여 레시피 데이터를 Firestore와 Algolia에 색인합니다.
@@ -99,79 +103,47 @@
 
 ## 🎀 아키텍처
 
-본 프로젝트는 MVP 패턴을 기반으로 하며, Firebase와 Algolia의 역할을 명확히 분리하여 데이터 흐름을 관리합니다.
+본 프로젝트는 **MVP (Model-View-Presenter) 아키텍처**를 기반으로 설계되었습니다. 이 구조는 비즈니스 로직과 UI를 명확히 분리하여 코드의 유지보수성과 테스트 용이성을 높입니다.
 
-### 데이터 흐름 (Firebase & Algolia)
-> **시나리오 1: '검색' 외의 모든 상황 (홈 화면, 즐겨찾기 등)**
-> * **주인공:** ✅ **Firebase Firestore**
-> * **역할:** 정해진 규칙(추천 수, 최신순)에 따른 데이터 **'정렬'** 및 **'추천'**.
-> * **동작:** 안드로이드 앱이 "인기 레시피 10개를 `recommend_count` 순으로 줘"라고 Firestore에 직접 요청합니다.
->
-> **시나리오 2: 사용자가 '검색'을 실행할 때**
-> * **주인공:** ✅ **Algolia**
-> * **역할:** 검색어와의 '관련도' 기반 **'랭킹(Ranking)'**.
-> * **동작:** 안드로이드 앱이 "김치찌개"라는 검색어를 Algolia에 요청합니다. Algolia는 자체 랭킹 공식(제목 일치, 오타 수정, 추천 수)에 따라 정렬된 결과를 반환합니다.
->
-> **데이터 동기화: Firebase Functions**
-> * 사용자가 레시피에 '좋아요'를 눌러 Firestore의 `recommend_count`가 10에서 11로 변경됩니다.
-> * Firebase Function이 이 변경을 감지(`onDocumentUpdated`)하여 Algolia의 `recipes` 인덱스에 해당 레시피의 `recommend_count`를 11로 즉시 업데이트합니다.
+*   **Model:** 데이터 처리를 담당하며, `repository` 패키지가 이 역할을 수행합니다. Firebase Firestore와의 통신을 통해 데이터를 가져오거나 저장합니다.
+*   **View:** 사용자 인터페이스(UI)를 담당하며, Activity와 Fragment가 여기에 해당됩니다. 사용자의 입력을 Presenter에게 전달하고, Presenter가 전달하는 데이터를 화면에 표시합니다.
+*   **Presenter:** View와 Model 사이의 중재자 역할을 합니다. View로부터 받은 사용자 입력을 해석하고, 필요한 데이터를 Model에 요청합니다. Model로부터 받은 데이터를 가공하여 View가 화면에 표시할 수 있도록 전달합니다.
+
+**Firebase**는 회원 인증, 데이터베이스(Firestore), 서버리스 로직(Functions)을 담당하며, **Algolia**는 강력한 검색 기능을 제공하여 Firestore의 데이터와 동기화됩니다. 이를 통해 사용자는 빠르고 정확한 검색 결과를 얻을 수 있습니다.
 
 ---
 
-## 🔧 주요 기능 상세
+## 🗃️ 파일 구조
 
-### 1\. 검색 시스템 (Algolia + Firestore)
-
-  * **Firebase (정렬/추천):** 홈 화면의 '인기 레시피' 등 정렬된 목록을 가져오는 데 사용됩니다.
-  * **Algolia (검색):** `SearchFragment`의 모든 키워드 검색은 Algolia를 통해 처리됩니다.
-  * **자동 동기화:** Firebase Functions(`functions/src/index.ts`)가 Firestore 문서의 변경(예: `recommend_count` 증가)을 감지하여 Algolia 인덱스에 실시간으로 동기화합니다.
-
-### 2\. 지능형 검색어 처리 (Okt)
-
-사용자 검색 경험을 향상시키기 위해 한국어 형태소 분석기를 도입했습니다.
-
-  * `FoodRecipeApplication.java`에서 앱 시작 시 Okt 라이브러리를 비동기 스레드에서 미리 초기화하여 검색 시 지연 시간을 최소화합니다.
-  * `StringUtils.java`의 `extractNouns` 메서드는 사용자가 입력한 검색어(예: "맛있는 김치찌개 레시피")에서 **"김치찌개"**와 같은 핵심 명사만 추출합니다.
-  * `SearchPresenter.java`는 추출된 명사들을 검색 칩(Chip)으로 변환하여, 사용자가 검색 조건을 시각적으로 조합할 수 있게 합니다.
-
-### 3\. 냉장고 및 유통기한 알림
-
-백그라운드 작업과 서버리스 기능을 결합하여 유통기한 알림을 구현했습니다.
-
-1.  **데이터 저장:** 사용자의 식재료(`PantryItem`)는 `users` 컬렉션 내의 `myIngredients` 배열에 임베디드(embedded)됩니다.
-2.  **데이터 동기화:** Firebase Function(`syncExpiringIngredients`)이 `myIngredients` 배열의 변경(추가/수정/삭제)을 감지하고, 유통기한이 있는 항목만 별도의 `expiringIngredients` 컬렉션으로 동기화합니다.
-3.  **백그라운드 작업:** 안드로이드의 `ExpirationCheckWorker`가 `WorkManager`를 통해 24시간마다 실행됩니다.
-4.  **알림 전송:** `ExpirationCheckWorker`는 `expiringIngredients` 컬렉션을 쿼리하여 유통기한이 임박(D-3)하고 아직 알림이 발송되지 않은(`PENDING`) 재료를 찾아 사용자에게 푸시 알림을 보냅니다.
-
-### 4\. 안정적인 MVP 구조
-
-  * `base` 패키지의 `BaseContract`와 `BasePresenter`를 통해 모든 View와 Presenter가 일관된 생명주기(attach/detach)를 갖도록 설계하여 메모리 누수를 방지합니다.
-  * `AuthViewModel`을 `ViewModelProvider`를 통해 Activity 범위로 생성하여, `HomeFragment`, `PantryFragment` 등 모든 하위 Fragment가 로그인 상태(`FirebaseUser`)를 실시간으로 공유하고 UI를 즉각 변경할 수 있습니다.
-
----
-
-## 🗃️ Firestore 데이터 구조
-
-### 1\. `recipes` 컬렉션
-
-10만 개의 레시피 원본 데이터가 저장된 기본 컬렉션입니다.
-
-  * `RCP_SNO` (String): 레시피 고유 ID
-  * `title` (String): 레시피 제목
-  * `ingredients` (Array\<String\>): 정제된 재료명 배열
-  * `ingredients_raw` (String): 원본 재료 텍스트
-  * `cooking_steps` (Array\<Map\>): 단계별 조리 과정
-  * `cooking_time` (String): 조리 시간
-  * `difficulty` (String): 난이도
-  * `recommend_count` (Number): 추천 수 (즐겨찾기 수)
-  * `scrap_count` (Number): 스크랩 수
-
-### 2\. `users` 컬렉션
-
-회원 정보 및 사용자별 데이터를 저장하는 컬렉션입니다.
-
-  * `uid` (String): Firebase Auth UID
-  * `email` (String): 사용자 이메일
-  * `username` (String): 사용자 닉네임
-  * `bookmarked_recipes` (Array\<String\>): 즐겨찾기한 `recipes`의 ID (RCP\_SNO) 배열
-  * `myIngredients` (Array\<Map\>): 사용자의 '내 냉장고' 재료 목록 (PantryItem 객체 배열)
+```
+.
+├── app/                  # 안드로이드 앱 모듈
+│   ├── src/main/
+│   │   ├── java/com/example/food_recipe/
+│   │   │   ├── FoodRecipeApplication.java  # Application 클래스 (앱 초기화)
+│   │   │   ├── adapter/          # RecyclerView 어댑터
+│   │   │   ├── base/             # MVP 패턴의 Base 클래스 (BaseContract, BasePresenter)
+│   │   │   ├── model/            # 데이터 모델 클래스 (Recipe, User 등)
+│   │   │   ├── repository/       # 데이터 처리 (Firestore 연동)
+│   │   │   ├── utils/            # 유틸리티 클래스 (StringUtils, DateUtils 등)
+│   │   │   ├── worker/           # WorkManager 관련 클래스
+│   │   │   ├── login/            # 로그인
+│   │   │   ├── join/             # 회원가입
+│   │   │   ├── findps/           # 비밀번호 찾기
+│   │   │   ├── main/             # 메인 화면 (Activity + 하위 Fragment)
+│   │   │   ├── home/             # 홈 화면
+│   │   │   ├── search/           # 레시피 검색
+│   │   │   ├── pantry/           # 나만의 냉장고
+│   │   │   ├── favorites/        # 즐겨찾기
+│   │   │   ├── mypage/           # 마이페이지
+│   │   │   ├── editprofile/      # 회원정보 수정
+│   │   │   └── recipedetail/     # 레시피 상세
+│   │   ├── res/              # 리소스 (레이아웃, 이미지 등)
+│   ├── build.gradle.kts    # 앱 모듈 빌드 스크립트
+├── functions/              # Firebase Functions (TypeScript)
+│   ├── src/
+│   │   └── index.ts        # 백엔드 로직 (Algolia 동기화, 알림 등)
+├── data_pipeline/          # 데이터 파이프라인 (Python)
+│   └── ...                 # 데이터 수집, 정제, Firestore/Algolia 업로드 스크립트
+└── Readme.md               # 프로젝트 설명서
+```
