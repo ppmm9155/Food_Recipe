@@ -41,15 +41,15 @@
 * **개발 기간:** 2025.03. ~ 2025.06., 2025.08. ~ 2025.11.
 * **주요 목표:**
     1.  Firebase (Auth, Firestore, Functions)와 Algolia 검색 엔진을 연동한 네이티브 안드로이드 앱 개발.
-    2.  MVP (Model-View-Presenter) 아키텍처 패턴을 적용하여 비즈니스 로직과 UI 분리.
+    2.  MVP (Model-View-Presenter) 아치텍처 패턴을 적용하여 비즈니스 로직과 UI 분리.
     3.  WorkManager, Navigation Component 등 최신 AndroidX 라이브러리 활용.
 
 <br>
 
 ## 📊 데이터 출처
 
-* **KADX농식품 빅데이터 거래소:** [무료 레시피 데이터 (만개의 레시피)](https://kadx.co.kr/)를 기반으로 사용했습니다.
-* **웹 크롤링:** `data_pipeline` 패키지의 Python 스크립트를 통해 부족한 데이터를 추가적으로 수집하고 정제하여 데이터베이스를 구축했습니다.
+* **KADX농식품 빅데이터 거래소:** [무료 레시피 데이터 (만개의 레시피)](https://kadx.co.kr/opmk/frn/pmumkproductDetail/PMU_79c6f1a4-56dd-492e-ad67-c5acba0304d2/5)를 기반으로 사용했습니다.
+* **웹 크롤링:** `data_pipeline` 패키지의 Python 스크립트를 통해 **만개의 레시피** 웹 사이트에서 부족한 데이터를 추가적으로 수집하고 정제하여 데이터베이스를 구축했습니다.
 
 <br>
 
