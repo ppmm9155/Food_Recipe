@@ -33,6 +33,25 @@
 
 <br>
 
+## 📱 App 미리보기
+
+<table>
+  <tr>
+    <td align="center"><img src="assets/images/screenshots/로그인.png" width="250"><br><b>로그인</b></td>
+    <td align="center"><img src="assets/images/screenshots/회원가입.png" width="250"><br><b>회원가입</b></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="assets/images/screenshots/홈화면1.png" width="250"><br><b>홈 화면</b></td>
+    <td align="center"><img src="assets/images/screenshots/레시피 검색화면1.png" width="250"><br><b>레시피 검색</b></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="assets/images/screenshots/냉장고 화면2.png" width="250"><br><b>나만의 냉장고</b></td>
+    <td align="center"><img src="assets/images/screenshots/레시피 상세 화면1.png" width="250"><br><b>레시피 상세 정보</b></td>
+  </tr>
+</table>
+
+<br>
+
 ## 📌 프로젝트 정보
 
 * **프로젝트:** 졸업작품 및 캡스톤 디자인
@@ -115,6 +134,13 @@
 *   **Model:** 데이터 처리를 담당하며, `repository` 패키지가 이 역할을 수행합니다. Firebase Firestore와의 통신을 통해 데이터를 가져오거나 저장합니다.
 *   **View:** 사용자 인터페이스(UI)를 담당하며, Activity와 Fragment가 여기에 해당됩니다. 사용자의 입력을 Presenter에게 전달하고, Presenter가 전달하는 데이터를 화면에 표시합니다.
 *   **Presenter:** View와 Model 사이의 중재자 역할을 합니다. View로부터 받은 사용자 입력을 해석하고, 필요한 데이터를 Model에 요청합니다. Model로부터 받은 데이터를 가공하여 View가 화면에 표시할 수 있도록 전달합니다.
+
+### 시스템 아키텍처
+<details>
+<summary><b>시스템 아키텍처 보기/숨기기</b></summary>
+<br>
+<img src="assets/images/diagram/시스템 아키텍처.png">
+</details>
 
 ### 클래스 다이어그램
 <details>
