@@ -48,7 +48,7 @@
 
 ## 📊 데이터 출처
 
-* **KADX농식품 빅데이터 거래소:** [무료 레시피 데이터 (만개의 레시피)](https://kadx.co.kr/opmk/frn/pmumkproductDetail/PMU_79c6f1a4-56dd-492e-ad67-c5acba0304d2/5)를 기반으로 사용했습니다.
+* **KADX농식품 빅데이터 거래소:** [무료 레시피 데이터 (만개의 레시피)](https://kadx.co.kr/opmk/frn/pmumkproductDetail/PMU_79c_6f1a4-56dd-492e-ad67-c5acba0304d2/5)를 기반으로 사용했습니다.
 * **웹 크롤링:** `data_pipeline` 패키지의 Python 스크립트를 통해 **만개의 레시피** 웹 사이트에서 부족한 데이터를 추가적으로 수집하고 정제하여 데이터베이스를 구축했습니다.
 
 <br>
@@ -116,7 +116,21 @@
 *   **View:** 사용자 인터페이스(UI)를 담당하며, Activity와 Fragment가 여기에 해당됩니다. 사용자의 입력을 Presenter에게 전달하고, Presenter가 전달하는 데이터를 화면에 표시합니다.
 *   **Presenter:** View와 Model 사이의 중재자 역할을 합니다. View로부터 받은 사용자 입력을 해석하고, 필요한 데이터를 Model에 요청합니다. Model로부터 받은 데이터를 가공하여 View가 화면에 표시할 수 있도록 전달합니다.
 
-**Firebase**는 회원 인증, 데이터베이스(Firestore), 서버리스 로직(Functions)을 담당하며, **Algolia**는 강력한 검색 기능을 제공하여 Firestore의 데이터와 동기화됩니다. 이를 통해 사용자는 빠르고 정확한 검색 결과를 얻을 수 있습니다.
+### 클래스 다이어그램
+<img src="assets/images/diagram/클래스다이어그램.svg">
+
+---
+
+## 📊 데이터 아키텍처 (ERD)
+
+본 프로젝트의 데이터는 **Firebase Firestore**를 메인 데이터베이스로 사용하며, 빠른 검색을 위해 **Algolia** 검색 엔진과 데이터를 동기화합니다. 사용자의 편의 기능을 위해 일부 데이터는 안드로이드의 **SharedPreferences**에 로컬로 저장됩니다.
+
+*   **Firebase Firestore:** `users`와 `recipes`라는 두 개의 메인 컬렉션으로 구성됩니다. 사용자 정보와 레시피 원본 데이터가 저장됩니다.
+*   **Algolia:** 검색에 필요한 최소한의 레시피 데이터(`name`, `description` 등)가 Firestore로부터 동기화되어 저장됩니다.
+*   **SharedPreferences:** 최근 본 레시피 목록이나 자동 로그인 토큰과 같이, 서버와의 통신 없이 빠르게 접근해야 하는 데이터를 로컬에 저장합니다.
+
+### ERD 다이어그램
+<img src="assets/images/diagram/ERD 다이어그램.svg">
 
 ---
 
