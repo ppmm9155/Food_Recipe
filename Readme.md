@@ -117,7 +117,11 @@
 *   **Presenter:** View와 Model 사이의 중재자 역할을 합니다. View로부터 받은 사용자 입력을 해석하고, 필요한 데이터를 Model에 요청합니다. Model로부터 받은 데이터를 가공하여 View가 화면에 표시할 수 있도록 전달합니다.
 
 ### 클래스 다이어그램
+<details>
+<summary><b>클래스 다이어그램 보기/숨기기</b></summary>
+<br>
 <img src="assets/images/diagram/클래스다이어그램.svg">
+</details>
 
 ---
 
@@ -130,7 +134,11 @@
 *   **SharedPreferences:** 최근 본 레시피 목록이나 자동 로그인 토큰과 같이, 서버와의 통신 없이 빠르게 접근해야 하는 데이터를 로컬에 저장합니다.
 
 ### ERD 다이어그램
+<details>
+<summary><b>ERD 다이어그램 보기/숨기기</b></summary>
+<br>
 <img src="assets/images/diagram/ERD 다이어그램.svg">
+</details>
 
 ---
 
