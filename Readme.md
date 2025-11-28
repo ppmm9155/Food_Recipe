@@ -56,7 +56,7 @@
 
 * **프로젝트:** 졸업작품 및 캡스톤 디자인
 * **주제:** 식재료 관리 및 레시피 추천 안드로이드 앱
-* **개발자:** [박기준](https://github.com/ppmm9155), [하종수](https://github.com/sanddunn)
+* **팀원:** [하종수](https://github.com/sanddunn)(팀장), [박기준](https://github.com/ppmm9155), 정승훈, 김강민
 * **개발 기간:** 2025.03. ~ 2025.06., 2025.08. ~ 2025.11.
 * **주요 목표:**
     1.  Firebase (Auth, Firestore, Functions)와 Algolia 검색 엔진을 연동한 네이티브 안드로이드 앱 개발.
@@ -194,7 +194,7 @@
 │   │   │   ├── favorites/        # 즐겨찾기
 │   │   │   ├── mypage/           # 마이페이지
 │   │   │   ├── editprofile/      # 회원정보 수정
-│   │   │   └── recipedetail/     # 레시피 상세
+│   │   │   └── recipetail/     # 레시피 상세
 │   │   ├── res/              # 리소스 (레이아웃, 이미지 등)
 │   ├── build.gradle.kts    # 앱 모듈 빌드 스크립트
 ├── functions/              # Firebase Functions (TypeScript)
