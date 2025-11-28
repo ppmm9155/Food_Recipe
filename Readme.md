@@ -60,7 +60,7 @@
 * **개발 기간:** 2025.03. ~ 2025.06., 2025.08. ~ 2025.11.
 * **주요 목표:**
     1.  Firebase (Auth, Firestore, Functions)와 Algolia 검색 엔진을 연동한 네이티브 안드로이드 앱 개발.
-    2.  MVP (Model-View-Presenter) 아치텍처 패턴을 적용하여 비즈니스 로직과 UI 분리.
+    2.  MVP (Model-View-Presenter) 아키텍처 패턴을 적용하여 비즈니스 로직과 UI 분리.
     3.  WorkManager, Navigation Component 등 최신 AndroidX 라이브러리 활용.
 
 <br>
