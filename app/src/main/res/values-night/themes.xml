@@ -1,7 +1,77 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.Food_Recipe" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+
+    <!--
+    ================================================================================
+    | Phase 1: 앱의 모든 화면이 사용할 단일 통합 테마를 정의합니다.                     |
+    ================================================================================
+    -->
+    <style name="Theme.App.Base" parent="Theme.Material3.Light.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:forceDarkAllowed" tools:targetApi="29">false</item>
+        <item name="colorPrimary">@color/black</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="android:colorBackground">@color/white</item>
+        <item name="colorSurface">@color/white</item>
+        <item name="colorOnSurface">@color/black</item>
+        <item name="colorSurfaceContainer">@color/gray_200</item>
+        <item name="colorSurfaceVariant">@color/white</item>
+        <item name="colorOnSurfaceVariant">@color/gray_600</item>
+        <item name="colorOutline">@color/gray_200</item>
+        <item name="colorSecondary">@color/black</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="textInputStyle">@style/Widget.Material3.TextInputLayout.OutlinedBox</item>
+        <item name="materialButtonStyle">@style/Widget.App.Button.Filled</item>
+        <item name="toolbarStyle">@style/MyToolbarTheme</item>
     </style>
+    <style name="Theme.Food_Recipe" parent="Theme.App.Base"/>
+    <style name="Theme.Food_Recipe.NoActionBar" parent="Theme.App.Base"/>
+
+    <!-- ================================================================================ -->
+    <!-- | 특정 UI 컴포넌트(버튼, 툴바 등)를 위한 개별 스타일 정의                         | -->
+    <!-- ================================================================================ -->
+    <style name="ThemeOverlay.App.PopupMenu" parent="ThemeOverlay.Material3.Light"/>
+
+    <style name="Widget.App.Button.Filled" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/black</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textStyle">bold</item>
+        <item name="cornerRadius">12dp</item>
+    </style>
+    <style name="Widget.App.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+    </style>
+    <style name="MyToolbarTheme" parent="ThemeOverlay.Material3.ActionBar">
+        <item name="colorControlNormal">@color/white</item>
+    </style>
+    <style name="MyToolbarTitleStyle" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:paddingStart">8dp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="MyBottomNavActiveIndicatorStyle" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@android:color/white</item>
+    </style>
+
+    <!-- ================================================================================ -->
+    <!-- | [위치 수정] BottomSheetDialogFragment를 위한 전용 테마 및 스타일                | -->
+    <!-- | (파일의 맨 아래로 이동하여 참조 오류 해결)                                     | -->
+    <!-- ================================================================================ -->
+    <style name="Theme.App.BottomSheetDialog" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.App.BottomSheet</item>
+        <item name="materialButtonStyle">@style/Widget.App.Button.Filled</item>
+    </style>
+
+    <style name="Widget.App.BottomSheet" parent="Widget.Material3.BottomSheet.Modal">
+        <item name="backgroundTint">@color/white</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.App.BottomSheet</item>
+    </style>
+
+    <style name="ShapeAppearance.App.BottomSheet" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">16dp</item>
+        <item name="cornerSizeTopRight">16dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+    </style>
+
 </resources>

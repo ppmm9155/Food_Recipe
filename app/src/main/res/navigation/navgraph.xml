@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/navgraph"
+    app:startDestination="@id/home_fragment">
+
+    <fragment
+        android:id="@+id/home_fragment"
+        android:name="com.example.food_recipe.home.HomeFragment"
+        android:label="요리GO조리GO"
+        tools:layout="@layout/fragment_main" >
+        <action
+            android:id="@+id/action_home_fragment_to_recipeDetailFragment"
+            app:destination="@id/recipeDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_favorites"
+        android:name="com.example.food_recipe.favorites.FavoritesFragment"
+        android:label="즐겨찾기"
+        tools:layout="@layout/fragment_favorites" >
+        <action
+            android:id="@+id/action_favoritesFragment_to_recipeDetailFragment"
+            app:destination="@id/recipeDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_pantry"
+        android:name="com.example.food_recipe.pantry.PantryFragment"
+        android:label="냉장고"
+        tools:layout="@layout/fragment_pantry" />
+
+    <fragment
+        android:id="@+id/nav_search"
+        android:name="com.example.food_recipe.search.SearchFragment"
+        android:label="레시피 검색"
+        tools:layout="@layout/fragment_search" >
+        <action
+            android:id="@+id/action_searchFragment_to_recipeDetailFragment"
+            app:destination="@id/recipeDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/recipeDetailFragment"
+        android:name="com.example.food_recipe.recipedetail.RecipeDetailFragment"
+        android:label="레시피"
+        tools:layout="@layout/fragment_recipe_detail" >
+        <argument
+            android:name="rcpSno"
+            app:argType="string" />
+    </fragment>
+
+    <!-- [기존 주석 유지] 마이페이지 화면 목적지 -->
+    <fragment
+        android:id="@+id/nav_mypage"
+        android:name="com.example.food_recipe.mypage.MyPageFragment"
+        android:label="마이페이지"
+        tools:layout="@layout/fragment_my_page" >
+        <!-- [기존 주석 유지] 프로필 수정 화면으로 이동하는 Action -->
+        <action
+            android:id="@+id/action_myPageFragment_to_editProfileFragment"
+            app:destination="@id/edit_profile_fragment" />
+    </fragment>
+
+    <!-- [변경] 프로필 수정 화면 목적지의 Fragment 경로 수정 -->
+    <fragment
+        android:id="@+id/edit_profile_fragment"
+        android:name="com.example.food_recipe.editprofile.EditProfileFragment"
+        android:label="프로필 수정"
+        tools:layout="@layout/fragment_edit_profile" />
+
+</navigation>

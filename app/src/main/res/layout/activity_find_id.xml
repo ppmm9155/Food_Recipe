@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="?attr/colorSurface">
+
+    <LinearLayout
+        android:id="@+id/fi_findid"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/auth_horizontal_margin"
+        android:paddingEnd="@dimen/auth_horizontal_margin"
+        android:paddingTop="@dimen/auth_vertical_margin"
+        android:paddingBottom="@dimen/auth_vertical_margin"
+        android:gravity="top|center_horizontal"> <!-- ⬅️ 수직 정렬은 스페이서가 담당하도록 top으로 변경 -->
+
+        <!-- 상단 스페이서 (황금 비율 적용) -->
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <!-- 타이틀 (로그인과 동일 톤) -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/fi_textViewTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="아이디 찾기"
+            android:textStyle="bold"
+            android:textSize="28sp"
+            android:textColor="?attr/colorOnBackground"
+            android:layout_marginBottom="20dp"
+            android:importantForAutofill="no" />
+
+        <!-- 이메일 입력 (OutlinedBox로 로그인 톤 매칭) -->
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:boxStrokeColor="?attr/colorOutline"
+            app:boxStrokeWidth="1dp"
+            app:boxStrokeWidthFocused="2dp"
+            app:hintEnabled="true"
+            app:errorEnabled="true"
+            app:errorIconDrawable="@null"
+            android:hint="이메일">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/fi_editTextEmail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textEmailAddress|textNoSuggestions"
+                android:autofillHints="emailAddress"
+                android:imeOptions="actionNext"
+                android:maxLines="1"
+                android:textColor="?attr/colorOnBackground"
+                android:textColorHint="?attr/colorOnSurfaceVariant"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- 인증번호 입력 + 인증 버튼 (가로 배치) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="12dp">
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:boxStrokeWidth="1dp"
+                app:boxStrokeWidthFocused="2dp"
+                app:errorEnabled="true"
+                app:errorIconDrawable="@null"
+                app:hintEnabled="true"
+                android:hint="인증번호">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/fi_editTextEmailAuth"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:textColor="?attr/colorOnBackground"
+                    android:textColorHint="?attr/colorOnSurfaceVariant" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/fi_buttonVerify"
+                style="@style/Widget.App.Button.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginStart="12dp"
+                android:text="인증"
+                android:insetLeft="0dp"
+                android:insetRight="0dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                app:iconTint="@null" />
+        </LinearLayout>
+
+        <!-- 새 아이디 입력/표시 (로그인 톤 매칭) -->
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:boxStrokeWidth="1dp"
+            app:boxStrokeWidthFocused="2dp"
+            app:hintEnabled="true"
+            android:hint="새 아이디">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/fi_editTextNewId"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:maxLines="1"
+                android:textColor="?attr/colorOnBackground"
+                android:textColorHint="?attr/colorOnSurfaceVariant"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- 로그인 하러 가기 (Filled 버튼으로 로그인 톤 매칭) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/fi_buttonLogin"
+            style="@style/Widget.App.Button.Filled"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="로그인 하러 가기"
+            android:layout_marginTop="24dp" />
+
+        <!-- 하단 스페이서 (황금 비율 적용) -->
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1.5" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

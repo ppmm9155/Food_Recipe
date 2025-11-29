@@ -2,24 +2,66 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- [추가] 인터넷 사용을 위한 권한 선언 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- [추가] 햅틱 피드백(진동) 기능을 사용하기 위한 권한을 선언합니다. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- [추가] Android 13 이상에서 알림을 보내기 위한 권한 -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
     <application
+        android:name=".FoodRecipeApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/icon"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/icon"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Food_Recipe">
+        android:theme="@style/Theme.App.Base"
+        tools:targetApi="34">
+
+        <!-- SplashActivity: 앱 시작 지점 (고유 테마 유지) -->
         <activity
-            android:name=".MainActivity"
-            android:exported="true">
+            android:name=".splash.SplashActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Food_Recipe.Splash"
+            android:screenOrientation="fullSensor">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-    </application>
 
+        <!-- 로그인 화면 -->
+        <activity
+            android:name=".login.LoginActivity"
+            android:exported="true"
+            android:theme="@style/Theme.App.Base"
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            android:screenOrientation="fullSensor" />
+
+        <!-- 회원가입 화면 -->
+        <activity
+            android:name=".join.JoinActivity"
+            android:exported="true"
+            android:theme="@style/Theme.App.Base"
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            android:screenOrientation="fullSensor" />
+
+        <!-- 메인 화면 -->
+        <activity
+            android:name=".main.MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.App.Base"
+            android:screenOrientation="unspecified"
+            android:windowSoftInputMode="adjustPan|stateHidden" />
+
+        <activity
+            android:name=".findps.FindPsActivity"
+            android:exported="true"
+            android:theme="@style/Theme.App.Base"
+            android:screenOrientation="fullSensor"
+            android:windowSoftInputMode="adjustResize|stateHidden" />
+    </application>
 </manifest>

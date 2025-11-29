@@ -1,5 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+
+    <!-- 모던 흑백 보조톤 -->
+    <color name="gray_200">#E6E6E6</color>
+    <color name="gray_400">#9E9E9E</color>
+    <color name="gray_600">#757575</color>
+    <color name="gray_700">#FF424242</color>
+
+    <color name="black_2">#212121</color>
+
+    <!-- [추가] D-Day 표시를 위해 추가된 색상 -->
+    <color name="red">#FF5252</color>
+    <color name="orange">#FF9800</color>
+
+    <!-- [추가] 검색 결과 하이라이팅을 위한 색상 -->
+    <color name="search_highlight_color">#4285F4</color>
 </resources>

@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.google.gms.google.services)
+    // [추가] Secrets Gradle Plugin을 app 모듈에 적용합니다.
+    alias(libs.plugins.secrets.gradle.plugin)
 }
 
 android {
@@ -9,12 +11,21 @@ android {
 
     defaultConfig {
         applicationId = "com.example.food_recipe"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables {
+            useSupportLibrary = true
+        }
+    }
+
+    // [추가] buildFeatures 블록을 추가하여 BuildConfig 클래스 자동 생성을 활성화합니다.
+    // 이를 통해 local.properties에 저장된 비밀 키를 코드에서 안전하게 참조할 수 있습니다.
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {
@@ -30,22 +41,50 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
 }
+
 
 dependencies {
 
-    implementation(libs.appcompat) // AndroidX AppCompat 라이브러리 (이전 Android 버전과의 호환성 및 다양한 UI 요소 제공)
-    implementation(libs.material) // Google의 머티리얼 디자인 가이드라인을 따르는 UI 컴포넌트 모음
-    implementation(libs.activity) // Jetpack Activity 라이브러리 (Activity Result API, ComponentActivity 등 포함)
-    implementation(libs.constraintlayout) // ConstraintLayout을 사용하여 유연하고 효율적인 UI 레이아웃 구성
+    implementation(libs.appcompat)
+    implementation(libs.material)
+    implementation(libs.activity)
+    implementation(libs.constraintlayout)
 
-    implementation(libs.firebase.auth) // Firebase 인증 라이브러리 (이메일, 소셜 미디어, 익명 로그인 등 다양한 인증 방식 지원)
-    implementation(libs.credentials) // 사용자 인증 정보(비밀번호, 패스키 등) 관리를 위한 Credential Manager API
-    implementation(libs.credentials.play.services.auth) // Google Play 서비스를 통해 제공되는 인증 정보(예: Google 비밀번호 사용) 관리 확장
-    implementation(libs.googleid) // Google ID 서비스 라이브러리: Google 계정을 사용한 사용자 인증(예: 'Google로 로그인') 및 Google의 원탭(One Tap) 로그인과 같은 간소화된 로그인 환경을 구현하는 데 사용됩니다.
-    implementation(libs.firebase.analytics) // Firebase Analytics 라이브러리: 사용자 행동 및 앱 사용 패턴을 추적하고 분석하여 앱 사용에 대한 인사이트를 얻는 데 사용됩니다.
+    implementation(libs.firebase.auth)
+    implementation(libs.credentials)
+    implementation(libs.credentials.play.services.auth)
+    implementation(libs.googleid)
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.firestore)
+    implementation(libs.google.firebase.firestore)
 
-    testImplementation(libs.junit) // 로컬 JVM 환경에서 실행되는 단위 테스트를 위한 JUnit 프레임워크
-    androidTestImplementation(libs.ext.junit) // 안드로이드 기기 또는 에뮬레이터에서 실행되는 계측 테스트를 위한 JUnit 확장 라이브러리
-    androidTestImplementation(libs.espresso.core) // 안드로이드 UI 테스트 자동화를 위한 Espresso 프레임워크의 핵심 라이브러리
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.ext.junit)
+    androidTestImplementation(libs.espresso.core)
+
+    implementation(libs.core.splashscreen)
+
+    implementation(libs.navigation.fragment)
+    implementation(libs.navigation.ui)
+    implementation(libs.play.services.auth)
+    implementation(libs.coordinatorlayout)
+
+    implementation("com.github.bumptech.glide:glide:5.0.5")
+    // [안정성 수정] 동적 버전을 마지막 안정 버전으로 고정하여 빌드의 예측 가능성을 확보합니다.
+    implementation("com.algolia:algoliasearch-android:3.27.0")
+
+    val lifecycle_version = "2.8.4"
+    implementation("androidx.lifecycle:lifecycle-viewmodel:$lifecycle_version")
+    implementation("androidx.lifecycle:lifecycle-livedata:$lifecycle_version")
+
+    // [추가] Gson 라이브러리 의존성을 추가합니다. SharedPreferences에 객체를 저장/로드하기 위해 사용합니다.
+    implementation("com.google.code.gson:gson:2.13.2")
+
+    // [추가] Open Korean Text(Okt) 라이브러리 의존성을 추가합니다. 한국어 형태소 분석을 위해 사용합니다.
+    implementation(libs.open.korean.text)
+
+    // [추가] WorkManager 라이브러리 (신뢰성 있는 백그라운드 작업을 위해 필요)
+    implementation(libs.work.runtime.ktx)
 }

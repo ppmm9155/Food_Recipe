@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- [추가] ProgressBar와 컨텐츠를 겹치게 하기 위해 FrameLayout을 최상위 뷰로 사용 -->
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface">
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/fmain_content_scroll_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+        <!--
+            [삭제된 속성]
+            1. android:fitsSystemWindows="true"
+            2. app:layout_behavior="@string/appbar_scrolling_view_behavior"
+
+            이 두 속성의 역할은 이제 activity_main.xml의 CoordinatorLayout과
+            FragmentContainerView가 담당하므로, 여기서는 반드시 삭제해야
+            속성 충돌로 인한 오류가 발생하지 않습니다.
+        -->
+
+        <!-- 내부 LinearLayout 및 모든 하위 뷰들은 변경 없이 100% 그대로 유지됩니다. -->
+        <LinearLayout
+            android:id="@+id/fmain_home_root"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="@dimen/auth_horizontal_margin"
+            android:paddingEnd="@dimen/auth_horizontal_margin"
+            android:paddingTop="@dimen/auth_vertical_margin"
+            android:paddingBottom="@dimen/auth_vertical_margin"
+            android:gravity="center_horizontal">
+
+            <!-- 환영 메시지 -->
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/fmain_home_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="오늘 뭐 먹을까요?"
+                android:textStyle="bold"
+                android:textSize="23sp"
+                android:textColor="?attr/colorOnBackground"
+                android:layout_marginBottom="20dp"/>
+
+
+            <!-- ⭐ 오늘의 추천 레시피 (재료 없으면 인기 레시피 대체) -->
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/fmain_label_recommended"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="⭐ 오늘의 추천 레시피"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:textColor="?attr/colorOnBackground"
+                android:layout_marginBottom="12dp"/>
+
+            <!-- 가로 스크롤 리스트: 2~3개가 한 화면에 보이도록 높이 제한 -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/fmain_rv_recommended"
+                android:layout_width="match_parent"
+                android:layout_height="160dp"
+                android:overScrollMode="never"
+                android:layout_marginBottom="24dp"/>
+
+            <!-- 🔥 지금 인기 있는 레시피 -->
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/fmain_label_popular"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="🔥 지금 인기 있는 레시피"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:textColor="?attr/colorOnBackground"
+                android:layout_marginBottom="12dp"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/fmain_rv_popular"
+                android:layout_width="match_parent"
+                android:layout_height="140dp"
+                android:overScrollMode="never"
+                android:layout_marginBottom="24dp"/>
+
+            <!-- 🕑 최근 본 / 즐겨찾기 미리보기 (헤더 + 더보기) -->
+            <LinearLayout
+                android:id="@+id/fmain_recentfav_header"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/fmain_label_recentfav"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="🕑 최근 본 / 즐겨찾기 미리보기"
+                    android:textStyle="bold"
+                    android:textSize="18sp"
+                    android:textColor="?attr/colorOnBackground"/>
+
+                <!-- 즐겨찾기 탭으로 이동 -->
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/fmain_btn_more_fav"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="더보기 >"
+                    android:textStyle="bold"
+                    android:textColor="?attr/colorOnBackground"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="6dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackgroundBorderless"/>
+            </LinearLayout>
+
+            <!-- Empty State: 최근 본/즐겨찾기 데이터가 없을 때 -->
+            <LinearLayout
+                android:id="@+id/fmain_empty_recentfav"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="20dp"
+                android:visibility="gone"
+                android:layout_marginBottom="12dp">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/fmain_tv_recentfav_empty"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="아직 본 레시피나 즐겨찾기가 없어요 👀"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="8dp"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/fmain_btn_go_explore"
+                    style="@style/Widget.App.Button.Outlined"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="인기 레시피 보러가기"/>
+            </LinearLayout>
+
+            <!-- 미리보기 리스트 (작은 카드 2~3개만 노출) -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/fmain_rv_recentfav_preview"
+                android:layout_width="match_parent"
+                android:layout_height="120dp"
+                android:overScrollMode="never"/>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- [추가] 로딩 인디케이터. 화면 정중앙에 위치. -->
+    <ProgressBar
+        android:id="@+id/fmain_progressBar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" /> <!-- 기본 상태는 숨김 -->
+
+</FrameLayout>

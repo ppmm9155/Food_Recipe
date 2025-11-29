@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/add_ingredient_title" 
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="재료 추가"
+        android:textAppearance="?attr/textAppearanceTitleLarge"
+        android:textStyle="bold"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- [기존 주석 유지] 재료 이름 입력 -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="재료 이름">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/add_ingredient_et_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- [기존 주석 유지] 카테고리 선택 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="카테고리"
+        android:textAppearance="?attr/textAppearanceTitleMedium"/>
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none">
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/add_ingredient_chip_group_category"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:singleSelection="true">
+            <!-- Chip들은 코드로 동적 추가 예정 -->
+        </com.google.android.material.chip.ChipGroup>
+    </HorizontalScrollView>
+
+    <!-- [기존 주석 유지] 수량 및 단위 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp">
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="수량">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/add_ingredient_et_quantity"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"/>
+        </com.google.android.material.textfield.TextInputLayout>
+        <Spinner
+            android:id="@+id/add_ingredient_spinner_unit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_marginStart="8dp"
+            android:layout_marginBottom="8dp"/>
+    </LinearLayout>
+
+    <!-- [기존 주석 유지] 보관 장소 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="보관 장소"
+        android:textAppearance="?attr/textAppearanceTitleMedium"/>
+    <RadioGroup
+        android:id="@+id/add_ingredient_radio_group_storage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <RadioButton
+            android:id="@+id/add_ingredient_radio_refrigerated"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="냉장"/>
+        <RadioButton
+            android:id="@+id/add_ingredient_radio_frozen"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="냉동"/>
+        <RadioButton
+            android:id="@+id/add_ingredient_radio_room_temp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="실온"/>
+    </RadioGroup>
+
+    <!-- [기존 주석 유지] 유통기한 -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/add_ingredient_btn_expiration"
+        style="?attr/materialButtonOutlinedStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="유통기한 선택"
+        android:gravity="start|center_vertical"
+        app:icon="@android:drawable/ic_menu_today" />
+
+    <!-- [기존 주석 유지] 저장 버튼 -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/add_ingredient_btn_save"
+        style="@style/Widget.App.Button.Filled"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="저장"/>
+
+</LinearLayout>

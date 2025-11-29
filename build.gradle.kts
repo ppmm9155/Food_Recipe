@@ -11,4 +11,10 @@ plugins {
     // 'apply false'의 의미는 위와 동일하며, 모듈 수준에서 실제로 적용합니다.
     // 버전은 libs.versions.toml을 통해 관리됩니다.
     alias(libs.plugins.google.gms.google.services) apply false
+
+    // [추가] Secrets Gradle Plugin을 프로젝트에서 사용할 수 있도록 정의합니다.
+    // 이 플러그인은 local.properties 파일에 저장된 비밀 키(API 키 등)를
+    // BuildConfig 파일에 안전하게 포함시키는 역할을 합니다.
+    // 버전은 libs.versions.toml을 통해 관리됩니다.
+    alias(libs.plugins.secrets.gradle.plugin) apply false
 }

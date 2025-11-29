@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/join_coordinator_layout" 
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- 1. 전체 배경 이미지 -->
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="Join Background Image"
+        android:scaleType="centerCrop"
+        android:src="@drawable/bg_login_image" />
+
+    <!-- 2. 배경을 어둡게 만들어줄 오버레이 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000" />
+
+    <!-- 3. 회원가입 폼을 담을 스크롤 뷰 -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <!-- 중앙 정렬 및 패딩 적용 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingStart="@dimen/auth_horizontal_margin"
+            android:paddingEnd="@dimen/auth_horizontal_margin"
+            android:paddingTop="@dimen/auth_vertical_margin"
+            android:paddingBottom="@dimen/auth_vertical_margin">
+
+            <!-- 4. 반투명 카드 형태의 회원가입 폼 -->
+            <LinearLayout
+                android:id="@+id/join"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_login_card"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <!-- 타이틀 -->
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/join_tvTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="회원가입"
+                    android:textSize="28sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black"
+                    android:layout_marginBottom="24dp"/>
+
+                <!-- 아이디 + 중복확인 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="12dp">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/join_tilId"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textColorHint="@color/gray_700"
+                        app:boxStrokeColor="@color/gray_700"
+                        app:boxBackgroundColor="@android:color/white"
+                        app:helperText="4~16자, 영문/숫자만 허용됩니다.">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/join_etId"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="아이디"
+                            android:inputType="textPersonName"
+                            android:maxLength="16"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/join_btnCheckId"
+                        style="@style/Widget.App.Button.Outlined"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:text="중복확인"
+                        android:textColor="@color/gray_700"
+                        android:backgroundTint="@android:color/white"
+                        app:strokeColor="@color/gray_700"
+                        android:minHeight="0dp"
+                        android:paddingHorizontal="16dp"
+                        android:layout_marginStart="8dp"
+                        app:cornerRadius="8dp"/>
+                </LinearLayout>
+
+                <!-- 이메일 + 인증 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="12dp">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/join_tilEmail"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textColorHint="@color/gray_700"
+                        app:boxStrokeColor="@color/gray_700"
+                        app:boxBackgroundColor="@android:color/white"
+                        app:helperText="올바른 이메일 형식을 입력하세요.">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/join_etEmail"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="이메일"
+                            android:inputType="textEmailAddress"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/join_btnVerifyEmail"
+                        style="@style/Widget.App.Button.Outlined"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:text="인증"
+                        android:textColor="@color/gray_700"
+                        android:backgroundTint="@android:color/white"
+                        app:strokeColor="@color/gray_700"
+                        android:minHeight="0dp"
+                        android:paddingHorizontal="16dp"
+                        android:layout_marginStart="8dp"
+                        app:cornerRadius="8dp"/>
+                </LinearLayout>
+
+                <!-- 비밀번호 -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/join_tilPassword"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:textColorHint="@color/gray_700"
+                    app:boxStrokeColor="@color/gray_700"
+                    app:boxBackgroundColor="@android:color/white"
+                    app:endIconMode="password_toggle"
+                    app:helperText="8자 이상, 영문/숫자/특수문자 포함 권장">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/join_etPassword"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="비밀번호"
+                        android:inputType="textPassword"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- 비밀번호 재입력 -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/join_tilPasswordConfirm"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20dp"
+                    android:textColorHint="@color/gray_700"
+                    app:boxStrokeColor="@color/gray_700"
+                    app:boxBackgroundColor="@android:color/white"
+                    app:endIconMode="password_toggle"
+                    app:helperText="비밀번호를 다시 입력해주세요.">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/join_etPasswordConfirm"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="비밀번호 재입력"
+                        android:inputType="textPassword"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- 회원가입 버튼 -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/join_btnRegister"
+                    style="@style/Widget.App.Button.Filled"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:text="회원가입"/>
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

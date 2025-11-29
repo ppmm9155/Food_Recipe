@@ -1,0 +1,16 @@
+<resources>
+    <style name="Theme.Food_Recipe.Splash" parent="Theme.SplashScreen">
+        <!-- 배경색: 검정 -->
+        <item name="windowSplashScreenBackground">@color/black_2</item>
+        <!-- 애니메이션 아이콘: 로고 drawable -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/app_splash_icon</item>
+        <!-- 아이콘 배경색 (로고 외곽 원이 있을 경우) -->
+        <item name="windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
+        <!-- Splash 사라지고 나서 적용할 테마 -->
+        <item name="postSplashScreenTheme">@style/Theme.Food_Recipe</item>
+        <!-- 애니메이션 지속시간 (밀리초) -->
+        <item name="windowSplashScreenAnimationDuration">500</item>
+        <!-- 키보드 문제 해결용 -->
+        <item name="android:windowSoftInputMode">adjustResize|stateHidden</item>
+    </style>
+</resources>

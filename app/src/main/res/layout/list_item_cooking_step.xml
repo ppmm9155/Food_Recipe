@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="12dp">
+
+    <!-- [추가] 타임라인의 세로선 역할을 하는 View -->
+    <View
+        android:id="@+id/list_step_view_timeline"
+        android:layout_width="2dp"
+        android:layout_height="0dp"
+        android:background="@color/gray_200"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="@id/list_step_tv_step_number"
+        app:layout_constraintEnd_toEndOf="@id/list_step_tv_step_number" />
+
+    <!-- [변경] 원형 배경, 중앙 정렬, 제약조건 수정 -->
+    <TextView
+        android:id="@+id/list_step_tv_step_number"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:background="@drawable/bg_step_number_circle"
+        android:gravity="center"
+        android:textColor="@color/black"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/list_step_tv_description"
+        tools:text="1" />
+
+    <!-- [변경] 제약조건 및 마진 수정 -->
+    <TextView
+        android:id="@+id/list_step_tv_description"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:lineSpacingExtra="4dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toEndOf="@id/list_step_tv_step_number"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:text="재료를 손질합니다. 김치는 먹기 좋은 크기로 썰고, 대파는 어슷하게 썹니다." />
+
+    <!-- [변경] 제약조건 수정 -->
+    <ImageView
+        android:id="@+id/list_step_iv_image"
+        android:layout_width="0dp"
+        android:layout_height="200dp"
+        android:layout_marginTop="8dp"
+        android:scaleType="centerCrop"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/list_step_tv_description"
+        app:layout_constraintStart_toStartOf="@id/list_step_tv_description"
+        app:layout_constraintEnd_toEndOf="@id/list_step_tv_description"
+        tools:src="@drawable/ic_launcher_background"
+        tools:visibility="visible"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

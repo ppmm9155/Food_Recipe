@@ -1,20 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+    [최종 구조 변경] 최상위 레이아웃을 RelativeLayout으로 변경합니다.
+    이는 하단 네비게이션 바를 제외한 '콘텐츠 영역'의 크기를 명확하게 분리하여
+    내부 프래그먼트들이 정확한 공간을 할당받도록 하기 위한 가장 확실한 구조입니다.
+-->
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".MainActivity"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <!--
+        [변경] BottomNavigationView의 위치를 RelativeLayout의 규칙으로 제어합니다.
+        - android:layout_alignParentBottom="true" 속성은 이 뷰를 부모의 맨 아래에 고정시킵니다.
+        - 이렇게 하면 이 뷰의 공간이 다른 콘텐츠 영역과 겹치지 않고 명확하게 분리됩니다.
+        [삭제] CoordinatorLayout 내부에서 사용되던 android:layout_gravity="bottom"은 삭제합니다.
+        [추가] app:labelVisibilityMode="labeled" 속성을 추가하여 아이템 개수와 상관없이 항상 모든 메뉴의 라벨(텍스트)을 표시하도록 강제합니다.
+    -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/main_bottom_nav"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_alignParentBottom="true"
+        android:background="@color/black_2"
+        app:itemIconTint="@color/bottom_nav_icon_tint_selector"
+        app:itemTextColor="@color/white"
+        app:menu="@menu/bottom_nav_menu"
+        app:itemActiveIndicatorStyle="@style/MyBottomNavActiveIndicatorStyle"
+        app:labelVisibilityMode="labeled" />
 
-</LinearLayout>
+    <!--
+        [변경] 기존의 CoordinatorLayout을 RelativeLayout의 자식으로 배치합니다.
+        [추가] android:layout_above="@+id/main_bottom_nav" 속성을 추가하여
+               이 레이아웃이 BottomNavigationView의 '바로 위' 공간 전체를 차지하도록 지정합니다.
+               이것이 프래그먼트의 중앙 정렬 문제를 해결하는 핵심입니다.
+    -->
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/main_bottom_nav">
+
+        <!-- AppBarLayout과 Toolbar는 기존 구조 그대로 유지됩니다. -->
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/main_appbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fitsSystemWindows="true"
+            android:background="@color/black_2"
+            android:backgroundTint="@color/black_2">
+
+            <!--
+                [변경] app:popupTheme 속성의 값을 새로 만든 @style/ThemeOverlay.App.PopupMenu로 변경합니다.
+                이것은 툴바의 자체 테마(android:theme)가 가진 어두운 팝업 규칙을 무시하고,
+                우리가 정의한 '팝업 전용 라이트 테마'를 강제로 사용하도록 만드는 가장 확실한 방법입니다.
+            -->
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/main_toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:theme="@style/MyToolbarTheme"
+                app:popupTheme="@style/ThemeOverlay.App.PopupMenu"
+                app:titleTextColor="@color/white"
+                app:navigationIconTint="@color/white"
+                app:menu="@menu/main_toolbar_menu"
+                app:titleTextAppearance="@style/MyToolbarTitleStyle"
+                app:contentInsetStart="24dp" />
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <!--
+            FragmentContainerView는 이제 정확한 크기의 공간(CoordinatorLayout) 내부에
+            배치되므로, 내부 프래그먼트의 중앙 정렬이 완벽하게 동작합니다.
+        -->
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/nav_host_fragment"
+            android:name="androidx.navigation.fragment.NavHostFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:defaultNavHost="true"
+            app:navGraph="@navigation/navgraph"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+</RelativeLayout>
