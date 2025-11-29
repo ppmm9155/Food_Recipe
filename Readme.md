@@ -91,6 +91,20 @@
 
 <br>
 
+## 🛠 개발 환경 (Prerequisites)
+
+이 프로젝트를 실행하기 위해 필요한 최소 환경입니다.
+
+* **IDE:** Android Studio Narwhal | 2025.1.3 (Build #AI-251.26094.121)
+* **JDK:** Java 17 이상 (Gradle 8.13 호환, JetBrains Runtime 21.0.7 사용)
+* **Android SDK:**
+    * `minSdk`: 26 (Android 8.0 Oreo)
+    * `targetSdk`: 36 (Android 16)
+    * `compileSdk`: 36
+* **Build System:** Gradle 8.13
+
+<br>
+
 ## ⚙️ 설치 방법
 
 1.  **Firebase 프로젝트 설정**
