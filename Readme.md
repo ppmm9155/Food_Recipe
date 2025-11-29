@@ -68,10 +68,10 @@
 ## 📑 프로젝트 문서 (Project Documents)
 
 ### 3학년 1학기 (기획 및 설계)
-* **[요구사항 분석서 (PDF)](documents/3rd_Year_1st_Semester_Planning/01_SE_Requirements_Analysis.pdf):** 사용자 요구사항 정의 및 유스케이스 명세
-* **[프로젝트 계획서 (PDF)](documents/3rd_Year_1st_Semester_Planning/02_SE_Project_Plan.pdf):** WBS, 일정 계획 및 개발 방법론(Agile) 정의
-* **[테스트 계획서 (PDF)](documents/3rd_Year_1st_Semester_Planning/03_SE_Test_Plan.pdf):** 테스트 시나리오, 품질 목표 및 리스크 관리 전략
-* **[졸업작품 종합설계 계획서 (PDF)](documents/3rd_Year_1st_Semester_Planning/04_Graduation_Design_Plan.pdf):** 초기 아키텍처 설계
+* **[요구사항 분석서 (PDF)](documents/3rd_Year_1st_Semester/01_SE_Requirements_Analysis.pdf):** 사용자 요구사항 정의 및 유스케이스 명세
+* **[프로젝트 계획서 (PDF)](documents/3rd_Year_1st_Semester/02_SE_Project_Plan.pdf):** WBS, 일정 계획 및 개발 방법론(Agile) 정의
+* **[테스트 계획서 (PDF)](documents/3rd_Year_1st_Semester/03_SE_Test_Plan.pdf):** 테스트 시나리오, 품질 목표 및 리스크 관리 전략
+* **[졸업작품 종합설계 계획서 (PDF)](documents/3rd_Year_1st_Semester/04_Graduation_Design_Plan.pdf):** 초기 아키텍처 설계
 
 <br>
 
