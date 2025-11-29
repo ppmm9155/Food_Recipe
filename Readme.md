@@ -117,10 +117,14 @@
 
 1.  **Firebase Functions 배포**
     *   `functions` 디렉토리에서 `npm install`을 실행하여 모든 종속성을 설치합니다.
-    *   `firebase deploy --only functions` 명령어로 함수를 배포합니다. (배포 전 `functions/src/index.ts`에 Algolia **Admin API Key**를 설정해야 합니다.)
+    *   **(필수) Functions 환경 변수 설정:** `.env.example` 파일을 참고하여 `.env.<YOUR_PROJECT_ID>` 파일을 생성하고 Algolia **Admin API Key**를 설정합니다. (Functions는 이 Admin Key로 Firestore 변경 사항을 Algolia에 반영합니다.)
+    *   `firebase deploy --only functions` 명령어로 함수를 배포합니다.
 
 2.  **데이터 파이프라인 실행 (최초 1회)**
-    *   `data_pipeline` 디렉토리의 Python 스크립트를 실행하여 레시피 데이터를 Firestore와 Algolia에 색인합니다.
+    *   `data_pipeline` 디렉토리의 Python 스크립트를 실행하여 레시피 데이터를 Firestore에 색인합니다.
+    *   **Algolia 연동:** 이 프로젝트는 **커스텀 Functions**를 사용하여 Firestore의 `recommend_count` 변경을 Algolia에 실시간 동기화합니다.
+    *   최초 대량 색인을 위해서는 Firebase Extensions을 사용하거나 별도의 스크립트를 사용해야 합니다. Extensions를 사용한다면:
+    *   **Algolia 인덱스 설정:** 인덱스 이름은 `recipes`이며, 검색(Search)에 사용되는 주요 필드는 `title`,`ingredients`,`cooking_time`,`imageUrl`,`view_count`,`scrap_count`,`recommend_count` Alternative Object Id는 `RCP_SNO` 입니다.
 
 3.  **앱 실행**
     *   Android Studio에서 앱을 실행하여 회원가입 후 기능을 테스트합니다.
