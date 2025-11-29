@@ -73,6 +73,9 @@
 * **[테스트 계획서 (PDF)](documents/3rd_Year_1st_Semester/03_SE_Test_Plan.pdf):** 테스트 시나리오, 품질 목표 및 리스크 관리 전략
 * **[졸업작품 종합설계 계획서 (PDF)](documents/3rd_Year_1st_Semester/04_Graduation_Design_Plan.pdf):** 초기 아키텍처 설계
 
+### 3학년 2학기 (구현 및 최종 보고)
+* **[졸업작품 최종 결과 보고서 (PDF)](documents/3rd_Year_2nd_Semester/Final%20Graduation%20Project%20Report.pdf):** 프로젝트 최종 결과 및 개발 완료 보고서
+
 <br>
 
 ## 📊 데이터 출처
