@@ -95,6 +95,7 @@
 
 1.  **Firebase 프로젝트 설정**
     *   Firebase Console에서 새 프로젝트를 생성하고 Android 앱을 등록합니다.
+    *   **(필수) SHA-1 인증서 지문 등록:** Google 로그인을 위해 **디버그(Debug) 및 릴리즈(Release) SHA-1 지문**을 Firebase 프로젝트 설정에 추가해야 합니다.
     *   **(필수)** 프로젝트 설정에서 `google-services.json` 파일을 다운로드하여 `app/` 디렉토리에 추가해야 합니다. 이 파일은 앱이 Firebase 서비스에 연결하는 데 필요합니다.
     *   Authentication (이메일/비밀번호, Google 로그인), Firestore, Functions를 활성화합니다.
 
