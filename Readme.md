@@ -65,6 +65,16 @@
 
 <br>
 
+## 📑 프로젝트 문서 (Project Documents)
+
+### 3학년 1학기 (기획 및 설계)
+* **[요구사항 분석서 (PDF)](documents/3rd_Year_1st_Semester_Planning/01_SE_Requirements_Analysis.pdf):** 사용자 요구사항 정의 및 유스케이스 명세
+* **[프로젝트 계획서 (PDF)](documents/3rd_Year_1st_Semester_Planning/02_SE_Project_Plan.pdf):** WBS, 일정 계획 및 개발 방법론(Agile) 정의
+* **[테스트 계획서 (PDF)](documents/3rd_Year_1st_Semester_Planning/03_SE_Test_Plan.pdf):** 테스트 시나리오, 품질 목표 및 리스크 관리 전략
+* **[졸업작품 종합설계 계획서 (PDF)](documents/3rd_Year_1st_Semester_Planning/04_Graduation_Design_Plan.pdf):** 초기 아키텍처 설계
+
+<br>
+
 ## 📊 데이터 출처
 
 * **KADX농식품 빅데이터 거래소:** [무료 레시피 데이터 (만개의 레시피)](https://kadx.co.kr/opmk/frn/pmumkproductDetail/PMU_79c6f1a4-56dd-492e-ad67-c5acba0304d2/5)를 기반으로 사용했습니다.
