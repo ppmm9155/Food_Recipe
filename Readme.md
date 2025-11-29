@@ -147,8 +147,7 @@
 
 2.  **데이터 파이프라인 실행 (최초 1회)**
     *   `data_pipeline` 디렉토리의 Python 스크립트를 실행하여 레시피 데이터를 Firestore에 색인합니다.
-    *   **Algolia 연동:** 이 프로젝트는 **커스텀 Functions**를 사용하여 Firestore의 `recommend_count` 변경을 Algolia에 실시간 동기화합니다.
-    *   최초 대량 색인을 위해서는 Firebase Extensions을 사용하거나 별도의 스크립트를 사용해야 합니다. Extensions를 사용한다면:
+    *   **Algolia 연동:** 최초 대량 색인 을 위해서는 Firebase Console에서 **Search Firestore with Algolia** Extension 사용을 권장합니다.
     *   **Algolia 인덱스 설정:** 인덱스 이름은 `recipes`이며, 검색(Search)에 사용되는 주요 필드는 `title`,`ingredients`,`cooking_time`,`imageUrl`,`view_count`,`scrap_count`,`recommend_count` Alternative Object Id는 `RCP_SNO` 입니다.
 
 3.  **앱 실행**
